@@ -42,6 +42,7 @@ step easy to check.
 18. [Troubleshooting](#18-troubleshooting)
 19. [Limitations and honest caveats](#19-limitations-and-honest-caveats)
 20. [Future work](#20-future-work)
+21. [How the numbers work, and how the knowledge base grows](#21-how-the-numbers-work-and-how-the-knowledge-base-grows)
 
 ---
 
@@ -480,6 +481,86 @@ afs-assistant/
 - **Expert feedback loop:** turn stored expert corrections into reviewed new rules and evidence cards.
 - **Automatic source onboarding** with an "unreviewed" evidence scope until an expert approves the cards.
 - **Vision-assisted reading** of figures for new slide decks.
+
+## 21. How the numbers work, and how the knowledge base grows
+
+Every number on screen except the premise verdicts and the council judge scores is computed by
+deterministic code. The thresholds below are **design choices, visible and tunable** in the named files;
+they were checked against expected outcomes (dev and adversarial cases), not fitted to expert-labelled data.
+
+### Header
+
+| Shown | Computed in | Rule |
+|---|---|---|
+| **Decision status** | report model, constrained | "Target not defined" forces *insufficient information*; "clinical / in-vivo use" forces *outside supported scope*. Quality check S4 fails if the report disagrees, or says *outside scope* without such a rule (one repair round). Rule-only mode takes the status straight from these rules. |
+| **Confidence** | `engine/confidence.py` | See below. |
+| **Quality x/16** | `engine/quality.py` | Number of the 16 checks (section 7) that **pass**. S2, H2, H4, U1, U2, U3 (and G1 at 70–90 %) can only *warn*; only *fails* trigger the repair round. |
+| **Claims verified x/y** | `engine/verify.py` | *y* = statements of kind `sourced` in recommendations, measurement concept, spectral range and risks (headline, questions, plan and premise check are not counted). *x* = those whose quote is on the cited page after alignment: exact normalised match = verified, ≥ 90 fuzzy = fuzzy (counted, flagged). Readiness wording citing S03/S04/S05/S06 = scope warning (not counted). |
+| **Unsupported numbers** | `engine/verify.py` | Numbers with a unit (%, nm, µm, cm-1, mm, °C, ppm, mM …) anywhere in the report that do not appear in the enquiry, the answers, the evidence, the cited pages or the knowledge-base tables (2400 nm ↔ 2.4 µm accepted). |
+
+### Confidence, step by step
+
+| Signal | Computation | Level |
+|---|---|---|
+| Information | coach completeness = (stated + 0.5 × inferred) / 10 | ≥ 0.6 high · ≥ 0.35 medium · ≥ 0.15 low · else insufficient; target undefined → insufficient |
+| Evidence | an *application rule* fired (dairy, pharma blend, water in petroleum, hot-melt API, moisture, bioprocess, heterogeneous tissue, glucose) and a lead method exists | high; lead only → medium; candidates only → low; none → insufficient |
+| Scope fit | clinical-scope rule fired / production context | insufficient / medium / else high |
+| Client premises (shown) | any contradicted / any unverifiable | low / medium / high |
+| Verification (adjusts) | verified ÷ sourced | ≥ 0.9 high · ≥ 0.7 medium · else low |
+| Model agreement (council, adjusts) | see council | ≥ 0.99 high · ≥ 0.6 medium · else low |
+
+1. Overall = **minimum of Information, Evidence and Scope fit**.
+2. **Rule caps**: silica link for MIR → low; fluorescence without target → low; demand for an exact answer → low; target undefined → insufficient; clinical use → insufficient.
+3. **Minus one level** if Verification is low, and again if Model agreement is low.
+4. Status *insufficient information* or *outside supported scope* → confidence insufficient.
+
+Client premises are shown but do not lower the level: a wrong customer premise is a finding, not
+uncertainty in the answer. Per method: lead = overall, candidate = one level lower, weak / not supported =
+insufficient. "What would raise confidence" = the top three unknown, high-impact coach questions.
+
+### Other numbers
+
+| Shown | Rule |
+|---|---|
+| Method screening score | Sum of rule contributions (e.g. +2 "Powders favour NIR" [S01 p.6]). ≤ −2 not supported; top score ≥ 2 lead; ≥ 1 candidate; else weak. |
+| Coach x/10 | Ten fixed facts (target, matrix, optics, concentration range, reference, accuracy, conditions, installation, measuring points, response time): stated 1, inferred 0.5, rounded. |
+| Premise verdicts | LLM (fast model); fallback: premise type + fired rule → *contradicted* (blocking rule) or *unverifiable* (warning rule). |
+| RRF score (evidence list) | Σ 1 / (60 + rank) over all BM25 and dense rankings. |
+| Council judge score | Mean of six 1–5 rubric scores, averaged over the judges; no self-judging. |
+| Council winner | Drafts without grounding / honesty gate failures first, then highest judge score. |
+| Council agreement | Lower of: share of drafts with the most common lead method(s), share with the most common status. |
+| Spectral map | Nominal method ranges (`methods.json`), fiber ranges (S02 p.6). Overlap full / partial / none. Client silica link flagged when the assets mention silica and the method starts above 2.4 µm. |
+
+### Where the data lives
+
+One SQLite file, `data/cache/afs.db` (path from `DB_PATH`), not committed to git:
+`chunks` + `chunks_fts` (275 searchable records, BM25), `vectors` (embeddings), `meta` (ingest stats),
+`runs` (every assessment as JSON), `llm_cache` (validated Groq replies by prompt hash), `feedback`.
+Re-running ingest rebuilds only the first three; deleting the file loses saved runs and the cache.
+The embedding model is cached in `data/cache/models/`.
+
+### How the knowledge base was built
+
+AI-assisted curation from the supplied material only, with every quote machine-verified; intended for
+review by an AFS expert.
+
+1. Every source read: S01 page by page (text extraction); **S02 rendered slide by slide and read visually**
+   because it is image-only, transcribed into `s02_notes.md`; key pages of S03 and S04; S05/S06 tagged as
+   business context.
+2. `methods.json`: the 19 rows of the xlsx converted by script, plus method profiles with source pages;
+   `fibers.json` and `bands.json` from the S02 figures, S04 and S01 Fig. 7.
+3. 95 evidence cards (`claims.jsonl`): claim, source, page, **verbatim quote**, scope tag.
+4. Every quote checked against its page by code; ingest and a test refuse to run if one fails.
+5. 30 general rules (`rules.yaml`) with conditions, effects and sources; none refers to a scenario.
+6. Ingest: 65 pages → ~180-word overlapping windows + 95 cards = 275 records → FTS5 + embeddings.
+
+### How it grows
+
+| Layer | Process |
+|---|---|
+| **Searchable text** (automatic once registered) | Add the file to `SOURCE_FILES` (`config.py`) and to `sources.json` with an evidence scope, re-run ingest. Its pages become retrievable and citable; the verifier checks quotes from them like any other. Planned: auto-discovery of new PDFs with scope "unreviewed", which can never raise confidence. |
+| **Curated cards and rules** (human-approved by design) | The model proposes candidate cards from a new document; only cards whose quote passes the on-page check are kept; an AFS expert approves them into `claims.jsonl`. Rules are written or approved by experts; expert feedback is already stored per run (`/api/feedback`) as input for new rules. |
+| **Regression after every change** | `pytest` (every quote on its page, every rule sourced) and `python -m eval.run_cases --set dev` / `--set adversarial` (expectation column must read OK). The knowledge base is versioned in git. |
 
 ---
 
