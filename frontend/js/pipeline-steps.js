@@ -1,7 +1,7 @@
 // Five browser tabs group the underlying pipeline stages without hiding their progress.
 export const STEPS = [
   { id: "reading", short: "Reading", label: "Reading", color: "#6d28d9", description: "Enter the customer's enquiry and choose how to assess it.", stages: ["extract"] },
-  { id: "process", short: "Process", label: "Process", color: "#2563eb", description: "See which models and rules contributed to each stage.", stages: ["rules", "retrieve", "premise"] },
+  { id: "process", short: "Process", label: "Process", color: "#2563eb", description: "Follow the models, rules, and evidence search while the assessment is calculated.", stages: ["extract", "rules", "retrieve", "premise", "report", "verify", "coach"] },
   { id: "assessment", short: "Result Assessment", label: "Result Assessment", color: "#15803d", description: "Review recommendations and open the highlighted evidence behind sourced claims.", stages: ["report"] },
   { id: "verification", short: "Confidence & Verification", label: "Confidence and Verification", color: "#c2410c", description: "Review confidence signals, source checks, and quality metrics.", stages: ["verify"] },
   { id: "coach", short: "Coach", label: "Coach", color: "#b91c1c", description: "Fill the important gaps and re-run with customer answers.", stages: ["coach"] },
@@ -37,7 +37,21 @@ export function latestStageEvent(s, id) {
     (event.status === "start" || event.status === "done"));
 }
 
+export function processComplete(s) {
+  return !s.busy && !!s.run?.id && !s.run.error;
+}
+
+export function canOpenStep(s, id) {
+  return id === "reading" || id === "process" || processComplete(s);
+}
+
 export function stepStatus(s, id) {
+  if (id === "process") {
+    if (s.busy) return "active";
+    if (s.run?.error) return "error";
+    return processComplete(s) ? "done" : "pending";
+  }
+  if (id !== "reading" && !processComplete(s)) return "pending";
   const stages = sourceStages(id);
   if (!stages.length) return "pending";
   if (stages.every((stage) => stageDone(s, stage))) return "done";
@@ -51,8 +65,7 @@ export function stepStatus(s, id) {
 }
 
 export function activeStep(s) {
-  return STEPS.find((step) => stepStatus(s, step.id) === "active")?.id ||
-    (s.busy ? STEPS.find((step) => stepStatus(s, step.id) === "pending")?.id : null) || null;
+  return s.busy ? "process" : null;
 }
 
 export const STATUS_LABELS = { pending: "Waiting", active: "Now", done: "Done", error: "Stopped" };

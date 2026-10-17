@@ -257,16 +257,18 @@ Open `http://localhost:8000`.
   Result Assessment → Confidence and Verification → Coach. Dots stay hollow until their tab's work
   completes, then fill with that
   step's spectrum color. The gradient line stays continuous through the brighter, gradient-backed selected step.
-  The running step and the step being viewed have separate visual states. Select
-  any step to inspect its output; **Follow current step** resumes automatic navigation.
+  Submitting an enquiry opens Process and keeps it selected while all calculations run. The later tabs
+  stay locked until the complete result arrives; then the spectrum fills across the line and the tabs open.
+  Reading remains available during a run, with **Follow current step** returning to Process.
 - **Page headers:** each tab starts with a dark, color-tinted header containing a short explanation,
   its measured runtime (and the full run time when available), and links to the sections on that page.
   Links open collapsed sections before scrolling and preserve `#run=<id>` deep links.
 - **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
   Fast / Council mode with an explanation of the selected mode, and an LLM model selector. The model choice is saved in the browser; backend
   routing still uses the server configuration.
-- **Process:** stage overview with actual model calls, rules, method screening, retrieval, premise checks,
-  council drafts, and timings.
+- **Process:** live stage and model activity, an updating trace, rules, method screening, retrieval,
+  premise checks, council drafts and judging, and timings. The full trace and council record remain here
+  after processing finishes.
 - **Result Assessment:** report and Markdown export. Sourced statements are highlighted; selecting a
   citation opens its supporting quote highlighted in the knowledge base page and original PDF.
 - **Confidence and Verification:** computed confidence, citation checks, number and client-fact checks,

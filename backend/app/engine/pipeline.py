@@ -9,6 +9,7 @@ import time
 import uuid
 from typing import Callable, Optional
 
+from ..config import settings
 from ..kb import retrieve as retrieve_mod
 from ..kb import store
 from ..llm.models import model_for
@@ -56,10 +57,21 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
         run_.timings_ms[name] = int((time.time() - t0) * 1000)
         emit({"type": "stage", "stage": name, "status": "done", "detail": detail, "ms": run_.timings_ms[name]})
         emit({"type": "stage_result", "stage": name,
-              "data": run_.model_dump(mode="json", include=STAGE_FIELDS[name])})
+              "data": run_.model_dump(mode="json", include=STAGE_FIELDS[name] | {"trace"})})
+
+    def model_activity(name: str, task: str):
+        actor = ("Rule fallback" if settings.llm_mock or not settings.groq_api_key
+                 else model_for(name))
+        emit({"type": "detail", "stage": name, "detail": f"{actor}: {task}"})
+
+    def council_activity(name: str, detail: str):
+        if settings.llm_mock:
+            detail += " (no LLM call in mock mode)"
+        emit({"type": "detail", "stage": name, "detail": detail})
 
     try:
         t = stage("extract", "Reading the enquiry")
+        model_activity("extract", "extracting facts and unknowns")
         req = extract_mod.extract(run_.enquiry, run_.answers, trace)
         run_.requirements = req
         done("extract", t, f"{len(req.facts)} facts, {len(req.unknowns)} unknowns, {len(req.premises)} premises")
@@ -79,6 +91,7 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
         done("retrieve", t, f"{len(run_.evidence)} passages")
 
         t = stage("premise", "Checking the client's premises")
+        model_activity("premise", "checking customer claims against evidence")
         run_.premises = premise_mod.check(run_.enquiry, req, run_.rule_hits, run_.evidence, trace)
         done("premise", t, ", ".join(f"{p.premise_id}: {p.verdict}" for p in run_.premises) or "no premises")
 
@@ -91,13 +104,14 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
             t = stage("council", "Council: drafts, gates, blind cross-judging")
             rep, run_.council = council_mod.run(user_prompt, run_.enquiry, run_.answers, run_.rule_hits, run_.matrix,
                                                 run_.coverage, run_.premises, run_.evidence, trace,
-                                                on_event=lambda s, d: emit({"type": "detail", "stage": s, "detail": d}))
+                                                on_event=council_activity)
             if rep is None:
                 rep, llm_report = rule_fallback(), False
             run_.report = rep
             done("council", t, f"winner {run_.council.winner or '-'}, agreement {run_.council.agreement:.0%}")
         else:
             t = stage("report", "Writing the assessment")
+            model_activity("report", "drafting the assessment")
             rep = report_mod.draft(model_for("report"), "report", user_prompt, trace)
             if rep is None:
                 rep, llm_report = rule_fallback(), False
@@ -122,6 +136,7 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
         done("verify", t, f"{ver.n_verified}/{ver.n_sourced} claims verified, quality {q.passed}/{q.total}")
 
         t = stage("coach", "Enquiry coach")
+        model_activity("coach", "preparing follow-up questions")
         run_.coach = coach_mod.build(run_.enquiry, req, run_.answers, trace)
         run_.confidence = confidence_mod.compute(req, run_.rule_hits, run_.matrix, run_.premises, ver, run_.coach,
                                                  run_.council, rep)

@@ -1,7 +1,7 @@
 // Boot, live pipeline state, and navigation between its steps.
 import { esc, getJSON, stream } from "./api.js";
 import * as store from "./state.js";
-import { STEPS, activeStep, canonicalStage, normalizeTab, stepStatus } from "./pipeline-steps.js";
+import { STEPS, activeStep, canOpenStep, normalizeTab, stepStatus } from "./pipeline-steps.js";
 import { renderStatus, renderFiber } from "./components/header.js";
 import { renderPageHeader } from "./components/page-header.js";
 import { renderEnquiry } from "./components/enquiry.js";
@@ -19,6 +19,7 @@ const actions = {
   setExample(selectedExample, draftEnquiry) { Object.assign(store.get(), { selectedExample, draftEnquiry }); },
   selectTab(id) {
     const tab = normalizeTab(id);
+    if (!canOpenStep(store.get(), tab)) return;
     store.remember("tab", tab);
     store.set({ tab, followStage: false });
   },
@@ -41,11 +42,11 @@ const actions = {
     if (!s.run) return;
     const answers = Object.fromEntries(Object.entries(s.answers).filter(([, v]) => v.trim()));
     if (!Object.keys(answers).length) { store.set({ error: "Type at least one answer first." }); return; }
-    await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode }, true);
+    await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode });
   },
 };
 
-async function run(url, body, isWhatIf = false) {
+async function run(url, body) {
   const previous = store.get().run;
   const liveRun = {
     enquiry: body.enquiry || previous?.enquiry || "",
@@ -54,14 +55,13 @@ async function run(url, body, isWhatIf = false) {
     timings_ms: {},
   };
   store.set({ busy: true, error: "", stages: [], details: [], previous,
-    run: null, liveRun, tab: "reading", followStage: true });
+    run: null, liveRun, tab: "process", followStage: true });
   let receivedResult = false;
   try {
     await stream(url, body, (e) => {
       const s = store.get();
       if (e.type === "stage") {
-        store.set({ stages: [...s.stages, e],
-          ...(e.status === "start" && s.followStage ? { tab: canonicalStage(e.stage) } : {}) });
+        store.set({ stages: [...s.stages, e] });
       } else if (e.type === "stage_result") {
         const stageDone = [...s.stages].reverse().find((item) => item.stage === e.stage && item.status === "done");
         store.set({ liveRun: { ...s.liveRun, ...e.data,
@@ -72,8 +72,7 @@ async function run(url, body, isWhatIf = false) {
         store.set({ error: `The run hit an error: ${e.detail}` });
       } else if (e.type === "result") {
         receivedResult = true;
-        const tab = s.followStage && !e.run.error ? (isWhatIf ? "coach" : "assessment") : s.tab;
-        store.set({ run: e.run, liveRun: e.run, tab, answers: {} });
+        store.set({ run: e.run, liveRun: e.run, tab: "process", answers: {} });
         if (e.run.id) history.replaceState(null, "", `#run=${e.run.id}`);
       }
     });
@@ -145,9 +144,15 @@ store.subscribe(render);
 
 (async function boot() {
   const linkedRun = location.hash.match(/run=([\w-]+)/);
-  store.set({ tab: normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading")),
+  const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"));
+  store.set({ tab: linkedRun ? "process" : canOpenStep(store.get(), preferredTab) ? preferredTab : "reading",
     mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto") });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }
-  if (linkedRun) { try { store.set({ run: await getJSON(`/api/runs/${linkedRun[1]}`) }); } catch (_) { /* old link */ } }
+  if (linkedRun) {
+    try {
+      const run = await getJSON(`/api/runs/${linkedRun[1]}`);
+      store.set({ run, tab: canOpenStep({ ...store.get(), run }, preferredTab) ? preferredTab : "process" });
+    } catch (_) { /* old link */ }
+  }
 })();

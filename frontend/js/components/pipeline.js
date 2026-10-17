@@ -166,8 +166,19 @@ function processActor(run, stage, fallback) {
 }
 
 export function renderProcess(el, run, state, actions) {
-  el.innerHTML = `<section class="section"><h2>Process overview</h2>
-    <p class="small muted">The stages below show which work used an LLM, which work used rules, and what has finished. Actual model calls appear after the run completes.</p>
+  const active = PROCESS_STAGES.find(([stage]) => processStageState(state, run, stage) === "active");
+  const activeStage = [...state.stages].reverse().find((event) => event.status === "start")?.stage;
+  const activity = [...state.details].reverse().find((item) => item.stage === activeStage)?.detail;
+  el.innerHTML = `${state.busy ? `<section class="section process-live" aria-live="polite">
+    <h2>Working on your assessment</h2>
+    <p><b>${esc(active?.[1] || "Starting the pipeline")}</b></p>
+    <p>${esc(activity || [...state.stages].reverse().find((event) => event.status === "start")?.label || "Preparing the first stage…")}</p>
+  </section>` : run?.id && !run.error ? `<section class="section process-finished">
+    <h2>Processing finished</h2><p>The trace and council record are available below. The remaining tabs are now open.</p>
+    <button type="button" class="btn primary" id="openAssessment">Open Result Assessment</button>
+  </section>` : run?.error ? `<section class="section stage-placeholder"><h2>Processing stopped</h2><p>${esc(run.error)}</p></section>` : ""}
+  <section class="section"><h2>Process overview</h2>
+    <p class="small muted">Follow each model or rule task as it runs. Completed model calls appear in the trace below as soon as their stage finishes.</p>
     <ol class="process-list">${PROCESS_STAGES.map(([stage, label, actor]) => {
       const status = processStageState(state, run, stage);
       const time = run?.timings_ms?.[stage] ?? (stage === "report" ? run?.timings_ms?.council : null);
@@ -177,6 +188,7 @@ export function renderProcess(el, run, state, actions) {
       </div></li>`;
     }).join("")}</ol>
   </section>`;
+  el.querySelector("#openAssessment")?.addEventListener("click", () => actions.selectTab("assessment"));
   if (!run) return;
   if (run.requirements) {
     const requirements = document.createElement("details");
@@ -205,17 +217,24 @@ export function renderProcess(el, run, state, actions) {
     el.appendChild(premises);
     renderPremise(premises.querySelector("div"), run);
   }
-  if (run.id) {
-    const trace = document.createElement("details");
-    trace.className = "section";
-    trace.innerHTML = `<summary>Model calls and timing</summary><div></div>`;
-    el.appendChild(trace);
-    renderTrace(trace.querySelector("div"), run);
+  const trace = document.createElement("details");
+  trace.className = "section";
+  trace.innerHTML = `<summary>Model calls and timing</summary><div></div>`;
+  trace.open = state.busy;
+  el.appendChild(trace);
+  renderTrace(trace.querySelector("div"), run);
+  if (run.mode === "council" || run.id) {
     const council = document.createElement("details");
     council.className = "section";
     council.innerHTML = `<summary>Council drafts and judging</summary><div></div>`;
+    council.open = state.busy && activeStage === "council";
     el.appendChild(council);
-    renderCouncil(council.querySelector("div"), run, actions);
+    if (state.busy && !run.council) {
+      council.querySelector("div").innerHTML = `<p class="small muted">${esc(activity && activeStage === "council" ? activity :
+        "Council drafting and blind judging will appear here when this stage runs.")}</p>`;
+    } else {
+      renderCouncil(council.querySelector("div"), run, actions);
+    }
   }
 }
 
