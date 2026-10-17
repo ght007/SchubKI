@@ -11,6 +11,8 @@ const state = {
   tab: "extract",
   followStage: true,    // follow the live step until the user selects another view
   mode: "fast",
+  modelChoice: "auto", // UI preference only; backend model routing is unchanged
+  draftEnquiry: null, // null means use the loaded run's enquiry
   examples: [],
   health: null,
   evidence: null,       // {source, page, quote, verified}
@@ -28,6 +30,6 @@ export function set(patch) {
 
 export function subscribe(fn) { subs.add(fn); return () => subs.delete(fn); }
 
-const memo = { tab: "afs.tab", mode: "afs.mode" };
+const memo = { tab: "afs.tab", mode: "afs.mode", modelChoice: "afs.modelChoice" };
 export function remember(key, value) { try { localStorage.setItem(memo[key], value); } catch (_) { /* private mode */ } }
 export function recall(key, fallback) { try { return localStorage.getItem(memo[key]) || fallback; } catch (_) { return fallback; } }

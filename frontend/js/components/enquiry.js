@@ -1,37 +1,61 @@
-// Enquiry box, mode toggle, stage progress.
+// The Read step owns the customer enquiry and its UI-only model preference.
 import { esc } from "../api.js";
 
 export function renderEnquiry(el, s, actions) {
   const groups = {};
-  for (const e of s.examples) (groups[e.group] ||= []).push(e);
-  const current = el.querySelector("textarea")?.value || s.run?.enquiry || "";
-  el.innerHTML = `
+  for (const example of s.examples) (groups[example.group] ||= []).push(example);
+  const enquiry = s.draftEnquiry ?? s.run?.enquiry ?? "";
+  const configured = s.health?.models || {};
+  const models = [...new Set([configured.fast, configured.main, ...(configured.council || []), s.modelChoice]
+    .filter((model) => model && model !== "auto"))];
+
+  el.innerHTML = `<section class="panel enquiry-stage">
     <h2>Customer enquiry</h2>
-    <div class="row" style="margin-bottom:.5rem">
-      <label class="small muted" for="example">Load a scenario</label>
-      <select id="example" style="flex:1;min-width:0">
-        <option value="">Choose…</option>
-        ${Object.entries(groups).map(([g, items]) => `<optgroup label="${esc(g)}">${items.map((e) =>
-          `<option value="${esc(e.id)}">${esc(e.id)}: ${esc(e.title)}</option>`).join("")}</optgroup>`).join("")}
+    <label class="enquiry-label" for="enq">What did the customer ask for?</label>
+    <textarea class="enq" id="enq" placeholder="Paste or type what the customer said. Only what they said: the assistant treats everything else as unknown.">${esc(enquiry)}</textarea>
+
+    <div class="scenario-picker">
+      <label for="example">…or load a scenario</label>
+      <select id="example">
+        <option value="">Choose a scenario…</option>
+        ${Object.entries(groups).map(([group, items]) => `<optgroup label="${esc(group)}">${items.map((example) =>
+          `<option value="${esc(example.id)}">${esc(example.id)}: ${esc(example.title)}</option>`).join("")}</optgroup>`).join("")}
       </select>
     </div>
-    <textarea class="enq" id="enq" placeholder="Paste or type what the customer said. Only what they said: the assistant treats everything else as unknown.">${esc(current)}</textarea>
-    <div class="row between" style="margin-top:.6rem">
-      <div class="seg" role="group" aria-label="Mode">
-        <button data-mode="fast" aria-pressed="${s.mode === "fast"}" title="One model, about 10-20 s">Fast</button>
-        <button data-mode="council" aria-pressed="${s.mode === "council"}" title="Several models draft, judge each other blind; slower">Council</button>
-      </div>
-      <button class="btn primary" id="go" ${s.busy ? "disabled" : ""}>${s.busy ? "Assessing…" : "Assess enquiry"}</button>
-    </div>
-    ${s.stages.length ? `<ul class="stage-log">${s.stages.filter((x) => x.status === "done").map((x) =>
-      `<li><b>${esc(x.stage)}</b> ${esc(x.detail || "")} <span class="muted">${x.ms ?? ""} ms</span></li>`).join("")}
-      ${s.details.slice(-3).map((d) => `<li class="muted">${esc(d.detail)}</li>`).join("")}</ul>` : ""}
-    ${s.error ? `<div class="err">${esc(s.error)}</div>` : ""}`;
 
-  el.querySelector("#example").onchange = (ev) => {
-    const ex = s.examples.find((e) => e.id === ev.target.value);
-    if (ex) el.querySelector("#enq").value = ex.enquiry;
+    <div class="enquiry-options">
+      <div class="enquiry-option">
+        <span class="enquiry-option-label" id="mode-label">Assessment mode</span>
+        <div class="seg" role="group" aria-labelledby="mode-label">
+          <button type="button" data-mode="fast" aria-pressed="${s.mode === "fast"}" title="One model, about 10-20 s">Fast</button>
+          <button type="button" data-mode="council" aria-pressed="${s.mode === "council"}" title="Several models draft and judge each other; slower">Council</button>
+        </div>
+      </div>
+      <div class="enquiry-option">
+        <label class="enquiry-option-label" for="model-choice">LLM model</label>
+        <select id="model-choice">
+          <option value="auto" ${s.modelChoice === "auto" ? "selected" : ""}>Server default</option>
+          ${models.map((model) => `<option value="${esc(model)}" ${s.modelChoice === model ? "selected" : ""}>${esc(model)}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <p class="small muted model-note">Model choice is saved in this browser. The server still uses its configured model.</p>
+    <div class="enquiry-actions"><button type="button" class="btn primary" id="go" ${s.busy ? "disabled" : ""}>${s.busy ? "Assessing…" : "Assess enquiry"}</button></div>
+    ${s.error ? `<div class="err">${esc(s.error)}</div>` : ""}
+  </section>`;
+
+  const textarea = el.querySelector("#enq");
+  textarea.oninput = () => actions.setDraftEnquiry(textarea.value);
+  el.querySelector("#example").onchange = (event) => {
+    const example = s.examples.find((item) => item.id === event.target.value);
+    if (example) {
+      textarea.value = example.enquiry;
+      actions.setDraftEnquiry(example.enquiry);
+      textarea.focus();
+    }
   };
-  el.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => actions.setMode(b.dataset.mode)));
-  el.querySelector("#go").onclick = () => actions.assess(el.querySelector("#enq").value);
+  el.querySelectorAll("[data-mode]").forEach((button) =>
+    (button.onclick = () => actions.setMode(button.dataset.mode)));
+  el.querySelector("#model-choice").onchange = (event) => actions.setModelChoice(event.target.value);
+  el.querySelector("#go").onclick = () => actions.assess(textarea.value);
 }

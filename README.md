@@ -254,11 +254,13 @@ Open `http://localhost:8000`.
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
 - **Top pipeline navigation:** One gradient line connects seven numbered dots: Read → Rules → Evidence →
   Premises → Assess → Verify → Coach. Dots stay hollow until their step completes, then fill with that
-  step's spectrum color. The running step and the step being viewed have separate visual states. Select
+  step's spectrum color. The gradient line stays continuous through the brighter, gradient-backed selected step.
+  The running step and the step being viewed have separate visual states. Select
   any step to inspect its output; **Follow current step** resumes automatic navigation.
-- **Left:** enquiry box with a scenario loader (H, D and adversarial cases), Fast / Council mode, and
-  stage log.
-- **Seven stage views:** Read shows extracted facts, unknowns, and client premises. Rules shows fired
+- **Read:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
+  Fast / Council mode, and an LLM model selector. The model choice is saved in the browser; backend
+  routing still uses the server configuration.
+- **Other stage views:** Rules shows the extracted requirements, fired
   rules, method screening, fiber coverage, and the spectral map. Evidence shows retrieval queries and
   selected passages. Premises shows verdicts on the client's claims. Assess shows the report and Markdown
   export. Verify shows citation, number, client-fact, and quality checks. Coach shows follow-up questions,

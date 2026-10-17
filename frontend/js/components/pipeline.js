@@ -1,4 +1,4 @@
-// The seven navigable pipeline views. Each reads only the data produced at its stage.
+// Pipeline result views. The Read step contains the enquiry form in enquiry.js.
 import { esc } from "../api.js";
 import { renderMatrix } from "./matrix.js";
 import { renderSpectral } from "./spectral-map.js";
@@ -82,6 +82,13 @@ function renderRules(el, run) {
     renderSpectral(mapEl, { ...run, matrix: list(run.matrix), coverage: list(run.coverage) });
   } else {
     mapEl.innerHTML = `<div class="stage-placeholder">Spectral coverage was not mapped for this run.</div>`;
+  }
+  if (run.requirements) {
+    const details = document.createElement("details");
+    details.className = "section";
+    details.innerHTML = `<summary>Extracted requirements used for screening</summary><div></div>`;
+    el.appendChild(details);
+    renderExtract(details.querySelector("div"), run);
   }
 }
 

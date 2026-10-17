@@ -14,6 +14,8 @@ const $ = (id) => document.getElementById(id);
 
 const actions = {
   setMode(mode) { store.remember("mode", mode); store.set({ mode }); },
+  setModelChoice(modelChoice) { store.remember("modelChoice", modelChoice); store.set({ modelChoice }); },
+  setDraftEnquiry(draftEnquiry) { store.get().draftEnquiry = draftEnquiry; }, // keep typing without a re-render
   selectTab(id) {
     const tab = normalizeTab(id);
     store.remember("tab", tab);
@@ -26,7 +28,7 @@ const actions = {
   setAnswer(key, value) { store.get().answers[key] = value; },           // no re-render while typing
   async assess(enquiry) {
     if (!enquiry.trim()) { store.set({ error: "Type or load an enquiry first." }); return; }
-    store.set({ answers: {} });
+    store.set({ answers: {}, draftEnquiry: enquiry });
     await run("/api/assess", { enquiry, mode: store.get().mode });
   },
   async assessCouncil() {
@@ -102,6 +104,10 @@ function renderTools(s) {
 function renderView(s) {
   const el = $("view");
   const run = s.busy ? s.liveRun : s.run;
+  if (s.tab === "extract") {
+    renderEnquiry(el, s, actions);
+    return;
+  }
   if (!isStep(s.tab)) {
     if (!run?.id || s.busy) {
       const current = s.busy ? activeStep(s) : null;
@@ -135,8 +141,7 @@ function renderView(s) {
     renderPipelineStep(content, step.id, run, { ...s, run }, actions);
   } else if (!run && !s.busy && !s.error) {
     content.innerHTML = `<div class="empty"><h2>Start with a customer enquiry</h2>
-      <p>Load a scenario or type an enquiry. Each step above opens its own result as the pipeline runs; choose a step to inspect it, or follow the live step.</p>
-      <p class="small">Fast mode uses one model; Council mode lets several models draft and judge each other.</p></div>`;
+      <p>Open Read to type an enquiry or load a scenario. Each step above opens its own result as the pipeline runs.</p></div>`;
   } else {
     const message = status === "active" ? "This step is running. Its output will appear here when it finishes." :
       status === "error" ? "The run stopped before this step produced an output." :
@@ -151,7 +156,6 @@ let lastEvidence = null;
 function render(s) {
   renderStatus($("status"), s);
   renderFiber($("fiber"), s, actions.selectTab);
-  renderEnquiry($("enquiry"), s, actions);
   renderTools(s);
   renderView(s);
   document.querySelector(".shell").classList.toggle("with-drawer", !!s.evidence);
@@ -174,7 +178,7 @@ store.subscribe(render);
 (async function boot() {
   const linkedRun = location.hash.match(/run=([\w-]+)/);
   store.set({ tab: normalizeTab(store.recall("tab", linkedRun ? "report" : "extract")),
-    mode: store.recall("mode", "fast") });
+    mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto") });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }
   if (linkedRun) { try { store.set({ run: await getJSON(`/api/runs/${linkedRun[1]}`) }); } catch (_) { /* old link */ } }

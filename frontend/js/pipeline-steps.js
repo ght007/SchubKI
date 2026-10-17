@@ -1,6 +1,6 @@
 // One ordered model drives the segmented spectrum navigation and live status.
 export const STEPS = [
-  { id: "extract", short: "Read", label: "Read the enquiry", color: "#6d28d9", ink: "#fff", description: "Facts, unknowns, and assumptions found in the customer's words." },
+  { id: "extract", short: "Read", label: "Read the enquiry", color: "#6d28d9", ink: "#fff", description: "Enter the customer's enquiry and choose how to assess it." },
   { id: "rules", short: "Rules", label: "Rules and screening", color: "#2563eb", ink: "#fff", description: "AFS rules, method scores, fiber coverage, and spectral ranges." },
   { id: "retrieve", short: "Evidence", label: "Retrieve evidence", color: "#0e7490", ink: "#fff", description: "The passages selected to support or challenge the assessment." },
   { id: "premise", short: "Premises", label: "Check premises", color: "#15803d", ink: "#fff", description: "The customer's own claims checked against the available evidence." },
