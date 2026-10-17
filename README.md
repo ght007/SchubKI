@@ -320,7 +320,9 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   Result Assessment opens automatically (Coach after a what-if re-run).
 - **Page headers:** each tab starts with a dark, color-tinted header containing a short explanation,
   its measured runtime (and the full run time when available), and links to the sections on that page.
-  Links open collapsed sections before scrolling and preserve `#run=<id>` deep links.
+  The header stays at the top while scrolling, and the current section's link is accented automatically.
+  Links open collapsed sections, keep their target below the pinned header, and preserve `#run=<id>` deep links.
+  On small screens the section links scroll horizontally to leave room for the page content.
 - **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
   optional Path A/B/C selection, the instant pre-check, and the reading confirmation with follow-up questions.
   Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
