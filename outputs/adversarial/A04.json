@@ -1,0 +1,1662 @@
+{
+ "id": "d8480395f6",
+ "created": "2026-10-17T01:32:44",
+ "mode": "fast",
+ "enquiry": "Something in our product goes wrong sometimes. Which sensor should we buy?",
+ "answers": {},
+ "parent_run_id": null,
+ "requirements": {
+  "summary": "Client reports intermittent product issues and asks which sensor to purchase.",
+  "target_variables": [],
+  "target_defined": "no",
+  "matrix": "unknown",
+  "phase": "unknown",
+  "optical_behavior": "unknown",
+  "aqueous": "unknown",
+  "fluorescent_target": "unknown",
+  "heterogeneous": "unknown",
+  "temperature": "unknown",
+  "fouling_risk": "unknown",
+  "process_context": "unknown",
+  "analyzer_remote": "unknown",
+  "link_length_known": "no",
+  "existing_assets": [],
+  "requested_methods": [],
+  "reference_method": "unknown",
+  "concentration_level": "unknown",
+  "measurement_points": "unknown",
+  "facts": [],
+  "unknowns": [
+   {
+    "item": "Product defect cause",
+    "why_it_matters": "Determines appropriate sensing modality",
+    "impact": "high"
+   },
+   {
+    "item": "Process conditions (temperature, phase, matrix)",
+    "why_it_matters": "Affects sensor selection",
+    "impact": "high"
+   },
+   {
+    "item": "Measurement point location",
+    "why_it_matters": "Impacts fiber routing and remote capability",
+    "impact": "medium"
+   },
+   {
+    "item": "Desired measurement variable (e.g., concentration, temperature, composition)",
+    "why_it_matters": "Defines sensor type",
+    "impact": "high"
+   },
+   {
+    "item": "Existing equipment or fiber infrastructure",
+    "why_it_matters": "May allow reuse of cables or probes",
+    "impact": "medium"
+   }
+  ],
+  "premises": [
+   {
+    "id": "P1",
+    "statement": "Which sensor should we buy?",
+    "kind": "certainty_request"
+   }
+  ]
+ },
+ "rule_hits": [
+  {
+   "rule_id": "R_TARGET_UNDEFINED",
+   "title": "Target not defined",
+   "severity": "block",
+   "text": "The quality variable or contaminant is not defined, so no single method or exact sensor configuration can be justified. The supported next step is to define the target and run an exploratory multi-method comparison of good and off-spec samples.",
+   "scores": {},
+   "question": {
+    "text": "Which quality variable or specification fails, and what is known about the suspected contaminant (source, chemical class, expected level)?",
+    "impact": "high",
+    "why": "Without a target no method can be selected."
+   },
+   "cap_confidence": "insufficient",
+   "status_hint": "insufficient_information",
+   "plan": [
+    "Collect matched in-spec and off-spec samples with independent lab analysis.",
+    "Screen them with several methods (multi-method lab trial) to find discriminating spectral features before choosing a sensor."
+   ],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 3
+    },
+    {
+     "source": "S02",
+     "page": 3
+    },
+    {
+     "source": "S02",
+     "page": 20
+    },
+    {
+     "source": "S01",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "rule_id": "R_CERTAINTY_DEMAND",
+   "title": "Request for a final configuration on missing facts",
+   "severity": "warn",
+   "text": "An exact configuration cannot be justified before the target, sample optics, conditions and acceptance criteria are known; method selection depends on many factors and is decided by comparison on real samples.",
+   "scores": {},
+   "question": null,
+   "cap_confidence": "low",
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S02",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "rule_id": "R_NO_REFERENCE",
+   "title": "Reference method unknown",
+   "severity": "info",
+   "text": "",
+   "scores": {},
+   "question": {
+    "text": "Which independent reference method, uncertainty and sampling time will provide the reference values?",
+    "impact": "high",
+    "why": "Calibration and validation need independent reference values."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S01",
+     "page": 10
+    }
+   ]
+  }
+ ],
+ "coverage": [
+  {
+   "method_id": "NIR",
+   "method_range_um": [
+    0.78,
+    2.5
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.78,
+      1.2
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.78,
+      2.4
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      1.1,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.0,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "MIR",
+   "method_range_um": [
+    2.5,
+    25.0
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      2.5,
+      6.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": [
+      3.0,
+      17.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.5,
+      18.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      2.5,
+      5.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      2.5,
+      4.5
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "RAMAN",
+   "method_range_um": [
+    0.4,
+    1.1
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "UVVIS",
+   "method_range_um": [
+    0.19,
+    0.74
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.19,
+      0.74
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "FLUO",
+   "method_range_um": [
+    0.25,
+    0.8
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.25,
+      0.8
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  }
+ ],
+ "matrix": [
+  {
+   "method_id": "NIR",
+   "name": "NIR spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "MIR",
+   "name": "MIR spectroscopy (ATR)",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "RAMAN",
+   "name": "Raman spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "UVVIS",
+   "name": "UV/Vis spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "FLUO",
+   "name": "Fluorescence spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  }
+ ],
+ "evidence": [
+  {
+   "ref": "E1",
+   "kind": "claim",
+   "source": "S01",
+   "page": 3,
+   "text": "Online (in-process) analysis measures directly in the process flow or reactor without sampling, avoiding delays and contamination risk. Quote: \"It allows for in-process analysis, i.e., directly in the process flow or reactor without sampling, eliminating delays and the risk of sample contamination.\"",
+   "quote": "It allows for in-process analysis, i.e., directly in the process flow or reactor without sampling, eliminating delays and the risk of sample contamination.",
+   "scope": "general_method",
+   "score": 0.0137
+  },
+  {
+   "ref": "E2",
+   "kind": "claim",
+   "source": "S01",
+   "page": 3,
+   "text": "When the sample composition is incompletely known, several spectroscopy approaches should be tested to select the most suitable method or combination. Quote: \"The ability to test various optical spectroscopy approaches is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method or combination of methods.\"",
+   "quote": "The ability to test various optical spectroscopy approaches is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method or combination of methods.",
+   "scope": "general_method",
+   "score": 0.0798
+  },
+  {
+   "ref": "E3",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "NIR penetrates up to several millimetres even into dense samples and works with ordinary glass optics, making it suited to online and remote fiber measurements. Quote: \"NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics\"",
+   "quote": "NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E4",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Strong MIR absorption limits transmission measurements to very thin samples, which is why ATR probes are used. Quote: \"strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)\"",
+   "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E5",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Raman needs special probes; Raman and MIR spectra carry complementary information. Quote: \"the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.\"",
+   "quote": "the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.",
+   "scope": "general_method",
+   "score": 0.0289
+  },
+  {
+   "ref": "E6",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "UV spectroscopy is very sensitive but strong spectral overlap makes chemometrics necessary for mixtures. Quote: \"the strong overlap of spectral signals in UV spectra complicates the analysis of real samples and makes the use of chemometric algorithms a necessary component\"",
+   "quote": "the strong overlap of spectral signals in UV spectra complicates the analysis of real samples and makes the use of chemometric algorithms a necessary component",
+   "scope": "general_method",
+   "score": 0.0122
+  },
+  {
+   "ref": "E7",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Fluorimetry relies on secondary emission of certain substances; most chemicals do not fluoresce, so it is mainly used in medicine, biology and biotechnology. Quote: \"However, most chemicals do not exhibit this property.\"",
+   "quote": "However, most chemicals do not exhibit this property.",
+   "scope": "general_method",
+   "score": 0.0164
+  },
+  {
+   "ref": "E8",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "NIR, UV and fluorescence give broad overlapping signals; MIR gives well-defined peaks; extracting information needs chemometric models (calibration or classification) that are built and validated. Quote: \"Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals\"",
+   "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals",
+   "scope": "general_method",
+   "score": 0.0152
+  },
+  {
+   "ref": "E9",
+   "kind": "chunk",
+   "source": "S02",
+   "page": 19,
+   "text": "\"Market for Photonics Sensors & Detectors ($ MILLIONS)\". \"Spectral fiber sensors must be developed for customized applications in industrial process control - to be installed in critical points of reactor for low cost and in-line control of reagents composition. Sensors should transfer data by WiFi to iCloud for real time data treatment - to enable process control and its automatization matching the IoT & Industry4.0 concepts.\" Business context only. [PDF text] Market for Photonics Sensors & Detectors ($ MILLIONS) www.artphotonics.com Spectral fiber sensors must be developed for customized applications in industrial process control \u2013 to be installed in critical points of reactor for low cost and in-line control of reagents composition. Sensors should transfer data by WiFi to iCloud for real time data treatment \u2013 to enable process control and its automatization matching the IoT & Industry4.0 concepts",
+   "quote": null,
+   "scope": "company slides",
+   "score": 0.0559
+  },
+  {
+   "ref": "E10",
+   "kind": "claim",
+   "source": "S01",
+   "page": 8,
+   "text": "When inhomogeneity and rapid changes coexist, multispectral probes become essential. Quote: \"Situations are also possible where problems of inhomogeneity and rapid changes in the sample coexist. In these cases, the use of multispectral probes becomes essential.\"",
+   "quote": "Situations are also possible where problems of inhomogeneity and rapid changes in the sample coexist. In these cases, the use of multispectral probes becomes essential.",
+   "scope": "general_method",
+   "score": 0.0559
+  },
+  {
+   "ref": "E11",
+   "kind": "claim",
+   "source": "S01",
+   "page": 8,
+   "text": "Variables from different methods are not equivalent; normalisation alone may not solve fusion problems, so data fusion algorithms are needed. Quote: \"Variables obtained from different spectral methods are not equivalent.\"",
+   "quote": "Variables obtained from different spectral methods are not equivalent.",
+   "scope": "general_method",
+   "score": 0.0426
+  },
+  {
+   "ref": "E12",
+   "kind": "claim",
+   "source": "S04",
+   "page": 2,
+   "text": "Alternating measurements with two separate probes cannot guarantee the same spot and cannot be used in clinical surgery practice. Quote: \"Such alternating multispectral measurements cannot guarantee complete coincidence of the spots analyzed by both methods\"",
+   "quote": "Such alternating multispectral measurements cannot guarantee complete coincidence of the spots analyzed by both methods",
+   "scope": "general_method",
+   "score": 0.0408
+  },
+  {
+   "ref": "E13",
+   "kind": "chunk",
+   "source": "S03",
+   "page": 10,
+   "text": "Sensors 2017, 17, 1914 10 of 17 In the next development step, the full-spectrum data were used for sensor simulations. To simulate the sensor data, the spectral variables in the analytical regions were averaged using the real LED spectra (Figure 3) as weights. This operation resulted in a 41 (samples) by 4 (channels) matrix that was used to build another PLS-DA model for Series A. Despite the dramatic reduction of variables (from 512 in the NIR spectra to 4) the simulated sensor kept its diagnostic capability. Moreover, the predicted versus observed plots for the full and the reduced spectral data (Figure 6a,b) are very similar. Measurement points in the simulated sensor model (Figure 6b) have a somewhat higher scatter, in particular, for the tumor samples. As seven measurement points of the sample T191 fell below the standard discrimination threshold of 0.5, it had to be shifted to 0.47 in order to achieve full discrimination. Nevertheless, no misclassi\ufb01cation was observed in either case, and the DQ2 values (Table 1) revealed no signi\ufb01cant statistical difference between the full-spectrum and simulated sensor models.",
+   "quote": null,
+   "scope": "proof_of_concept_in_vitro",
+   "score": 0.0385
+  },
+  {
+   "ref": "E14",
+   "kind": "claim",
+   "source": "S04",
+   "page": 3,
+   "text": "No mutual influence of the combined methods was found; signal quality was comparable to single-method probes in the technical evaluation. Quote: \"No mutual influence of the combined spectroscopic methods was found.\"",
+   "quote": "No mutual influence of the combined spectroscopic methods was found.",
+   "scope": "lab_device",
+   "score": 0.0397
+  }
+ ],
+ "retrieval": {
+  "queries": [
+   "composition in unknown unknown",
+   "unknown unknown probe geometry",
+   "Target not defined Request for a final configuration on missing facts Reference method unknown",
+   "Something in our product goes wrong sometimes. Which sensor should we buy?"
+  ],
+  "bm25": {
+   "composition in unknown unknown": [
+    182,
+    2,
+    186,
+    76,
+    9,
+    40,
+    14,
+    8
+   ],
+   "unknown unknown probe geometry": [
+    182,
+    183,
+    235,
+    153,
+    233,
+    147,
+    158,
+    152
+   ],
+   "Target not defined Request for a final configuration on missing facts Reference method unknown": [
+    188,
+    182,
+    27,
+    273,
+    236,
+    189,
+    15,
+    216
+   ],
+   "Something in our product goes wrong sometimes. Which sensor should we buy?": [
+    130,
+    117,
+    77,
+    167,
+    264,
+    10,
+    150,
+    8
+   ]
+  },
+  "dense": {
+   "composition in unknown unknown": [
+    182,
+    121,
+    200,
+    122,
+    9,
+    195,
+    211,
+    144
+   ],
+   "unknown unknown probe geometry": [
+    96,
+    97,
+    199,
+    49,
+    156,
+    153,
+    158,
+    268
+   ],
+   "Target not defined Request for a final configuration on missing facts Reference method unknown": [
+    237,
+    261,
+    201,
+    202,
+    103,
+    273,
+    60,
+    270
+   ],
+   "Something in our product goes wrong sometimes. Which sensor should we buy?": [
+    256,
+    262,
+    221,
+    60,
+    134,
+    85,
+    129,
+    131
+   ]
+  },
+  "fused": [
+   [
+    182,
+    0.0798
+   ],
+   [
+    200,
+    0.0559
+   ],
+   [
+    76,
+    0.0559
+   ],
+   [
+    202,
+    0.0426
+   ],
+   [
+    268,
+    0.0408
+   ],
+   [
+    270,
+    0.0397
+   ],
+   [
+    114,
+    0.0385
+   ],
+   [
+    256,
+    0.0309
+   ],
+   [
+    153,
+    0.0308
+   ],
+   [
+    273,
+    0.0308
+   ],
+   [
+    9,
+    0.0308
+   ],
+   [
+    60,
+    0.0306
+   ],
+   [
+    183,
+    0.0304
+   ],
+   [
+    158,
+    0.0299
+   ],
+   [
+    262,
+    0.0296
+   ]
+  ],
+  "mmr": [
+   182,
+   76,
+   200,
+   202,
+   268,
+   114,
+   270,
+   153,
+   233,
+   256,
+   273,
+   183,
+   8,
+   97,
+   262,
+   264,
+   150,
+   235,
+   15,
+   60,
+   186,
+   156,
+   158,
+   9,
+   130,
+   40,
+   96,
+   103
+  ],
+  "pinned": [
+   181,
+   182,
+   184,
+   185,
+   186,
+   187,
+   188,
+   189,
+   190,
+   191,
+   238,
+   255
+  ],
+  "used_tokens": 1203
+ },
+ "spectral": {
+  "methods": [
+   {
+    "id": "NIR",
+    "name": "NIR spectroscopy",
+    "range_um": [
+     0.78,
+     2.5
+    ],
+    "label": "780-2500 nm",
+    "source": "S01 p.10"
+   },
+   {
+    "id": "MIR",
+    "name": "Mid-IR spectroscopy (ATR fiber probe)",
+    "range_um": [
+     2.5,
+     25.0
+    ],
+    "label": "4000-400 cm-1 (2.5-25 um)",
+    "source": "S01 p.9"
+   },
+   {
+    "id": "RAMAN",
+    "name": "Raman spectroscopy",
+    "range_um": [
+     0.4,
+     1.1
+    ],
+    "label": "Raman shift in cm-1; excitation laser in nm, stated separately (for example 785 nm)",
+    "source": "S01 p.11"
+   },
+   {
+    "id": "UVVIS",
+    "name": "UV/Visible spectroscopy",
+    "range_um": [
+     0.19,
+     0.74
+    ],
+    "label": "UV 190-360 nm (high sensitivity region), visible about 400-740 nm",
+    "source": "S01 p.5"
+   },
+   {
+    "id": "FLUO",
+    "name": "Fluorescence spectroscopy (fluorimetry)",
+    "range_um": [
+     0.25,
+     0.8
+    ],
+    "label": "Depends on the fluorescent species; UV/visible excitation, emission at longer wavelengths",
+    "source": "S01 p.12"
+   }
+  ],
+  "fibers": [
+   {
+    "id": "UV_SILICA",
+    "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.18,
+     1.2
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "VISNIR_SILICA",
+    "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.35,
+     2.4
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "CIR",
+    "name": "Chalcogenide As-S IR fiber (CIR)",
+    "range_um": [
+     1.1,
+     6.5
+    ],
+    "family": "chalcogenide"
+   },
+   {
+    "id": "PIR",
+    "name": "Polycrystalline silver-halide IR fiber (PIR)",
+    "range_um": [
+     3.0,
+     17.0
+    ],
+    "family": "polycrystalline"
+   },
+   {
+    "id": "HWG",
+    "name": "Hollow glass waveguide",
+    "range_um": [
+     2.0,
+     18.0
+    ],
+    "family": "hollow"
+   },
+   {
+    "id": "INF3",
+    "name": "Indium fluoride fiber",
+    "range_um": [
+     0.3,
+     5.5
+    ],
+    "family": "fluoride"
+   },
+   {
+    "id": "ZBLAN",
+    "name": "Zirconium fluoride fiber",
+    "range_um": [
+     0.3,
+     4.5
+    ],
+    "family": "fluoride"
+   }
+  ],
+  "bands": [],
+  "client_silica": false
+ },
+ "premises": [
+  {
+   "premise_id": "P1",
+   "statement": "Which sensor should we buy?",
+   "verdict": "contradicted",
+   "explanation": "The target analyte, sample optics, and acceptance criteria are undefined, so an exact sensor configuration cannot be justified; method selection requires defining the target and comparative testing.",
+   "citations": [
+    {
+     "source": "R_TARGET_UNDEFINED",
+     "page": 3,
+     "quote": "The quality variable or contaminant is not defined, so no single method or exact sensor configuration can be justified."
+    },
+    {
+     "source": "R_CERTAINTY_DEMAND",
+     "page": 5,
+     "quote": "An exact configuration cannot be justified before the target, sample optics, conditions and acceptance criteria are known; method selection depends on many factors and is decided by comparison on real samples."
+    }
+   ]
+  }
+ ],
+ "report": {
+  "decision_status": "outside_supported_scope",
+  "headline": "Cannot recommend a specific sensor without defining the target variable, sample conditions, and acceptance criteria.",
+  "requirements_stated": [
+   "Client reports intermittent product issues and asks which sensor to purchase."
+  ],
+  "key_unknowns": [
+   "What specific quality variable or defect is to be measured (e.g., concentration, temperature, composition).",
+   "Physical state and matrix of the product at the measurement point (solid, liquid, gas, opacity).",
+   "Process conditions such as temperature, pressure, flow regime at the intended measurement location.",
+   "Desired measurement point location and geometry (in\u2011line, on\u2011line, off\u2011line, probe type).",
+   "Existing fiber or optical infrastructure that could be leveraged."
+  ],
+  "clarification_questions": [
+   {
+    "question": "What is the specific quality variable or defect you need to detect (e.g., concentration of a contaminant, temperature drift, phase change)?",
+    "why": "Identifying the target defines which spectroscopic interaction (absorption, scattering, fluorescence) is relevant and narrows the method space.",
+    "impact": "high"
+   },
+   {
+    "question": "What is the physical form and optical properties of the product at the point of measurement (transparent liquid, opaque solid, slurry, etc.)?",
+    "why": "Different methods have distinct penetration depths and sample handling requirements (e.g., NIR works through several mm, MIR requires thin samples).",
+    "impact": "high"
+   },
+   {
+    "question": "What are the process conditions (temperature range, pressure, flow rate) where the sensor would be installed?",
+    "why": "Method suitability and fiber choice (silica vs. chalcogenide) depend on temperature and environmental constraints.",
+    "impact": "high"
+   },
+   {
+    "question": "Where in the process would the sensor be placed (inside reactor, at a sampling port, on a product stream)?",
+    "why": "Location determines geometry (diffuse reflectance, transmission, ATR, probe) and influences feasibility of online vs. offline measurement.",
+    "impact": "medium"
+   },
+   {
+    "question": "Do you have existing fiber optic infrastructure or constraints on sensor size, power, or data connectivity?",
+    "why": "Existing infrastructure can limit or enable certain fiber types and data acquisition approaches.",
+    "impact": "medium"
+   }
+  ],
+  "recommendations": [],
+  "measurement_concept": [
+   {
+    "text": "Client has not defined a target analyte or quality variable, so no single spectroscopic concept can be selected.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "When the sample composition is incompletely known, several spectroscopy approaches should be tested to select the most suitable method or combination.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 3,
+      "quote": "The ability to test various optical spectroscopy approaches is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method or combination of methods."
+     }
+    ]
+   },
+   {
+    "text": "An exploratory multi\u2011method comparison on representative good and off\u2011spec samples is the recommended next step.",
+    "kind": "proposal",
+    "citations": []
+   }
+  ],
+  "spectral_range": [
+   {
+    "text": "No spectral range can be assigned because the target variable and sample optics are unknown.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "risks": [
+   {
+    "text": "Selecting a sensor without a defined target may lead to wasted investment and ineffective monitoring.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "If the product matrix is highly scattering or opaque, methods relying on transmission (e.g., MIR) may be unsuitable.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "feasibility_plan": {
+   "samples": [
+    "Representative in\u2011process product samples covering normal operation and known off\u2011spec conditions.",
+    "Samples reflecting the range of temperatures and phases expected in the process."
+   ],
+   "reference": [
+    "Independent laboratory reference measurements (e.g., HPLC, GC, temperature probes) for the target variable.",
+    "Physical characterization of optical properties (absorption, scattering) of the product."
+   ],
+   "comparison": [
+    "Test NIR diffuse reflectance, MIR ATR, Raman probe, and UV\u2011Vis transmission on the same sample set.",
+    "Evaluate single\u2011method performance versus a combined multispectral probe."
+   ],
+   "decision_basis": [
+    "Client\u2011agreed detection limit or classification accuracy for the defect.",
+    "Robustness across temperature and matrix variations.",
+    "Ease of integration with existing process control and data infrastructure."
+   ],
+   "steps": [
+    "1. Define the target quality variable and acceptance criteria with the client.",
+    "2. Collect a balanced set of good and defective samples under realistic process conditions.",
+    "3. Perform laboratory measurements with NIR, MIR (ATR), Raman, and UV\u2011Vis on each sample.",
+    "4. Build and validate chemometric models for each method and for data\u2011fusion approaches.",
+    "5. Compare model performance, robustness, and integration requirements against the decision basis.",
+    "6. Present findings and recommend a sensor configuration (single or combined) for pilot testing."
+   ]
+  },
+  "pathway": {
+   "next_step": "Conduct a multi\u2011method laboratory trial on representative samples to identify the most suitable spectroscopy technique(s).",
+   "likely_path": "B",
+   "why": "The undefined target requires exploratory testing before committing to a specific sensor; a customized multi\u2011spectral system is the logical R&D route."
+  },
+  "assumptions": [
+   "The client seeks an online or on\u2011line solution for process monitoring.",
+   "No regulatory or safety constraints have been communicated that would preclude any of the surveyed methods."
+  ]
+ },
+ "verification": {
+  "claims": [
+   {
+    "location": "measurement_concept[0]",
+    "text": "Client has not defined a target analyte or quality variable, so no single spectroscopic concept can be selected.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[1]",
+    "text": "When the sample composition is incompletely known, several spectroscopy approaches should be tested to select the most suitable method or combination.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 3,
+      "quote": "The ability to test various optical spectroscopy approaches is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method or combination of methods."
+     }
+    ]
+   },
+   {
+    "location": "measurement_concept[2]",
+    "text": "An exploratory multi\u2011method comparison on representative good and off\u2011spec samples is the recommended next step.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "spectral_range[0]",
+    "text": "No spectral range can be assigned because the target variable and sample optics are unknown.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[0]",
+    "text": "Selecting a sensor without a defined target may lead to wasted investment and ineffective monitoring.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[1]",
+    "text": "If the product matrix is highly scattering or opaque, methods relying on transmission (e.g., MIR) may be unsuitable.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   }
+  ],
+  "numbers": [],
+  "client_facts": [],
+  "n_sourced": 1,
+  "n_verified": 1,
+  "n_unsupported_numbers": 0,
+  "n_bad_client_facts": 0
+ },
+ "quality": {
+  "items": [
+   {
+    "id": "S1",
+    "category": "structure",
+    "name": "All required sections present",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S2",
+    "category": "structure",
+    "name": "3-6 questions, highest impact first",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S3",
+    "category": "structure",
+    "name": "Plan has samples, reference, comparison, decision basis",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S4",
+    "category": "structure",
+    "name": "Decision status consistent with rule findings",
+    "status": "fail",
+    "detail": "rules require 'insufficient_information', report says 'outside_supported_scope'"
+   },
+   {
+    "id": "G1",
+    "category": "grounding",
+    "name": "Sourced claims verified on the cited page",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G2",
+    "category": "grounding",
+    "name": "No unsupported numbers",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G3",
+    "category": "grounding",
+    "name": "No invented client facts",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G4",
+    "category": "grounding",
+    "name": "Evidence used within its scope",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G5",
+    "category": "grounding",
+    "name": "Each recommendation has a sourced reason",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H1",
+    "category": "honesty",
+    "name": "No guarantee or readiness wording",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H2",
+    "category": "honesty",
+    "name": "Units: Raman shift in cm-1, excitation in nm",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H3",
+    "category": "honesty",
+    "name": "Fiber choice consistent with spectral coverage",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H4",
+    "category": "honesty",
+    "name": "Contradicted premises are stated plainly in the headline",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U1",
+    "category": "usefulness",
+    "name": "Client-requested weak methods are addressed (why / why not)",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U2",
+    "category": "usefulness",
+    "name": "Feasibility plan is concrete",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U3",
+    "category": "usefulness",
+    "name": "Questions cover the high-impact unknowns",
+    "status": "warn",
+    "detail": "1/2 high-impact rule questions covered"
+   }
+  ],
+  "passed": 14,
+  "total": 16,
+  "repaired": true,
+  "repair_notes": [
+   "G3 fixed"
+  ]
+ },
+ "confidence": {
+  "level": "insufficient",
+  "signals": [
+   {
+    "name": "Information",
+    "level": "insufficient",
+    "value": 0.0,
+    "detail": "0/10 decision-relevant facts known; target defined: no"
+   },
+   {
+    "name": "Evidence",
+    "level": "insufficient",
+    "value": 0.0,
+    "detail": "Only general method knowledge applies; no direct application example in the sources"
+   },
+   {
+    "name": "Scope fit",
+    "level": "high",
+    "value": 1.0,
+    "detail": "Requested use matches the scope of the cited evidence"
+   },
+   {
+    "name": "Client premises",
+    "level": "low",
+    "value": 0.3333333333333333,
+    "detail": "1 contradicted, 0 unverifiable, 0 supported"
+   },
+   {
+    "name": "Verification",
+    "level": "high",
+    "value": 1.0,
+    "detail": "1/1 sourced claims verified; 0 unsupported numbers"
+   }
+  ],
+  "caps": [
+   "R_TARGET_UNDEFINED: cap insufficient",
+   "R_CERTAINTY_DEMAND: cap low"
+  ],
+  "per_method": [
+   {
+    "method_id": "NIR",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "MIR",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "RAMAN",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "UVVIS",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "FLUO",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   }
+  ],
+  "raise_with": [
+   "Which variable or analyte must be measured, and which changes must be distinguished?",
+   "What is the sample (liquid, powder, melt, tissue...) and its main components?",
+   "Is the sample clear, turbid or opaque, and does this change during the process?"
+  ]
+ },
+ "council": null,
+ "coach": {
+  "completeness": 0,
+  "total": 10,
+  "fields": [
+   {
+    "name": "target",
+    "label": "Target variable / analyte",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Which variable or analyte must be measured, and which changes must be distinguished?"
+   },
+   {
+    "name": "matrix",
+    "label": "Sample matrix and phase",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What is the sample (liquid, powder, melt, tissue...) and its main components?"
+   },
+   {
+    "name": "optics",
+    "label": "Optical behaviour (clear / turbid / opaque)",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Is the sample clear, turbid or opaque, and does this change during the process?"
+   },
+   {
+    "name": "range",
+    "label": "Concentration range",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What concentration range must be covered, and what is the smallest change that matters?"
+   },
+   {
+    "name": "reference",
+    "label": "Reference method",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Which independent reference method (and its uncertainty) can provide calibration values?"
+   },
+   {
+    "name": "conditions",
+    "label": "Process conditions at the probe",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What temperature, pressure, flow, fouling and cleaning conditions apply at the probe?"
+   },
+   {
+    "name": "accuracy",
+    "label": "Accuracy / acceptance criteria",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Which accuracy, bias or acceptance limits must the measurement meet?"
+   },
+   {
+    "name": "installation",
+    "label": "Installation and fiber link",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Where can the probe be installed, and how far away will the analyzer be?"
+   },
+   {
+    "name": "timing",
+    "label": "Response time / update rate",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "How quickly must a change be detected (update rate, response time)?"
+   },
+   {
+    "name": "points",
+    "label": "Number of measuring points",
+    "status": "unknown",
+    "impact": "low",
+    "question": "How many measuring points or streams need monitoring?"
+   }
+  ],
+  "template": "We need a sensor for our product that sometimes fails. The target variable or analyte is [target variable / analyte, e.g. 'temperature, pressure, concentration of X']. The sample matrix and phase is [sample matrix and phase, e.g. 'liquid, powder, melt, tissue']. The optical behaviour is [optical behaviour, e.g. 'clear, turbid, opaque']. The concentration range is [concentration range, e.g. '0.1 to 10%']. The reference method is [reference method, e.g. 'calibrated standard, lab analysis']. The process conditions at the probe are [process conditions, e.g. 'temperature 50-100\u00b0C, pressure 1-5 bar, flow 10-100 mL/min, fouling, cleaning']. The accuracy / acceptance criteria are [accuracy / acceptance criteria, e.g. '\u00b10.5%']. The installation and fiber link are [installation and fiber link, e.g. 'probe in reactor, analyzer 5 m away']. The response time / update rate is [response time / update rate, e.g. '1 s']. The number of measuring points is [number of measuring points, e.g. '3']"
+ },
+ "diff": [],
+ "trace": [
+  {
+   "stage": "extract",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 1526,
+   "completion_tokens": 361,
+   "latency_ms": 788,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "premise",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 2148,
+   "completion_tokens": 309,
+   "latency_ms": 21451,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "report",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 3878,
+   "completion_tokens": 1333,
+   "latency_ms": 42294,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 3913,
+   "completion_tokens": 1444,
+   "latency_ms": 37032,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "coach",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 540,
+   "completion_tokens": 283,
+   "latency_ms": 582,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  }
+ ],
+ "timings_ms": {
+  "extract": 789,
+  "rules": 1,
+  "retrieve": 154,
+  "premise": 21452,
+  "report": 42295,
+  "verify": 37043,
+  "coach": 583,
+  "total": 102350
+ },
+ "error": ""
+}

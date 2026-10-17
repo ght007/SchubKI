@@ -1,0 +1,1885 @@
+{
+ "id": "dfe6ed27ac",
+ "created": "2026-10-17T01:34:26",
+ "mode": "fast",
+ "enquiry": "We dry flour and want to monitor moisture at twelve conveyor positions. Installation cost per point must be low. We have a laboratory oven method for moisture.",
+ "answers": {},
+ "parent_run_id": null,
+ "requirements": {
+  "summary": "Dry flour moisture monitoring at 12 conveyor positions with low installation cost; existing lab oven method for reference.",
+  "target_variables": [
+   "moisture"
+  ],
+  "target_defined": "yes",
+  "matrix": "unknown",
+  "phase": "solid",
+  "optical_behavior": "unknown",
+  "aqueous": "no",
+  "fluorescent_target": "unknown",
+  "heterogeneous": "unknown",
+  "temperature": "unknown",
+  "fouling_risk": "unknown",
+  "process_context": "production",
+  "analyzer_remote": "unknown",
+  "link_length_known": "no",
+  "existing_assets": [
+   "laboratory oven method for moisture"
+  ],
+  "requested_methods": [],
+  "reference_method": "yes",
+  "concentration_level": "unknown",
+  "measurement_points": "12",
+  "facts": [
+   {
+    "field": "phase",
+    "value": "solid",
+    "status": "stated",
+    "quote": "dry flour"
+   },
+   {
+    "field": "measurement_points",
+    "value": "12",
+    "status": "stated",
+    "quote": "twelve conveyor positions"
+   },
+   {
+    "field": "reference_method",
+    "value": "yes",
+    "status": "stated",
+    "quote": "laboratory oven method for moisture"
+   }
+  ],
+  "unknowns": [
+   {
+    "item": "optical behavior of flour at conveyor positions",
+    "why_it_matters": "Affects choice of probe and method",
+    "impact": "high"
+   },
+   {
+    "item": "distance between conveyor and sensor",
+    "why_it_matters": "Affects fiber length and attenuation",
+    "impact": "high"
+   },
+   {
+    "item": "possible fouling or dust accumulation on sensor",
+    "why_it_matters": "Affects maintenance and accuracy",
+    "impact": "medium"
+   }
+  ],
+  "premises": [
+   {
+    "id": "P1",
+    "statement": "Installation cost per point must be low.",
+    "kind": "other"
+   },
+   {
+    "id": "P2",
+    "statement": "We have a laboratory oven method for moisture.",
+    "kind": "other"
+   }
+  ]
+ },
+ "rule_hits": [
+  {
+   "rule_id": "R_MOISTURE",
+   "title": "Moisture in solids or bulk material",
+   "severity": "info",
+   "text": "NIR bands at 1.3-2.2 um carry moisture information; an NIR-LED fiber sensor concept for moisture exists (prototype concept).",
+   "scores": {
+    "NIR": 2
+   },
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S02",
+     "page": 18
+    },
+    {
+     "source": "S02",
+     "page": 12
+    }
+   ]
+  },
+  {
+   "rule_id": "R_MULTI_POINT",
+   "title": "Several measuring points",
+   "severity": "info",
+   "text": "Several measuring points: a central full-spectrum analyzer with multiplexer and long fibers gives higher accuracy; distributed spectral sensors give lower installation cost (decided after lab trials).",
+   "scores": {},
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S02",
+     "page": 18
+    }
+   ]
+  }
+ ],
+ "coverage": [
+  {
+   "method_id": "NIR",
+   "method_range_um": [
+    0.78,
+    2.5
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.78,
+      1.2
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.78,
+      2.4
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      1.1,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.0,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "MIR",
+   "method_range_um": [
+    2.5,
+    25.0
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      2.5,
+      6.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": [
+      3.0,
+      17.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.5,
+      18.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      2.5,
+      5.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      2.5,
+      4.5
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "RAMAN",
+   "method_range_um": [
+    0.4,
+    1.1
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "UVVIS",
+   "method_range_um": [
+    0.19,
+    0.74
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.19,
+      0.74
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "FLUO",
+   "method_range_um": [
+    0.25,
+    0.8
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.25,
+      0.8
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  }
+ ],
+ "matrix": [
+  {
+   "method_id": "NIR",
+   "name": "NIR spectroscopy",
+   "score": 2,
+   "contributions": [
+    {
+     "rule_id": "R_MOISTURE",
+     "delta": 2,
+     "reason": "Moisture in solids or bulk material [S02 p.18, S02 p.12]"
+    }
+   ],
+   "verdict": "lead",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "MIR",
+   "name": "MIR spectroscopy (ATR)",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "RAMAN",
+   "name": "Raman spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "UVVIS",
+   "name": "UV/Vis spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "FLUO",
+   "name": "Fluorescence spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  }
+ ],
+ "evidence": [
+  {
+   "ref": "E1",
+   "kind": "chunk",
+   "source": "S02",
+   "page": 12,
+   "text": "\"IoT Concept of NIR-LED Fiber Sensor to control Moisture Level\". Shown: FlexiSens sensor (\"Optimal set of wavelengths to see moisture of media in contact\"; \"Customized calibration for high accuracy in fast data acquisition\"; \"IP-address to collect data from each sensor by LAN\"; \"Trans-Flex or diffuse reflection\"). Figure: SNV-corrected NIR spectra of starch, flour and sugar (about 1200-2100 nm); reflectance spectra and PLS regression coefficients (900-1700 nm) with a few highlighted wavelength regions; a web interface showing moisture of wood (\"Water drop drying on wood surface with time\"). [PDF text] www.artphotonics.com IoT Concept of NIR-LED Fiber Sensor to control Moisture Level Water drop drying on wood surface with time",
+   "quote": null,
+   "scope": "company slides",
+   "score": 0.1281
+  },
+  {
+   "ref": "E2",
+   "kind": "claim",
+   "source": "S02",
+   "page": 12,
+   "text": "An NIR-LED fiber sensor concept (FlexiSens) uses an optimal set of wavelengths and a customized calibration to monitor moisture. Quote: \"Optimal set of wavelengths to see moisture of media in contact\"",
+   "quote": "Optimal set of wavelengths to see moisture of media in contact",
+   "scope": "prototype_concept",
+   "score": 0.1246
+  },
+  {
+   "ref": "E3",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 6,
+   "text": "6 Table 1. Comparative characteristics of spectral methods and measurement techniques. \u2116Method Measurement method Physical phenomenon Sample Type Optical path, depth Sensitiv ity Selectivit y Cost 1 IR spectrosc opy ATR- platform absorption liquid,paste, soft 1-6 mu average high high ATR probe* cuvette liquid 10-100 mu high avera ge sample layer solid film 5-50 mu sample surface diffuse reflection solid 10 mu average 2 NIR spectrosc opy cuvette transmission liquid 1-5 mm average average avera ge Transmission or transflection probe liquid, colloidal 1-10 mm avera ge Diffuse reflection- probe diffuse reflection Scattering media, powder 0.5-1 mm integrating sphere solid, powder 5-10 mm surface at a distance solid, powder 2-5 mm avera ge 3 Raman spectrosc opy cuvette 90\u00b0 raman scattering (emission) liquid 2-5 mm average high high Raman-probe liquid, powder, solid 4 UV/Visibl e spectrosc opy cuvette absorption liquid 1-5 mm high low low ATR probe 0.1-1 mu low avera ge Diffuse reflection- probe diffuse reflection solid, pill 1-5 mm low low Transmission or transflection probe Transmission liquid 1-10 mm low probe, lens emission of an external source radiating sample",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0963
+  },
+  {
+   "ref": "E4",
+   "kind": "claim",
+   "source": "S02",
+   "page": 18,
+   "text": "Typical bands: 0.85-1.1 um fat, protein, moisture; 1.3-2.2 um moisture, polymers, API, ethanol; 3.0-4.5 um hydrocarbons, CO2; 6.0-10.5 um ethanol, glucose, glutamine, organic acids, ammonium. Quote: \"6.0-8.0 and 8.0-10.5 \u00b5m \"Ethanol, Glucose, Glutamine, org. Acids, Ammonium,...\"\"",
+   "quote": "6.0-8.0 and 8.0-10.5 \u00b5m \"Ethanol, Glucose, Glutamine, org. Acids, Ammonium,...\"",
+   "scope": "general_method",
+   "score": 0.091
+  },
+  {
+   "ref": "E5",
+   "kind": "chunk",
+   "source": "S02",
+   "page": 18,
+   "text": "\"Spectral IoT Sensors vs Muliplexed Spectral Fiber Analyzer\". Figure: spectral bands with typical analytes: 0.85-1.1 \u00b5m \"Fat, Protein, Moisture,...\"; 1.3-1.7, 1.5-2.0 and 1.7-2.2 \u00b5m \"Moisture, Polymers, API, Ethanol,..\"; 3.0-3.7 and 3.7-4.5 \u00b5m \"Hydrocarbons, CO2,...\"; 6.0-8.0 and 8.0-10.5 \u00b5m \"Ethanol, Glucose, Glutamine, org. Acids, Ammonium,...\". \"Centralized installation with analyzer/multiplexer and long fibers for measuring points\" - \"Advantage - High accuracy due to the higher performance of full spectra process analyzer.\" \"Sensors installed in measuring points and send results via wires, Ethernet, Wi-Fi, etc.\" - \"Advantage - Lower cost for installation.\" \"Innovative Fabry-Perot tunable filters from InfraTec, LED, Filters, IR-LED from NanoPlus, spectral chips from MantiSpectra, etc. enable to develop compact spectral fiber sensors of customized design with data send to iCloud as in IoT - to enable remote process control in customized applications.\" [PDF text] Spectral IoT Sensors vs Muliplexed Spectral Fiber Analyzer Centralized installation with analyzer/multiplexer and long fibers for measuring points Sensors installed in measuring points and send results via wires, Ethernet, Wi-Fi, etc. Fiber cables Process Analyzer Control System Multiplexer Various process points to monitor Control System Connection",
+   "quote": null,
+   "scope": "company slides",
+   "score": 0.0873
+  },
+  {
+   "ref": "E6",
+   "kind": "claim",
+   "source": "S04",
+   "page": 4,
+   "text": "ATR requires samples that allow tight contact with the probe head (liquids or soft solids). Quote: \"allowing a tight contact with the probe head.\"",
+   "quote": "allowing a tight contact with the probe head.",
+   "scope": "general_method",
+   "score": 0.0802
+  },
+  {
+   "ref": "E7",
+   "kind": "chunk",
+   "source": "S04",
+   "page": 4,
+   "text": "for example, many vegetable products, mineral oils, and their derivatives. Another require- ment is the suitability of analyzed samples for ATR measurements, which is true for liquid or soft solid samples and their components, allowing a tight contact with the probe head. Solid samples are typically represented by nonhomoge- neous mixtures having complex matrixes with water (or another liquid component) as the major constituent. In fact, any spectral analysis of \ufb02uorescing mixtures suitable for ATR measurement can bene\ufb01t from adding vibrational signals of the component molecules and vice versa. The main focus of the proposed technology is on analyzing nonhomogeneous solid samples, because it enables simulta- neous measurements at the same point on the sample surface. The proven ability of combined \ufb02uorimetry and ATR IR spectroscopy to detect the tumor boundary15 is expected to have an impact on the oncological diagnostics. Optical methods are increasingly used in this practically important area, and the suggested technical approach becomes just indispensable here, because any sequential measurements in the same point using separate probes can hardly be done in practice, e.g., in clinical",
+   "quote": null,
+   "scope": "lab_demonstration",
+   "score": 0.0853
+  },
+  {
+   "ref": "E8",
+   "kind": "chunk",
+   "source": "S02",
+   "page": 13,
+   "text": "\"Application: measurement of water content in petroleum\". \"ATR-Probes with ATR-tips from ZrO2 (& Diamond, etc.) sealed in PEEK-shaft and protected by PEEK-tubing can be used in microwave furnaces.\" Figure: MIR absorbance spectra from 4000 to 2000 cm-1 of pure oil and of oil with 0.1%, 0.5%, 1.0% and 2.0% water; absorbance between about 4000 and 3000 cm-1 increases with water content. The slide shows a laboratory spectral series; it states no process installation, accuracy or detection limit. [PDF text] Application: measurement of water content in petroleum ATR-Probes with ATR-tips from ZrO2 (& Diamond, etc.) sealed in PEEK-shaft and protected by PEEK-tubing can be used in microwave furnaces www.artphotonics.com",
+   "quote": null,
+   "scope": "company slides",
+   "score": 0.0745
+  },
+  {
+   "ref": "E9",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 9,
+   "text": "just a few examples of LED OMS that are the most common and practical: \u2022 a probe for determining tumor boundaries in kidney cancer and rectal cancer; \u2022 an RGB sensor for determining fat and protein in cow's milk; \u2022 an LED probe moisture analyzer for bulk materials. 5. Hardware and Software 5.1. Mid-IR Spectrometry (includes FTIR Mid-IR spectrometer, ATR fiber probe) Vibrational spectroscopy in the mid-IR range (4000\u2013400 cm-1) is one of the most informative methods of chemical analysis. Due to the high extinction coefficients of various molecules in this region, the method is highly sensitive and can be used to analyze a wide variety of samples: solids, liquids, and gases.",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0718
+  },
+  {
+   "ref": "E10",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 5,
+   "text": "5 For example, NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics, as well as standard lamps as light sources, making it ideal for online applications, including remote measurements via fiber optic probes. In contrast, strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR) by connecting appropriate attachments and probes. Measurement of the weak Raman effect requires special probes but is recorded in the visible and NIR spectral regions. Moreover, the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition. UV-visible spectroscopy is based on electronic transitions between molecular energy levels. It has very high sensitivity, especially in the UV region (190-360 nm), but requires the use of special light sources and fiber optic probes. However, the strong overlap of spectral",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0667
+  },
+  {
+   "ref": "E11",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 17,
+   "text": "highly concentrated dairy products, such as yogurt, butter, or whole milk concentrates. The main equipment includes a fiber optic probe where one set of fibers delivers light to the sample and the other collects the \"backscattered\" light. Experimentally, the probe is flush-mounted into a pipe or vat to interact directly with the flowing medium. Because the light does not penetrate deeply, the method is sensitive to the surface characteristics and fat globule size. Data processing may involve converting the reflectance values to absorbance and applying Multiplicative Scatter Correction (MSC) or Standard Normal Variate (SNV) transformations to remove physical interference caused by the scattering nature of the milk particles before using Partial Least Squares (PLS) regression to quantify fat and protein.",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0614
+  }
+ ],
+ "retrieval": {
+  "queries": [
+   "moisture in unknown solid",
+   "unknown solid probe geometry NIR spectroscopy",
+   "Moisture in solids or bulk material Several measuring points",
+   "We dry flour and want to monitor moisture at twelve conveyor positions. Installation cost per point must be low. We have a laboratory oven method for moisture.",
+   "laboratory oven method for moisture"
+  ],
+  "bm25": {
+   "moisture in unknown solid": [
+    246,
+    252,
+    182,
+    68,
+    29,
+    74,
+    267,
+    18
+   ],
+   "unknown solid probe geometry NIR spectroscopy": [
+    182,
+    147,
+    183,
+    267,
+    184,
+    153,
+    18,
+    156
+   ],
+   "Moisture in solids or bulk material Several measuring points": [
+    29,
+    28,
+    184,
+    74,
+    215,
+    49,
+    68,
+    246
+   ],
+   "We dry flour and want to monitor moisture at twelve conveyor positions. Installation cost per point must be low. We have a laboratory oven method for moisture.": [
+    76,
+    68,
+    74,
+    75,
+    46,
+    222,
+    77,
+    253
+   ],
+   "laboratory oven method for moisture": [
+    246,
+    252,
+    68,
+    1,
+    6,
+    7,
+    29,
+    10
+   ]
+  },
+  "dense": {
+   "moisture in unknown solid": [
+    68,
+    247,
+    69,
+    231,
+    246,
+    168,
+    267,
+    228
+   ],
+   "unknown solid probe geometry NIR spectroscopy": [
+    206,
+    184,
+    92,
+    30,
+    153,
+    14,
+    45,
+    31
+   ],
+   "Moisture in solids or bulk material Several measuring points": [
+    68,
+    246,
+    51,
+    252,
+    168,
+    267,
+    247,
+    69
+   ],
+   "We dry flour and want to monitor moisture at twelve conveyor positions. Installation cost per point must be low. We have a laboratory oven method for moisture.": [
+    68,
+    246,
+    69,
+    247,
+    256,
+    51,
+    53,
+    252
+   ],
+   "laboratory oven method for moisture": [
+    68,
+    69,
+    51,
+    247,
+    52,
+    246,
+    46,
+    88
+   ]
+  },
+  "fused": [
+   [
+    68,
+    0.1281
+   ],
+   [
+    246,
+    0.1246
+   ],
+   [
+    18,
+    0.0963
+   ],
+   [
+    252,
+    0.091
+   ],
+   [
+    74,
+    0.0873
+   ],
+   [
+    168,
+    0.0853
+   ],
+   [
+    274,
+    0.0802
+   ],
+   [
+    69,
+    0.0745
+   ],
+   [
+    29,
+    0.0718
+   ],
+   [
+    167,
+    0.0668
+   ],
+   [
+    14,
+    0.0667
+   ],
+   [
+    149,
+    0.0661
+   ],
+   [
+    247,
+    0.0623
+   ],
+   [
+    184,
+    0.0617
+   ],
+   [
+    51,
+    0.0614
+   ]
+  ],
+  "mmr": [
+   68,
+   246,
+   18,
+   252,
+   74,
+   274,
+   168,
+   69,
+   29,
+   14,
+   149,
+   51,
+   167,
+   267,
+   184,
+   231,
+   247,
+   19,
+   49,
+   13,
+   156,
+   182,
+   235,
+   222,
+   46,
+   52,
+   8,
+   195
+  ],
+  "pinned": [],
+  "used_tokens": 1784
+ },
+ "spectral": {
+  "methods": [
+   {
+    "id": "NIR",
+    "name": "NIR spectroscopy",
+    "range_um": [
+     0.78,
+     2.5
+    ],
+    "label": "780-2500 nm",
+    "source": "S01 p.10"
+   },
+   {
+    "id": "MIR",
+    "name": "Mid-IR spectroscopy (ATR fiber probe)",
+    "range_um": [
+     2.5,
+     25.0
+    ],
+    "label": "4000-400 cm-1 (2.5-25 um)",
+    "source": "S01 p.9"
+   },
+   {
+    "id": "RAMAN",
+    "name": "Raman spectroscopy",
+    "range_um": [
+     0.4,
+     1.1
+    ],
+    "label": "Raman shift in cm-1; excitation laser in nm, stated separately (for example 785 nm)",
+    "source": "S01 p.11"
+   },
+   {
+    "id": "UVVIS",
+    "name": "UV/Visible spectroscopy",
+    "range_um": [
+     0.19,
+     0.74
+    ],
+    "label": "UV 190-360 nm (high sensitivity region), visible about 400-740 nm",
+    "source": "S01 p.5"
+   },
+   {
+    "id": "FLUO",
+    "name": "Fluorescence spectroscopy (fluorimetry)",
+    "range_um": [
+     0.25,
+     0.8
+    ],
+    "label": "Depends on the fluorescent species; UV/visible excitation, emission at longer wavelengths",
+    "source": "S01 p.12"
+   }
+  ],
+  "fibers": [
+   {
+    "id": "UV_SILICA",
+    "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.18,
+     1.2
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "VISNIR_SILICA",
+    "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.35,
+     2.4
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "CIR",
+    "name": "Chalcogenide As-S IR fiber (CIR)",
+    "range_um": [
+     1.1,
+     6.5
+    ],
+    "family": "chalcogenide"
+   },
+   {
+    "id": "PIR",
+    "name": "Polycrystalline silver-halide IR fiber (PIR)",
+    "range_um": [
+     3.0,
+     17.0
+    ],
+    "family": "polycrystalline"
+   },
+   {
+    "id": "HWG",
+    "name": "Hollow glass waveguide",
+    "range_um": [
+     2.0,
+     18.0
+    ],
+    "family": "hollow"
+   },
+   {
+    "id": "INF3",
+    "name": "Indium fluoride fiber",
+    "range_um": [
+     0.3,
+     5.5
+    ],
+    "family": "fluoride"
+   },
+   {
+    "id": "ZBLAN",
+    "name": "Zirconium fluoride fiber",
+    "range_um": [
+     0.3,
+     4.5
+    ],
+    "family": "fluoride"
+   }
+  ],
+  "bands": [
+   {
+    "id": "B_085_110",
+    "range_um": [
+     0.85,
+     1.1
+    ],
+    "region": "short-wave NIR",
+    "analytes": [
+     "fat",
+     "protein",
+     "moisture"
+    ],
+    "source": "S02",
+    "page": 18,
+    "matched": [
+     "moisture"
+    ]
+   },
+   {
+    "id": "B_130_220",
+    "range_um": [
+     1.3,
+     2.2
+    ],
+    "region": "NIR",
+    "analytes": [
+     "moisture",
+     "water",
+     "polymers",
+     "API",
+     "ethanol"
+    ],
+    "source": "S02",
+    "page": 18,
+    "note": "Slide shows sub-bands 1.3-1.7, 1.5-2.0 and 1.7-2.2 um.",
+    "matched": [
+     "moisture"
+    ]
+   }
+  ],
+  "client_silica": false
+ },
+ "premises": [
+  {
+   "premise_id": "P1",
+   "statement": "Installation cost per point must be low.",
+   "verdict": "partly_supported",
+   "explanation": "The slides describe distributed spectral sensors that \"send results via wires, Ethernet, Wi\u2011Fi, etc.\" and note they provide a \"Lower cost for installation\" compared with a centralized analyzer, indicating low\u2011cost options are possible but cost levels are not quantified.",
+   "citations": [
+    {
+     "source": "S02",
+     "page": 18,
+     "quote": "Sensors installed in measuring points and send results via wires, Ethernet, Wi\u2011Fi, etc. ... Advantage - Lower cost for installation."
+    }
+   ]
+  },
+  {
+   "premise_id": "P2",
+   "statement": "We have a laboratory oven method for moisture.",
+   "verdict": "unverifiable",
+   "explanation": "The provided evidence pack contains no reference to a laboratory oven moisture determination method, so the claim cannot be confirmed or refuted from the available material.",
+   "citations": []
+  }
+ ],
+ "report": {
+  "decision_status": "provisional_assessment",
+  "headline": "A low\u2011cost distributed NIR fiber sensor concept is the most promising approach for monitoring moisture at multiple conveyor points.",
+  "requirements_stated": [
+   "monitor moisture in dry flour",
+   "12 conveyor positions",
+   "low installation cost per point",
+   "reference laboratory oven method available"
+  ],
+  "key_unknowns": [
+   "optical scattering and reflectance behavior of flour on the moving conveyor",
+   "exact sensor\u2011to\u2011conveyor distance and geometry",
+   "potential fouling or dust accumulation on sensor windows during operation"
+  ],
+  "clarification_questions": [
+   {
+    "question": "What is the typical particle size and bulk density of the flour on the conveyor?",
+    "why": "These affect NIR scattering depth and signal strength; a different bulk density may require a different probe geometry or calibration.",
+    "impact": "high"
+   },
+   {
+    "question": "What is the maximum allowable distance between the sensor tip and the flour surface (e.g., flush\u2011mounted vs. standoff)?",
+    "why": "NIR diffuse\u2011reflection probes have a limited interrogation depth; distance influences signal intensity and calibration strategy.",
+    "impact": "high"
+   },
+   {
+    "question": "Will the sensor be exposed to dust or flour buildup, and is periodic cleaning feasible?",
+    "why": "Surface fouling can attenuate the NIR signal and drift calibration; cleaning requirements impact feasibility and cost.",
+    "impact": "medium"
+   },
+   {
+    "question": "Is there an existing data\u2011acquisition infrastructure (Ethernet, Wi\u2011Fi) that can be leveraged for the IoT sensors?",
+    "why": "Integration with current PLC/SCADA influences the choice between fully distributed sensors vs. a centralized multiplexed analyzer.",
+    "impact": "medium"
+   },
+   {
+    "question": "What is the client\u2011agreed moisture range and required accuracy for the online measurement?",
+    "why": "Defines calibration scope and determines whether the prototype NIR\u2011LED sensor can meet performance goals.",
+    "impact": "low"
+   }
+  ],
+  "recommendations": [
+   {
+    "method": "NIR (diffuse reflection) \u2013 distributed fiber sensor (FlexiSens concept)",
+    "method_ids": [
+     "NIR"
+    ],
+    "role": "primary",
+    "rationale": [
+     {
+      "text": "NIR bands 1.3\u20112.2\u202f\u00b5m contain strong moisture absorption and are supported for solids and bulk materials.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S02",
+        "page": 18,
+        "quote": "1.3-2.2 um moisture, polymers, API, Ethanol,.."
+       }
+      ]
+     },
+     {
+      "text": "Company slides describe an NIR\u2011LED fiber sensor concept (FlexiSens) specifically for moisture monitoring in contact with the media.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S02",
+        "page": 12,
+        "quote": "Optimal set of wavelengths to see moisture of media in contact"
+       }
+      ]
+     },
+     {
+      "text": "Distributed sensors are noted to provide lower installation cost per point compared with a centralized multiplexed analyzer.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S02",
+        "page": 18,
+        "quote": "Sensors installed in measuring points and send results via wires, Ethernet, Wi\u2011Fi, etc. \u2013 Advantage - Lower cost for installation."
+       }
+      ]
+     },
+     {
+      "text": "A prototype concept exists; further lab trials are required to validate calibration on flour.",
+      "kind": "proposal",
+      "citations": []
+     }
+    ],
+    "conditions": "Only if representative flour samples (including dust/fouling scenarios) and reference oven moisture values are available for model building."
+   },
+   {
+    "method": "NIR (centralized multiplexed analyzer with long fibers)",
+    "method_ids": [
+     "NIR"
+    ],
+    "role": "conditional",
+    "rationale": [
+     {
+      "text": "Centralized full\u2011spectrum analyzer can deliver higher accuracy but at higher installation cost per point.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S02",
+        "page": 18,
+        "quote": "Centralized installation with analyzer/multiplexer and long fibers for measuring points \u2013 Advantage - High accuracy due to the higher performance of full spectra process analyzer."
+       }
+      ]
+     },
+     {
+      "text": "Consider this alternative if the low\u2011cost distributed approach cannot meet the client\u2011agreed accuracy after lab validation.",
+      "kind": "proposal",
+      "citations": []
+     }
+    ],
+    "conditions": "Requires fiber routing to all 12 points and a central spectrometer; cost assessment must confirm feasibility."
+   }
+  ],
+  "measurement_concept": [
+   {
+    "text": "Use NIR diffuse\u2011reflection fiber probes (FlexiSens concept) positioned at each conveyor point to collect reflected spectra in the 1.2\u20112.2\u202f\u00b5m region where moisture bands are strong.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 12,
+      "quote": "Optimal set of wavelengths to see moisture of media in contact"
+     },
+     {
+      "source": "S02",
+      "page": 12,
+      "quote": "FlexiSens sensor ... Trans\u2011Flex or diffuse reflection"
+     },
+     {
+      "source": "S02",
+      "page": 18,
+      "quote": "1.3-2.2 um moisture, polymers, API, Ethanol,.."
+     }
+    ]
+   },
+   {
+    "text": "Each probe transmits spectra over a short fiber to a local micro\u2011controller that performs on\u2011board preprocessing (SNV, baseline) and sends moisture estimates via Ethernet/Wi\u2011Fi to the plant control system.",
+    "kind": "proposal",
+    "citations": []
+   }
+  ],
+  "spectral_range": [
+   {
+    "text": "Target NIR bands for moisture: 1.3\u20112.2\u202f\u00b5m (1200\u20112100\u202fnm) as identified for solids and bulk materials.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 12,
+      "quote": "SNV\u2011corrected NIR spectra of starch, flour and sugar (about 1200-2100 nm)"
+     },
+     {
+      "source": "S02",
+      "page": 18,
+      "quote": "1.3-2.2 um moisture, polymers, API, Ethanol,.."
+     }
+    ]
+   }
+  ],
+  "risks": [
+   {
+    "text": "Flour dust or buildup on the probe window can reduce reflectance signal and cause drift.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "High scattering in powder may limit penetration depth, requiring careful probe\u2011to\u2011surface distance control.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "Low\u2011cost sensor modules may have limited spectral resolution compared with a centralized analyzer, potentially affecting accuracy.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "feasibility_plan": {
+   "samples": [
+    "Representative flour batches covering the expected moisture range (dry to slightly wet)",
+    "Flour on moving conveyor mock\u2011up with typical belt speed",
+    "Samples with intentional dust/fouling on probe window"
+   ],
+   "reference": [
+    "Laboratory oven moisture determination (client\u2019s existing method)",
+    "Gravimetric moisture loss after controlled drying"
+   ],
+   "comparison": [
+    "Distributed NIR\u2011LED probe vs. centralized multiplexed NIR analyzer",
+    "Different probe\u2011to\u2011surface distances (flush vs. 5\u202fmm standoff)",
+    "Raw spectra vs. pre\u2011processed (SNV) data"
+   ],
+   "decision_basis": [
+    "Client\u2011agreed moisture range and accuracy criteria met on independent reference measurements",
+    "Signal stability over 8\u202fh continuous operation",
+    "Installation cost per point below client threshold"
+   ],
+   "steps": [
+    "1. Acquire prototype FlexiSens NIR\u2011LED probes and a bench\u2011top NIR spectrometer for multiplexed tests.",
+    "2. Build a conveyor test rig with 12 sensor mounting locations; vary probe\u2011to\u2011flour distance.",
+    "3. Collect spectra on each location for a set of flour samples; record reference oven moisture values.",
+    "4. Develop PLS calibration models using the optimal wavelength set (1.3\u20112.2\u202f\u00b5m) and evaluate performance per location.",
+    "5. Assess fouling impact by depositing controlled dust layers on probe windows and re\u2011measure.",
+    "6. Compare cost, accuracy, and robustness of distributed vs. centralized configurations; decide based on client\u2011agreed criteria."
+   ]
+  },
+  "pathway": {
+   "next_step": "Execute the multi\u2011method lab trial described in the feasibility plan to compare distributed NIR probes with a centralized multiplexed analyzer.",
+   "likely_path": "A",
+   "why": "Goal is process\u2011automation ready chemometric model for moisture; distributed low\u2011cost sensors align with client\u2019s installation\u2011cost constraint."
+  },
+  "assumptions": [
+   "Flour behaves as a scattering solid where diffuse\u2011reflection NIR is viable.",
+   "The client can provide enough reference moisture data for calibration.",
+   "Installation space allows mounting of small probe housings at each conveyor point."
+  ]
+ },
+ "verification": {
+  "claims": [
+   {
+    "location": "recommendations[0].rationale[0]",
+    "text": "NIR bands 1.3\u20112.2\u202f\u00b5m contain strong moisture absorption and are supported for solids and bulk materials.",
+    "kind": "sourced",
+    "status": "fuzzy",
+    "detail": "S02 p.18: near-verbatim (96)",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 18,
+      "quote": "1.3-2.2 um moisture, polymers, API, Ethanol,.."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[1]",
+    "text": "Company slides describe an NIR\u2011LED fiber sensor concept (FlexiSens) specifically for moisture monitoring in contact with the media.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 12,
+      "quote": "Optimal set of wavelengths to see moisture of media in contact"
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[2]",
+    "text": "Distributed sensors are noted to provide lower installation cost per point compared with a centralized multiplexed analyzer.",
+    "kind": "sourced",
+    "status": "fuzzy",
+    "detail": "S02 p.18: near-verbatim (98)",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 18,
+      "quote": "Sensors installed in measuring points and send results via wires, Ethernet, Wi\u2011Fi, etc. \u2013 Advantage - Lower cost for installation."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[3]",
+    "text": "A prototype concept exists; further lab trials are required to validate calibration on flour.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "recommendations[1].rationale[0]",
+    "text": "Centralized full\u2011spectrum analyzer can deliver higher accuracy but at higher installation cost per point.",
+    "kind": "sourced",
+    "status": "fuzzy",
+    "detail": "S02 p.18: near-verbatim (98)",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 18,
+      "quote": "Centralized installation with analyzer/multiplexer and long fibers for measuring points \u2013 Advantage - High accuracy due to the higher performance of full spectra process analyzer."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[1].rationale[1]",
+    "text": "Consider this alternative if the low\u2011cost distributed approach cannot meet the client\u2011agreed accuracy after lab validation.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[0]",
+    "text": "Use NIR diffuse\u2011reflection fiber probes (FlexiSens concept) positioned at each conveyor point to collect reflected spectra in the 1.2\u20112.2\u202f\u00b5m region where moisture bands are strong.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "S02 p.12: quote not on page (77); S02 p.18: near-verbatim (96)",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 12,
+      "quote": "Optimal set of wavelengths to see moisture of media in contact"
+     },
+     {
+      "source": "S02",
+      "page": 12,
+      "quote": "FlexiSens sensor ... Trans\u2011Flex or diffuse reflection"
+     },
+     {
+      "source": "S02",
+      "page": 18,
+      "quote": "1.3-2.2 um moisture, polymers, API, Ethanol,.."
+     }
+    ]
+   },
+   {
+    "location": "measurement_concept[1]",
+    "text": "Each probe transmits spectra over a short fiber to a local micro\u2011controller that performs on\u2011board preprocessing (SNV, baseline) and sends moisture estimates via Ethernet/Wi\u2011Fi to the plant control system.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "spectral_range[0]",
+    "text": "Target NIR bands for moisture: 1.3\u20112.2\u202f\u00b5m (1200\u20112100\u202fnm) as identified for solids and bulk materials.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "S02 p.18: near-verbatim (96)",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 12,
+      "quote": "SNV\u2011corrected NIR spectra of starch, flour and sugar (about 1200-2100 nm)"
+     },
+     {
+      "source": "S02",
+      "page": 18,
+      "quote": "1.3-2.2 um moisture, polymers, API, Ethanol,.."
+     }
+    ]
+   },
+   {
+    "location": "risks[0]",
+    "text": "Flour dust or buildup on the probe window can reduce reflectance signal and cause drift.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[1]",
+    "text": "High scattering in powder may limit penetration depth, requiring careful probe\u2011to\u2011surface distance control.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[2]",
+    "text": "Low\u2011cost sensor modules may have limited spectral resolution compared with a centralized analyzer, potentially affecting accuracy.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   }
+  ],
+  "numbers": [
+   {
+    "location": "recommendations[0].rationale[0]",
+    "number": "2.2\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "measurement_concept[0]",
+    "number": "2.2\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "spectral_range[0]",
+    "number": "2.2\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "spectral_range[0]",
+    "number": "2100\u202fnm",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.comparison[1]",
+    "number": "5\u202fmm",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.decision_basis[1]",
+    "number": "8\u202fh",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.steps[3]",
+    "number": "2.2\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   }
+  ],
+  "client_facts": [],
+  "n_sourced": 6,
+  "n_verified": 6,
+  "n_unsupported_numbers": 0,
+  "n_bad_client_facts": 0
+ },
+ "quality": {
+  "items": [
+   {
+    "id": "S1",
+    "category": "structure",
+    "name": "All required sections present",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S2",
+    "category": "structure",
+    "name": "3-6 questions, highest impact first",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S3",
+    "category": "structure",
+    "name": "Plan has samples, reference, comparison, decision basis",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S4",
+    "category": "structure",
+    "name": "Decision status consistent with rule findings",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G1",
+    "category": "grounding",
+    "name": "Sourced claims verified on the cited page",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G2",
+    "category": "grounding",
+    "name": "No unsupported numbers",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G3",
+    "category": "grounding",
+    "name": "No invented client facts",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G4",
+    "category": "grounding",
+    "name": "Evidence used within its scope",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G5",
+    "category": "grounding",
+    "name": "Each recommendation has a sourced reason",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H1",
+    "category": "honesty",
+    "name": "No guarantee or readiness wording",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H2",
+    "category": "honesty",
+    "name": "Units: Raman shift in cm-1, excitation in nm",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H3",
+    "category": "honesty",
+    "name": "Fiber choice consistent with spectral coverage",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H4",
+    "category": "honesty",
+    "name": "Contradicted premises are stated plainly in the headline",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U1",
+    "category": "usefulness",
+    "name": "Client-requested weak methods are addressed (why / why not)",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U2",
+    "category": "usefulness",
+    "name": "Feasibility plan is concrete",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U3",
+    "category": "usefulness",
+    "name": "Questions cover the high-impact unknowns",
+    "status": "pass",
+    "detail": ""
+   }
+  ],
+  "passed": 16,
+  "total": 16,
+  "repaired": false,
+  "repair_notes": []
+ },
+ "confidence": {
+  "level": "medium",
+  "signals": [
+   {
+    "name": "Information",
+    "level": "medium",
+    "value": 0.4,
+    "detail": "4/10 decision-relevant facts known; target defined: yes"
+   },
+   {
+    "name": "Evidence",
+    "level": "high",
+    "value": 1.0,
+    "detail": "Direct application in AFS sources: R_MOISTURE"
+   },
+   {
+    "name": "Scope fit",
+    "level": "medium",
+    "value": 0.6666666666666666,
+    "detail": "Sources show lab or application examples; production performance is unconfirmed"
+   },
+   {
+    "name": "Client premises",
+    "level": "medium",
+    "value": 0.6666666666666666,
+    "detail": "0 contradicted, 1 unverifiable, 1 supported"
+   },
+   {
+    "name": "Verification",
+    "level": "high",
+    "value": 1.0,
+    "detail": "6/6 sourced claims verified; 0 unsupported numbers"
+   }
+  ],
+  "caps": [],
+  "per_method": [
+   {
+    "method_id": "NIR",
+    "level": "medium",
+    "detail": "lead, screening score 2"
+   },
+   {
+    "method_id": "MIR",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "RAMAN",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "UVVIS",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "FLUO",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   }
+  ],
+  "raise_with": [
+   "Is the sample clear, turbid or opaque, and does this change during the process?",
+   "What concentration range must be covered, and what is the smallest change that matters?",
+   "What temperature, pressure, flow, fouling and cleaning conditions apply at the probe?"
+  ]
+ },
+ "council": null,
+ "coach": {
+  "completeness": 4,
+  "total": 10,
+  "fields": [
+   {
+    "name": "optics",
+    "label": "Optical behaviour (clear / turbid / opaque)",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Is the sample clear, turbid or opaque, and does this change during the process?"
+   },
+   {
+    "name": "range",
+    "label": "Concentration range",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What concentration range must be covered, and what is the smallest change that matters?"
+   },
+   {
+    "name": "conditions",
+    "label": "Process conditions at the probe",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What temperature, pressure, flow, fouling and cleaning conditions apply at the probe?"
+   },
+   {
+    "name": "accuracy",
+    "label": "Accuracy / acceptance criteria",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Which accuracy, bias or acceptance limits must the measurement meet?"
+   },
+   {
+    "name": "installation",
+    "label": "Installation and fiber link",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Where can the probe be installed, and how far away will the analyzer be?"
+   },
+   {
+    "name": "timing",
+    "label": "Response time / update rate",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "How quickly must a change be detected (update rate, response time)?"
+   },
+   {
+    "name": "target",
+    "label": "Target variable / analyte",
+    "status": "stated",
+    "impact": "high",
+    "question": "Which variable or analyte must be measured, and which changes must be distinguished?"
+   },
+   {
+    "name": "matrix",
+    "label": "Sample matrix and phase",
+    "status": "inferred",
+    "impact": "high",
+    "question": "What is the sample (liquid, powder, melt, tissue...) and its main components?"
+   },
+   {
+    "name": "reference",
+    "label": "Reference method",
+    "status": "stated",
+    "impact": "high",
+    "question": "Which independent reference method (and its uncertainty) can provide calibration values?"
+   },
+   {
+    "name": "points",
+    "label": "Number of measuring points",
+    "status": "stated",
+    "impact": "low",
+    "question": "How many measuring points or streams need monitoring?"
+   }
+  ],
+  "template": "We dry flour and want to monitor moisture at twelve conveyor positions. Installation cost per point must be low. We have a laboratory oven method for moisture. Optical behaviour: [sample is clear / turbid / opaque, and does this change during the process?] Concentration range: [what concentration range must be covered, and what is the smallest change that matters?] Process conditions at the probe: [what temperature, pressure, flow, fouling and cleaning conditions apply at the probe?] Accuracy / acceptance criteria: [which accuracy, bias or acceptance limits must the measurement meet?] Installation and fiber link: [where can the probe be installed, and how far away will the analyzer be?] Response time / update rate: [how quickly must a change be detected (update rate, response time)?]"
+ },
+ "diff": [],
+ "trace": [
+  {
+   "stage": "extract",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 3993,
+   "completion_tokens": 1076,
+   "latency_ms": 1572,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "premise",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 2919,
+   "completion_tokens": 352,
+   "latency_ms": 22715,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "report",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 4760,
+   "completion_tokens": 2146,
+   "latency_ms": 45758,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "coach",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 475,
+   "completion_tokens": 190,
+   "latency_ms": 496,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  }
+ ],
+ "timings_ms": {
+  "extract": 1573,
+  "rules": 2,
+  "retrieve": 249,
+  "premise": 22716,
+  "report": 45759,
+  "verify": 18,
+  "coach": 498,
+  "total": 70834
+ },
+ "error": ""
+}

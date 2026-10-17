@@ -1,0 +1,2302 @@
+{
+ "id": "8c4a1020fc",
+ "created": "2026-10-17T01:04:31",
+ "mode": "fast",
+ "enquiry": "We want to investigate water content in a petroleum line using MIR ATR. The analyzer would be in another building. We already have a silica fiber cable from a visible or NIR measurement setup and would like to reuse it. The link length, routing and operating conditions have not yet been supplied. Can the assistant approve this concept?",
+ "answers": {},
+ "parent_run_id": null,
+ "requirements": {
+  "summary": "Investigate water content in a petroleum line using MIR ATR with a remote analyzer and reuse of existing silica fiber cable.",
+  "target_variables": [
+   "water content"
+  ],
+  "target_defined": "yes",
+  "matrix": "petroleum",
+  "phase": "liquid",
+  "optical_behavior": "unknown",
+  "aqueous": "yes",
+  "fluorescent_target": "unknown",
+  "heterogeneous": "unknown",
+  "temperature": "unknown",
+  "fouling_risk": "unknown",
+  "process_context": "unknown",
+  "analyzer_remote": "yes",
+  "link_length_known": "no",
+  "existing_assets": [
+   "silica fiber cable from a visible or NIR measurement setup"
+  ],
+  "requested_methods": [
+   "MIR"
+  ],
+  "reference_method": "unknown",
+  "concentration_level": "unknown",
+  "measurement_points": "unknown",
+  "facts": [
+   {
+    "field": "target_variable",
+    "value": "water content",
+    "status": "stated",
+    "quote": "water content"
+   },
+   {
+    "field": "matrix",
+    "value": "petroleum",
+    "status": "stated",
+    "quote": "petroleum line"
+   },
+   {
+    "field": "phase",
+    "value": "liquid",
+    "status": "stated",
+    "quote": "petroleum line"
+   },
+   {
+    "field": "method",
+    "value": "MIR ATR",
+    "status": "stated",
+    "quote": "MIR ATR"
+   },
+   {
+    "field": "analyzer_location",
+    "value": "another building",
+    "status": "stated",
+    "quote": "another building"
+   },
+   {
+    "field": "existing_asset",
+    "value": "silica fiber cable from a visible or NIR measurement setup",
+    "status": "stated",
+    "quote": "silica fiber cable from a visible or NIR measurement setup"
+   },
+   {
+    "field": "reuse_intent",
+    "value": "reuse existing cable",
+    "status": "stated",
+    "quote": "reuse it"
+   }
+  ],
+  "unknowns": [
+   {
+    "item": "link length",
+    "why_it_matters": "Determines attenuation and feasibility of MIR ATR over distance",
+    "impact": "high"
+   },
+   {
+    "item": "routing",
+    "why_it_matters": "Affects fiber integrity and signal loss",
+    "impact": "high"
+   },
+   {
+    "item": "operating conditions",
+    "why_it_matters": "Influences fiber performance and MIR ATR sensitivity",
+    "impact": "high"
+   }
+  ],
+  "premises": [
+   {
+    "id": "P1",
+    "statement": "reuse existing silica fiber cable from a visible or NIR measurement setup",
+    "kind": "reuse_claim"
+   },
+   {
+    "id": "P2",
+    "statement": "MIR ATR can investigate water content in petroleum",
+    "kind": "method_claim"
+   },
+   {
+    "id": "P3",
+    "statement": "Can the assistant approve this concept?",
+    "kind": "certainty_request"
+   }
+  ]
+ },
+ "rule_hits": [
+  {
+   "rule_id": "R_FIBER_SILICA_MIR",
+   "title": "Silica fiber cannot carry MIR",
+   "severity": "block",
+   "text": "Silica fibers transmit only up to about 2.4 um (VIS-NIR silica 350-2400 nm). MIR ATR needs chalcogenide (CIR, about 1.1-6.5 um) or polycrystalline (PIR, about 3-17 um) fiber, so an existing silica link cannot be approved for MIR.",
+   "scores": {},
+   "question": {
+    "text": "Which spectral region must the link carry, and what length, routing, bend radius, temperature and installation conditions apply between probe and analyzer?",
+    "impact": "high",
+    "why": "Decides whether any IR fiber link is feasible; the sources give no MIR link-length figure."
+   },
+   "cap_confidence": "low",
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S02",
+     "page": 6
+    },
+    {
+     "source": "S02",
+     "page": 9
+    }
+   ]
+  },
+  {
+   "rule_id": "R_REMOTE_MIR_LINK",
+   "title": "Remote MIR analyzer needs link confirmation",
+   "severity": "warn",
+   "text": "The sources show 100-300 m silica cables for Vis-NIR process control only. No MIR fiber link length is stated in the supplied material, so any long MIR link must be confirmed by AFS before a concept is approved.",
+   "scores": {},
+   "question": {
+    "text": "What is the fiber route length between the measuring point and the analyzer location, and can the analyzer be moved closer?",
+    "impact": "high",
+    "why": "Long links favour Vis-NIR silica; MIR fiber links need AFS confirmation."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S02",
+     "page": 7
+    },
+    {
+     "source": "S01",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "rule_id": "R_CALIBRATION_MATRIX",
+   "title": "Calibrations are matrix specific",
+   "severity": "warn",
+   "text": "NIR and other spectra need chemometric calibration models built and validated on the actual matrix. A new API or excipient blend changes the spectra, so an existing calibration must be re-validated and normally rebuilt; reuse is a hypothesis to test, not an assumption.",
+   "scores": {},
+   "question": {
+    "text": "Which components, concentration ranges and physical properties differ between the old and the new formulation, and how many reference-assayed samples of the new blend can be prepared?",
+    "impact": "high",
+    "why": "Determines whether the old model can be checked at all and how much new calibration work is needed."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [
+    "Test the existing calibration on new-formulation samples with reference values before any reuse.",
+    "Build and validate a new calibration on held-out batches."
+   ],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 10
+    },
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S03",
+     "page": 14
+    }
+   ]
+  },
+  {
+   "rule_id": "R_ADD_METHOD_NOT_A_FIX",
+   "title": "Adding a method does not keep a calibration valid",
+   "severity": "warn",
+   "text": "Adding a second method (for example Raman) does not make an existing single-method calibration valid. Data from different methods are not equivalent; a fused model needs synchronised data, fusion algorithms and its own calibration and validation.",
+   "scores": {},
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 8
+    },
+    {
+     "source": "S01",
+     "page": 9
+    },
+    {
+     "source": "S01",
+     "page": 15
+    }
+   ]
+  },
+  {
+   "rule_id": "R_CERTAINTY_DEMAND",
+   "title": "Request for a final configuration on missing facts",
+   "severity": "warn",
+   "text": "An exact configuration cannot be justified before the target, sample optics, conditions and acceptance criteria are known; method selection depends on many factors and is decided by comparison on real samples.",
+   "scores": {},
+   "question": null,
+   "cap_confidence": "low",
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S02",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "rule_id": "R_AQUEOUS",
+   "title": "Water-rich media",
+   "severity": "info",
+   "text": "Water absorbs strongly in the IR; Raman shows low water absorbance and suits aqueous media. MIR is used via ATR (very short path).",
+   "scores": {
+    "RAMAN": 1
+   },
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "source": "S01",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "rule_id": "R_WATER_IN_HYDROCARBON",
+   "title": "Water in petroleum / oil",
+   "severity": "info",
+   "text": "AFS shows lab MIR ATR spectra of oil with 0.1-2.0 % water (absorbance rising between about 4000 and 3000 cm-1) using ZrO2/diamond ATR probes; NIR moisture bands are a comparison option. The slide states no process accuracy or detection limit.",
+   "scores": {
+    "MIR": 3,
+    "NIR": 1
+   },
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S02",
+     "page": 13
+    },
+    {
+     "source": "S02",
+     "page": 18
+    }
+   ]
+  },
+  {
+   "rule_id": "R_HYDROCARBON",
+   "title": "Hydrocarbons",
+   "severity": "info",
+   "text": "",
+   "scores": {
+    "MIR": 1
+   },
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S02",
+     "page": 18
+    }
+   ]
+  },
+  {
+   "rule_id": "R_NO_REFERENCE",
+   "title": "Reference method unknown",
+   "severity": "info",
+   "text": "",
+   "scores": {},
+   "question": {
+    "text": "Which independent reference method, uncertainty and sampling time will provide the reference values?",
+    "impact": "high",
+    "why": "Calibration and validation need independent reference values."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S01",
+     "page": 10
+    }
+   ]
+  },
+  {
+   "rule_id": "R_MATRIX_CHANGE_TEST_SET",
+   "title": "Representative variation in the test set",
+   "severity": "info",
+   "text": "",
+   "scores": {},
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [
+    "Include the physical variation (temperature, texture, particle size, flow) in the sample set and separate it from composition effects."
+   ],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 17
+    },
+    {
+     "source": "S01",
+     "page": 7
+    }
+   ]
+  }
+ ],
+ "coverage": [
+  {
+   "method_id": "NIR",
+   "method_range_um": [
+    0.78,
+    2.5
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.78,
+      1.2
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.78,
+      2.4
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      1.1,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.0,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "MIR",
+   "method_range_um": [
+    2.5,
+    25.0
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      2.5,
+      6.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": [
+      3.0,
+      17.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.5,
+      18.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      2.5,
+      5.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      2.5,
+      4.5
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": "Client's silica fiber reaches about 2.4 um; Mid-IR spectroscopy (ATR fiber probe) starts at 2.5 um, so the existing silica link cannot carry this method [S02 p.6]."
+  },
+  {
+   "method_id": "RAMAN",
+   "method_range_um": [
+    0.4,
+    1.1
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "UVVIS",
+   "method_range_um": [
+    0.19,
+    0.74
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.19,
+      0.74
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "FLUO",
+   "method_range_um": [
+    0.25,
+    0.8
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.25,
+      0.8
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  }
+ ],
+ "matrix": [
+  {
+   "method_id": "MIR",
+   "name": "MIR spectroscopy (ATR)",
+   "score": 4,
+   "contributions": [
+    {
+     "rule_id": "R_WATER_IN_HYDROCARBON",
+     "delta": 3,
+     "reason": "Water in petroleum / oil [S02 p.13, S02 p.18]"
+    },
+    {
+     "rule_id": "R_HYDROCARBON",
+     "delta": 1,
+     "reason": "Hydrocarbons [S02 p.18]"
+    }
+   ],
+   "verdict": "lead",
+   "requested_by_client": true
+  },
+  {
+   "method_id": "NIR",
+   "name": "NIR spectroscopy",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_WATER_IN_HYDROCARBON",
+     "delta": 1,
+     "reason": "Water in petroleum / oil [S02 p.13, S02 p.18]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "RAMAN",
+   "name": "Raman spectroscopy",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_AQUEOUS",
+     "delta": 1,
+     "reason": "Water-rich media [S01 p.16, S01 p.5]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "UVVIS",
+   "name": "UV/Vis spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "FLUO",
+   "name": "Fluorescence spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  }
+ ],
+ "evidence": [
+  {
+   "ref": "E1",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "NIR penetrates up to several millimetres even into dense samples and works with ordinary glass optics, making it suited to online and remote fiber measurements. Quote: \"NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics\"",
+   "quote": "NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics",
+   "scope": "general_method",
+   "score": 0.0266
+  },
+  {
+   "ref": "E2",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Strong MIR absorption limits transmission measurements to very thin samples, which is why ATR probes are used. Quote: \"strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)\"",
+   "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)",
+   "scope": "general_method",
+   "score": 0.0621
+  },
+  {
+   "ref": "E3",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Raman needs special probes; Raman and MIR spectra carry complementary information. Quote: \"the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.\"",
+   "quote": "the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.",
+   "scope": "general_method",
+   "score": 0.0424
+  },
+  {
+   "ref": "E4",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "UV spectroscopy is very sensitive but strong spectral overlap makes chemometrics necessary for mixtures. Quote: \"the strong overlap of spectral signals in UV spectra complicates the analysis of real samples and makes the use of chemometric algorithms a necessary component\"",
+   "quote": "the strong overlap of spectral signals in UV spectra complicates the analysis of real samples and makes the use of chemometric algorithms a necessary component",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E5",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Fluorimetry relies on secondary emission of certain substances; most chemicals do not fluoresce, so it is mainly used in medicine, biology and biotechnology. Quote: \"However, most chemicals do not exhibit this property.\"",
+   "quote": "However, most chemicals do not exhibit this property.",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E6",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "NIR, UV and fluorescence give broad overlapping signals; MIR gives well-defined peaks; extracting information needs chemometric models (calibration or classification) that are built and validated. Quote: \"Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals\"",
+   "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals",
+   "scope": "general_method",
+   "score": 0.0291
+  },
+  {
+   "ref": "E7",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Chemometric software covers preprocessing, construction, validation and application of calibration or classification models. Quote: \"preliminary data preparation (preprocessing), construction, validation, and application of predictive models, specifically calibration or classification models.\"",
+   "quote": "preliminary data preparation (preprocessing), construction, validation, and application of predictive models, specifically calibration or classification models.",
+   "scope": "general_method",
+   "score": 0.0159
+  },
+  {
+   "ref": "E8",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Selecting a spectral method for a specific problem is complex and depends on many factors. Quote: \"selecting a spectral method for a specific analytical problem is a complex task requiring specialized knowledge in chemistry, physics, and mathematics.\"",
+   "quote": "selecting a spectral method for a specific analytical problem is a complex task requiring specialized knowledge in chemistry, physics, and mathematics.",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E9",
+   "kind": "claim",
+   "source": "S02",
+   "page": 7,
+   "text": "Robust 100-300 m low-OH silica cables are shown for remote Vis-NIR industrial process control; this does not extend to MIR. Quote: \"Robust 100-300m cables made with Silica fibers of low OH-content (<0.1ppm OH) enable remote industrial process-control.\"",
+   "quote": "Robust 100-300m cables made with Silica fibers of low OH-content (<0.1ppm OH) enable remote industrial process-control.",
+   "scope": "component_data",
+   "score": 0.1416
+  },
+  {
+   "ref": "E10",
+   "kind": "claim",
+   "source": "S01",
+   "page": 10,
+   "text": "MIR ATR fiber probes analyse liquids and elastic solids at a significant distance from the spectrometer without sampling. Quote: \"These immersion probes operate on the ATR principle but allow analysis at a significant distance from the spectrometer, without the need for sampling.\"",
+   "quote": "These immersion probes operate on the ATR principle but allow analysis at a significant distance from the spectrometer, without the need for sampling.",
+   "scope": "general_method",
+   "score": 0.1289
+  },
+  {
+   "ref": "E11",
+   "kind": "chunk",
+   "source": "S02",
+   "page": 13,
+   "text": "\"Application: measurement of water content in petroleum\". \"ATR-Probes with ATR-tips from ZrO2 (& Diamond, etc.) sealed in PEEK-shaft and protected by PEEK-tubing can be used in microwave furnaces.\" Figure: MIR absorbance spectra from 4000 to 2000 cm-1 of pure oil and of oil with 0.1%, 0.5%, 1.0% and 2.0% water; absorbance between about 4000 and 3000 cm-1 increases with water content. The slide shows a laboratory spectral series; it states no process installation, accuracy or detection limit. [PDF text] Application: measurement of water content in petroleum ATR-Probes with ATR-tips from ZrO2 (& Diamond, etc.) sealed in PEEK-shaft and protected by PEEK-tubing can be used in microwave furnaces www.artphotonics.com",
+   "quote": null,
+   "scope": "company slides",
+   "score": 0.1104
+  },
+  {
+   "ref": "E12",
+   "kind": "chunk",
+   "source": "S02",
+   "page": 7,
+   "text": "\"Spectral Vis-NIR-Cables & for Industrial Process Control\". \"Robust 100-300m cables made with Silica fibers of low OH-content (<0.1ppm OH) enable remote industrial process-control.\" \"Alu- & Cu-alloy coated fibers: High temperature resistance; Increased durability, high strength, hermetically sealed; Enables soldering with connectors, bundles, plus to the hermetic inlets; Free of Polymer jacket fluorescence for Raman and Fluo- Spectroscopy.\" Figure: optical loss of silica fiber versus wavelength from 0.7 to 2.0 \u00b5m, with loss rising steeply towards 2.0 \u00b5m. [PDF text] www.artphotonics.com Spectral Vis-NIR-Cables & for Industrial Process Control Alu- & Cu-alloy coated fibers - High temperature resistance - Increased durability, high strength, hermetically sealed - Enables soldering with connectors, bundles, plus to the hermetic inlets - Free of Polymer jacket fluorescence for Raman and Fluo- Spectroscopy Robust 100-300m cables made with Silica fibers of low OH-content (<0.1ppm OH) enable remote industrial process-control",
+   "quote": null,
+   "scope": "company slides",
+   "score": 0.1125
+  },
+  {
+   "ref": "E13",
+   "kind": "claim",
+   "source": "S01",
+   "page": 18,
+   "text": "Fluorescence, Raman and MIR ATR can add molecular specificity to NIR in milk analysis. Quote: \"advanced labs often incorporate Fluorescence, Raman, and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural information that NIR might miss.\"",
+   "quote": "advanced labs often incorporate Fluorescence, Raman, and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural information that NIR might miss.",
+   "scope": "general_method",
+   "score": 0.0989
+  },
+  {
+   "ref": "E14",
+   "kind": "claim",
+   "source": "S02",
+   "page": 13,
+   "text": "Water content in petroleum is an AFS MIR ATR application: ZrO2 or diamond ATR tips in PEEK shafts; lab spectra show absorbance rising with water from 0.1 to 2.0 % between about 4000 and 3000 cm-1. Quote: \"ATR-Probes with ATR-tips from ZrO2 (& Diamond, etc.) sealed in PEEK-shaft and protected by PEEK-tubing can be used in microwave furnaces.\"",
+   "quote": "ATR-Probes with ATR-tips from ZrO2 (& Diamond, etc.) sealed in PEEK-shaft and protected by PEEK-tubing can be used in microwave furnaces.",
+   "scope": "lab_application",
+   "score": 0.096
+  }
+ ],
+ "retrieval": {
+  "queries": [
+   "water content in petroleum liquid",
+   "unknown liquid probe geometry MIR spectroscopy (ATR) NIR spectroscopy Raman spectroscopy",
+   "Silica fiber cannot carry MIR Remote MIR analyzer needs link confirmation Calibrations are matrix specific Adding a method does not keep a calibration valid",
+   "We want to investigate water content in a petroleum line using MIR ATR. The analyzer would be in another building. We already have a silica fiber cable from a visible or NIR measurement setup and would like to reuse it. The link length, routing and operating conditions have not yet been supplied. Ca",
+   "silica fiber cable from a visible or NIR measurement setup",
+   "MIR limitations water content"
+  ],
+  "bm25": {
+   "water content in petroleum liquid": [
+    247,
+    69,
+    248,
+    141,
+    167,
+    168,
+    223,
+    118
+   ],
+   "unknown liquid probe geometry MIR spectroscopy (ATR) NIR spectroscopy Raman spectroscopy": [
+    183,
+    72,
+    236,
+    18,
+    153,
+    205,
+    192,
+    70
+   ],
+   "Silica fiber cannot carry MIR Remote MIR analyzer needs link confirmation Calibrations are matrix specific Adding a method does not keep a calibration valid": [
+    241,
+    189,
+    190,
+    207,
+    202,
+    186,
+    240,
+    16
+   ],
+   "We want to investigate water content in a petroleum line using MIR ATR. The analyzer would be in another building. We already have a silica fiber cable from a visible or NIR measurement setup and would like to reuse it. The link length, routing and operating conditions have not yet been supplied. Ca": [
+    241,
+    69,
+    247,
+    23,
+    63,
+    168,
+    205,
+    130
+   ],
+   "silica fiber cable from a visible or NIR measurement setup": [
+    241,
+    63,
+    97,
+    23,
+    75,
+    24,
+    73,
+    239
+   ],
+   "MIR limitations water content": [
+    69,
+    247,
+    185,
+    241,
+    141,
+    223,
+    273,
+    118
+   ]
+  },
+  "dense": {
+   "water content in petroleum liquid": [
+    69,
+    247,
+    248,
+    252,
+    228,
+    168,
+    51,
+    19
+   ],
+   "unknown liquid probe geometry MIR spectroscopy (ATR) NIR spectroscopy Raman spectroscopy": [
+    199,
+    236,
+    30,
+    205,
+    43,
+    183,
+    39,
+    153
+   ],
+   "Silica fiber cannot carry MIR Remote MIR analyzer needs link confirmation Calibrations are matrix specific Adding a method does not keep a calibration valid": [
+    241,
+    55,
+    61,
+    6,
+    185,
+    239,
+    236,
+    77
+   ],
+   "We want to investigate water content in a petroleum line using MIR ATR. The analyzer would be in another building. We already have a silica fiber cable from a visible or NIR measurement setup and would like to reuse it. The link length, routing and operating conditions have not yet been supplied. Ca": [
+    205,
+    69,
+    247,
+    241,
+    199,
+    30,
+    249,
+    185
+   ],
+   "silica fiber cable from a visible or NIR measurement setup": [
+    241,
+    63,
+    239,
+    245,
+    61,
+    62,
+    240,
+    184
+   ],
+   "MIR limitations water content": [
+    69,
+    185,
+    204,
+    247,
+    241,
+    183,
+    211,
+    192
+   ]
+  },
+  "fused": [
+   [
+    241,
+    0.1416
+   ],
+   [
+    205,
+    0.1289
+   ],
+   [
+    63,
+    0.1125
+   ],
+   [
+    69,
+    0.1104
+   ],
+   [
+    236,
+    0.0989
+   ],
+   [
+    247,
+    0.096
+   ],
+   [
+    183,
+    0.0879
+   ],
+   [
+    199,
+    0.0853
+   ],
+   [
+    240,
+    0.0799
+   ],
+   [
+    204,
+    0.0786
+   ],
+   [
+    168,
+    0.0734
+   ],
+   [
+    61,
+    0.0695
+   ],
+   [
+    6,
+    0.0695
+   ],
+   [
+    249,
+    0.0668
+   ],
+   [
+    140,
+    0.0654
+   ]
+  ],
+  "mmr": [
+   241,
+   205,
+   69,
+   63,
+   236,
+   247,
+   183,
+   199,
+   204,
+   240,
+   168,
+   6,
+   61,
+   249,
+   140,
+   185,
+   68,
+   30,
+   239,
+   75,
+   72,
+   141,
+   248,
+   62,
+   70,
+   223,
+   19,
+   192
+  ],
+  "pinned": [
+   184,
+   185,
+   186,
+   187,
+   188,
+   189,
+   190,
+   191,
+   198,
+   199,
+   200,
+   201,
+   202,
+   203,
+   204,
+   205,
+   206,
+   207,
+   208,
+   217,
+   218,
+   219,
+   220,
+   238,
+   239,
+   240,
+   241,
+   242,
+   259,
+   260,
+   261,
+   262,
+   263,
+   264
+  ],
+  "used_tokens": 1120
+ },
+ "spectral": {
+  "methods": [
+   {
+    "id": "NIR",
+    "name": "NIR spectroscopy",
+    "range_um": [
+     0.78,
+     2.5
+    ],
+    "label": "780-2500 nm",
+    "source": "S01 p.10"
+   },
+   {
+    "id": "MIR",
+    "name": "Mid-IR spectroscopy (ATR fiber probe)",
+    "range_um": [
+     2.5,
+     25.0
+    ],
+    "label": "4000-400 cm-1 (2.5-25 um)",
+    "source": "S01 p.9"
+   },
+   {
+    "id": "RAMAN",
+    "name": "Raman spectroscopy",
+    "range_um": [
+     0.4,
+     1.1
+    ],
+    "label": "Raman shift in cm-1; excitation laser in nm, stated separately (for example 785 nm)",
+    "source": "S01 p.11"
+   },
+   {
+    "id": "UVVIS",
+    "name": "UV/Visible spectroscopy",
+    "range_um": [
+     0.19,
+     0.74
+    ],
+    "label": "UV 190-360 nm (high sensitivity region), visible about 400-740 nm",
+    "source": "S01 p.5"
+   },
+   {
+    "id": "FLUO",
+    "name": "Fluorescence spectroscopy (fluorimetry)",
+    "range_um": [
+     0.25,
+     0.8
+    ],
+    "label": "Depends on the fluorescent species; UV/visible excitation, emission at longer wavelengths",
+    "source": "S01 p.12"
+   }
+  ],
+  "fibers": [
+   {
+    "id": "UV_SILICA",
+    "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.18,
+     1.2
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "VISNIR_SILICA",
+    "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.35,
+     2.4
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "CIR",
+    "name": "Chalcogenide As-S IR fiber (CIR)",
+    "range_um": [
+     1.1,
+     6.5
+    ],
+    "family": "chalcogenide"
+   },
+   {
+    "id": "PIR",
+    "name": "Polycrystalline silver-halide IR fiber (PIR)",
+    "range_um": [
+     3.0,
+     17.0
+    ],
+    "family": "polycrystalline"
+   },
+   {
+    "id": "HWG",
+    "name": "Hollow glass waveguide",
+    "range_um": [
+     2.0,
+     18.0
+    ],
+    "family": "hollow"
+   },
+   {
+    "id": "INF3",
+    "name": "Indium fluoride fiber",
+    "range_um": [
+     0.3,
+     5.5
+    ],
+    "family": "fluoride"
+   },
+   {
+    "id": "ZBLAN",
+    "name": "Zirconium fluoride fiber",
+    "range_um": [
+     0.3,
+     4.5
+    ],
+    "family": "fluoride"
+   }
+  ],
+  "bands": [
+   {
+    "id": "B_130_220",
+    "range_um": [
+     1.3,
+     2.2
+    ],
+    "region": "NIR",
+    "analytes": [
+     "moisture",
+     "water",
+     "polymers",
+     "API",
+     "ethanol"
+    ],
+    "source": "S02",
+    "page": 18,
+    "note": "Slide shows sub-bands 1.3-1.7, 1.5-2.0 and 1.7-2.2 um.",
+    "matched": [
+     "water"
+    ]
+   },
+   {
+    "id": "B_WATER_OIL",
+    "range_um": [
+     2.5,
+     3.33
+    ],
+    "region": "MIR (4000-3000 cm-1)",
+    "analytes": [
+     "water in petroleum",
+     "water in oil"
+    ],
+    "source": "S02",
+    "page": 13,
+    "note": "Lab spectra of oil with 0.1-2.0 % water show absorbance increasing with water content between about 4000 and 3000 cm-1 (figure).",
+    "matched": [
+     "water in petroleum"
+    ]
+   }
+  ],
+  "client_silica": true
+ },
+ "premises": [
+  {
+   "premise_id": "P1",
+   "statement": "reuse existing silica fiber cable from a visible or NIR measurement setup",
+   "verdict": "contradicted",
+   "explanation": "Silica fibers only transmit up to ~2.4\u202f\u00b5m, while MIR ATR requires fibers that transmit beyond 2.4\u202f\u00b5m; therefore a silica link cannot be used for MIR ATR.",
+   "citations": [
+    {
+     "source": "S02",
+     "page": 6,
+     "quote": "Silica fibers transmit only up to about 2.4 um (VIS-NIR silica 350-2400 nm). MIR ATR needs chalcogenide (CIR, about 1.1-6.5 um) or polycrystalline (PIR, about 3-17 um) fiber"
+    },
+    {
+     "source": "S02",
+     "page": 9,
+     "quote": "Silica fibers transmit only up to about 2.4 um (VIS-NIR silica 350-2400 nm). MIR ATR needs chalcogenide (CIR, about 1.1-6.5 um) or polycrystalline (PIR, about 3-17 um) fiber"
+    }
+   ]
+  },
+  {
+   "premise_id": "P2",
+   "statement": "MIR ATR can investigate water content in petroleum",
+   "verdict": "partly_supported",
+   "explanation": "Laboratory MIR ATR spectra show water\u2011dependent absorbance in petroleum, but no process\u2011level performance data are provided, so the claim is supported only for lab investigations.",
+   "citations": [
+    {
+     "source": "S02",
+     "page": 13,
+     "quote": "Application: measurement of water content in petroleum ... ATR\u2011Probes with ATR\u2011tips from ZrO2 (& Diamond, etc.) sealed in PEEK\u2011shaft ... absorbance between about 4000 and 3000 cm\u20111 increases with water content"
+    },
+    {
+     "source": "S02",
+     "page": 13,
+     "quote": "ATR\u2011Probes with ATR\u2011tips from ZrO2 (& Diamond, etc.) sealed in PEEK\u2011shaft and protected by PEEK\u2011tubing can be used in microwave furnaces"
+    }
+   ]
+  },
+  {
+   "premise_id": "P3",
+   "statement": "Can the assistant approve this concept?",
+   "verdict": "contradicted",
+   "explanation": "Approval cannot be given without known link length, routing, operating conditions, and validated calibration; the rules require a confirmed configuration before approval.",
+   "citations": [
+    {
+     "source": "S01",
+     "page": 5,
+     "quote": "An exact configuration cannot be justified before the target, sample optics, conditions and acceptance criteria are known"
+    },
+    {
+     "source": "S02",
+     "page": 7,
+     "quote": "The sources show 100-300 m silica cables for Vis\u2011NIR process control only. No MIR fiber link length is stated in the supplied material"
+    }
+   ]
+  }
+ ],
+ "report": {
+  "decision_status": "insufficient_information",
+  "headline": "The concept cannot be approved as described because silica fiber cannot transmit the required MIR wavelengths and critical link parameters are unknown.",
+  "requirements_stated": [
+   "Investigate water content in petroleum line",
+   "Use MIR ATR",
+   "Remote analyzer in another building",
+   "Reuse existing silica fiber cable"
+  ],
+  "key_unknowns": [
+   "Exact length of the fiber link",
+   "Routing constraints and environmental exposure",
+   "Operating temperature, humidity, and mechanical stress"
+  ],
+  "clarification_questions": [
+   {
+    "question": "What is the maximum distance between the ATR probe and the analyzer?",
+    "why": "MIR fiber loss increases sharply; knowing the distance determines if a suitable MIR\u2011transparent fiber (CIR/PIR) is feasible.",
+    "impact": "high"
+   },
+   {
+    "question": "Will the fiber be exposed to high temperature or aggressive chemicals in the line environment?",
+    "why": "MIR\u2011compatible fibers have different temperature and chemical resistance than silica; this affects material selection.",
+    "impact": "high"
+   },
+   {
+    "question": "Is there a requirement for real\u2011time (sub\u2011second) measurement or can batch sampling be used?",
+    "why": "Response time influences whether a remote fiber link is needed or a local probe with wired connection is sufficient.",
+    "impact": "medium"
+   },
+   {
+    "question": "What are the client\u2011agreed acceptance criteria for water content (range, accuracy, precision)?",
+    "why": "Calibration scope and validation effort depend on the performance targets.",
+    "impact": "medium"
+   },
+   {
+    "question": "Are there any space or connector constraints at the probe location?",
+    "why": "Physical constraints may dictate probe geometry and fiber type.",
+    "impact": "low"
+   }
+  ],
+  "recommendations": [
+   {
+    "method": "MIR ATR (with dedicated chalcogenide or polycrystalline fiber link)",
+    "method_ids": [
+     "MIR"
+    ],
+    "role": "primary",
+    "rationale": [
+     {
+      "text": "MIR ATR is documented for water content measurement in petroleum in the lab.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S02",
+        "page": 13,
+        "quote": "Application: measurement of water content in petroleum ... ATR\u2011Probes with ATR\u2011tips from ZrO2 (& Diamond, etc.) sealed in PEEK\u2011shaft ..."
+       },
+       {
+        "source": "S02",
+        "page": 13,
+        "quote": "ATR\u2011Probes ... absorbance between about 4000 and 3000 cm\u20111 increases with water content."
+       }
+      ]
+     },
+     {
+      "text": "Silica fiber cannot transmit beyond ~2.4\u202f\u00b5m, which is required for MIR ATR; a MIR\u2011transparent fiber must be installed.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S02",
+        "page": 6,
+        "quote": "Silica fibers transmit only up to about 2.4\u202f\u00b5m (VIS\u2011NIR silica 350\u20112400\u202fnm)."
+       },
+       {
+        "source": "S02",
+        "page": 9,
+        "quote": "MIR ATR needs chalcogenide (CIR, about 1.1\u20116.5\u202f\u00b5m) or polycrystalline (PIR, about 3\u201117\u202f\u00b5m) fiber."
+       }
+      ]
+     },
+     {
+      "text": "A new calibration model must be built on the actual petroleum matrix and validated for the remote configuration.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 10,
+        "quote": "MIR ATR fiber probes analyse liquids ... at a significant distance from the spectrometer without sampling."
+       },
+       {
+        "source": "S01",
+        "page": 5,
+        "quote": "Chemometric software covers preprocessing, construction, validation and application of calibration or classification models."
+       }
+      ]
+     }
+    ],
+    "conditions": "Only if a MIR\u2011transparent fiber link (CIR or PIR) of appropriate length and environmental rating is installed and a matrix\u2011specific calibration is developed."
+   },
+   {
+    "method": "Raman (back\u2011scatter probe, local)",
+    "method_ids": [
+     "RAMAN"
+    ],
+    "role": "comparison",
+    "rationale": [
+     {
+      "text": "Raman shows low water absorbance and can be used in aqueous media, offering a complementary measurement.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 16,
+        "quote": "Raman shows low water absorbance and suits aqueous media."
+       }
+      ]
+     },
+     {
+      "text": "Raman requires a dedicated probe; it does not solve the fiber transmission issue for MIR.",
+      "kind": "assumption",
+      "citations": []
+     }
+    ],
+    "conditions": "Consider only as a supplementary method if a local probe can be installed near the line."
+   }
+  ],
+  "measurement_concept": [
+   {
+    "text": "Use an ATR probe immersed in the petroleum stream, coupled via a MIR\u2011transparent fiber to a remote MIR spectrometer.",
+    "kind": "proposal",
+    "citations": []
+   },
+   {
+    "text": "Collect spectra in the 4000\u20113000\u202fcm\u207b\u00b9 region where water shows characteristic absorbance.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 13,
+      "quote": "absorbance between about 4000 and 3000 cm\u20111 increases with water content."
+     }
+    ]
+   }
+  ],
+  "spectral_range": [
+   {
+    "text": "Target MIR range: 4000\u20113000\u202fcm\u207b\u00b9 (\u22482.5\u20113.3\u202f\u00b5m) for water O\u2011H stretch.",
+    "kind": "proposal",
+    "citations": []
+   },
+   {
+    "text": "Silica fiber loss rises steeply beyond 2.0\u202f\u00b5m, making it unsuitable for this range.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S12",
+      "page": 7,
+      "quote": "optical loss of silica fiber versus wavelength from 0.7 to 2.0 \u00b5m, with loss rising steeply towards 2.0 \u00b5m."
+     }
+    ]
+   }
+  ],
+  "risks": [
+   {
+    "text": "Using the existing silica cable will result in severe attenuation or no signal in the MIR region.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 6,
+      "quote": "Silica fibers transmit only up to about 2.4\u202f\u00b5m."
+     }
+    ]
+   },
+   {
+    "text": "Uncertainty in link length and environmental conditions may cause unexpected loss or fiber damage.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "Calibration may drift if temperature or pressure variations are not accounted for.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "feasibility_plan": {
+   "samples": [
+    "Petroleum samples with known water concentrations (0\u20112\u202f%)",
+    "Representative process conditions (temperature, pressure, flow)"
+   ],
+   "reference": [
+    "Gravimetric Karl Fischer titration for water content",
+    "Laboratory MIR ATR bench\u2011top spectrometer"
+   ],
+   "comparison": [
+    "MIR ATR with dedicated CIR fiber vs. local Raman probe",
+    "Effect of fiber length (e.g., 5\u202fm, 20\u202fm) on signal strength"
+   ],
+   "decision_basis": [
+    "Signal\u2011to\u2011noise meeting client\u2011agreed detection limit",
+    "Calibration error within client\u2011agreed accuracy",
+    "Robustness of fiber link under operating conditions"
+   ],
+   "steps": [
+    "Procure a short (\u22645\u202fm) chalcogenide (CIR) fiber and ATR probe compatible with petroleum.",
+    "Build a lab bench setup to acquire MIR spectra of water\u2011spiked petroleum and develop a chemometric model.",
+    "Validate the model against Karl Fischer reference measurements.",
+    "Extend the fiber length incrementally (e.g., 10\u202fm, 30\u202fm) and measure loss; assess if signal remains adequate.",
+    "Test the fiber assembly under simulated temperature and chemical exposure matching the process.",
+    "If performance is acceptable, design a remote installation plan; otherwise consider alternative methods (Raman, NIR)."
+   ]
+  },
+  "pathway": {
+   "next_step": "Conduct a multi\u2011method lab trial using a MIR\u2011compatible fiber and ATR probe, building and validating a calibration model on representative petroleum samples.",
+   "likely_path": "B",
+   "why": "The client seeks a remote MIR solution; a customized MIR fiber system must be demonstrated before process\u2011level deployment."
+  },
+  "assumptions": [
+   "The client will accept installation of a new MIR\u2011transparent fiber link.",
+   "Environmental conditions (temperature, chemicals) are within the rating of available CIR/PIR fibers."
+  ]
+ },
+ "verification": {
+  "claims": [
+   {
+    "location": "recommendations[0].rationale[0]",
+    "text": "MIR ATR is documented for water content measurement in petroleum in the lab.",
+    "kind": "sourced",
+    "status": "fuzzy",
+    "detail": "S02 p.13: near-verbatim (97); S02 p.13: quote not on page (88)",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 13,
+      "quote": "Application: measurement of water content in petroleum ... ATR\u2011Probes with ATR\u2011tips from ZrO2 (& Diamond, etc.) sealed in PEEK\u2011shaft ..."
+     },
+     {
+      "source": "S02",
+      "page": 13,
+      "quote": "ATR\u2011Probes ... absorbance between about 4000 and 3000 cm\u20111 increases with water content."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[1]",
+    "text": "Silica fiber cannot transmit beyond ~2.4\u202f\u00b5m, which is required for MIR ATR; a MIR\u2011transparent fiber must be installed.",
+    "kind": "sourced",
+    "status": "unverified",
+    "detail": "S02 p.6: quote not on page (54); S02 p.9: quote not on page (45)",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 6,
+      "quote": "Silica fibers transmit only up to about 2.4\u202f\u00b5m (VIS\u2011NIR silica 350\u20112400\u202fnm)."
+     },
+     {
+      "source": "S02",
+      "page": 9,
+      "quote": "MIR ATR needs chalcogenide (CIR, about 1.1\u20116.5\u202f\u00b5m) or polycrystalline (PIR, about 3\u201117\u202f\u00b5m) fiber."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[2]",
+    "text": "A new calibration model must be built on the actual petroleum matrix and validated for the remote configuration.",
+    "kind": "sourced",
+    "status": "unverified",
+    "detail": "S01 p.10: quote not on page (75); S01 p.5: quote not on page (73)",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 10,
+      "quote": "MIR ATR fiber probes analyse liquids ... at a significant distance from the spectrometer without sampling."
+     },
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "Chemometric software covers preprocessing, construction, validation and application of calibration or classification models."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[1].rationale[0]",
+    "text": "Raman shows low water absorbance and can be used in aqueous media, offering a complementary measurement.",
+    "kind": "sourced",
+    "status": "unverified",
+    "detail": "S01 p.16: quote not on page (51)",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "Raman shows low water absorbance and suits aqueous media."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[1].rationale[1]",
+    "text": "Raman requires a dedicated probe; it does not solve the fiber transmission issue for MIR.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[0]",
+    "text": "Use an ATR probe immersed in the petroleum stream, coupled via a MIR\u2011transparent fiber to a remote MIR spectrometer.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[1]",
+    "text": "Collect spectra in the 4000\u20113000\u202fcm\u207b\u00b9 region where water shows characteristic absorbance.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 13,
+      "quote": "absorbance between about 4000 and 3000 cm\u20111 increases with water content."
+     }
+    ]
+   },
+   {
+    "location": "spectral_range[0]",
+    "text": "Target MIR range: 4000\u20113000\u202fcm\u207b\u00b9 (\u22482.5\u20113.3\u202f\u00b5m) for water O\u2011H stretch.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "spectral_range[1]",
+    "text": "Silica fiber loss rises steeply beyond 2.0\u202f\u00b5m, making it unsuitable for this range.",
+    "kind": "sourced",
+    "status": "unverified",
+    "detail": "S12 p.7 does not exist",
+    "citations": [
+     {
+      "source": "S12",
+      "page": 7,
+      "quote": "optical loss of silica fiber versus wavelength from 0.7 to 2.0 \u00b5m, with loss rising steeply towards 2.0 \u00b5m."
+     }
+    ]
+   },
+   {
+    "location": "risks[0]",
+    "text": "Using the existing silica cable will result in severe attenuation or no signal in the MIR region.",
+    "kind": "sourced",
+    "status": "unverified",
+    "detail": "S02 p.6: quote not on page (53)",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 6,
+      "quote": "Silica fibers transmit only up to about 2.4\u202f\u00b5m."
+     }
+    ]
+   },
+   {
+    "location": "risks[1]",
+    "text": "Uncertainty in link length and environmental conditions may cause unexpected loss or fiber damage.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[2]",
+    "text": "Calibration may drift if temperature or pressure variations are not accounted for.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   }
+  ],
+  "numbers": [
+   {
+    "location": "recommendations[0].rationale[1]",
+    "number": "2.4\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "measurement_concept[1]",
+    "number": "3000\u202fcm\u207b\u00b9",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "spectral_range[0]",
+    "number": "3000\u202fcm\u207b\u00b9",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "spectral_range[0]",
+    "number": "3.3\u202f\u00b5m",
+    "status": "unsupported",
+    "detail": "not found in the enquiry, the evidence or the cited pages"
+   },
+   {
+    "location": "spectral_range[1]",
+    "number": "2.0\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.samples[0]",
+    "number": "2\u202f%",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.comparison[1]",
+    "number": "5\u202fm",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.comparison[1]",
+    "number": "20\u202fm",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.steps[0]",
+    "number": "5\u202fm",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.steps[3]",
+    "number": "10\u202fm",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.steps[3]",
+    "number": "30\u202fm",
+    "status": "supported",
+    "detail": ""
+   }
+  ],
+  "client_facts": [],
+  "n_sourced": 7,
+  "n_verified": 2,
+  "n_unsupported_numbers": 1,
+  "n_bad_client_facts": 0
+ },
+ "quality": {
+  "items": [
+   {
+    "id": "S1",
+    "category": "structure",
+    "name": "All required sections present",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S2",
+    "category": "structure",
+    "name": "3-6 questions, highest impact first",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S3",
+    "category": "structure",
+    "name": "Plan has samples, reference, comparison, decision basis",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S4",
+    "category": "structure",
+    "name": "Decision status consistent with rule findings",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G1",
+    "category": "grounding",
+    "name": "Sourced claims verified on the cited page",
+    "status": "fail",
+    "detail": "2/7 verified; problems at recommendations[0].rationale[1], recommendations[0].rationale[2], recommendations[1].rationale[0], spectral_range[1], risks[0]"
+   },
+   {
+    "id": "G2",
+    "category": "grounding",
+    "name": "No unsupported numbers",
+    "status": "fail",
+    "detail": "3.3\u202f\u00b5m at spectral_range[0]"
+   },
+   {
+    "id": "G3",
+    "category": "grounding",
+    "name": "No invented client facts",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G4",
+    "category": "grounding",
+    "name": "Evidence used within its scope",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G5",
+    "category": "grounding",
+    "name": "Each recommendation has a sourced reason",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H1",
+    "category": "honesty",
+    "name": "No guarantee or readiness wording",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H2",
+    "category": "honesty",
+    "name": "Units: Raman shift in cm-1, excitation in nm",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H3",
+    "category": "honesty",
+    "name": "Fiber choice consistent with spectral coverage",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H4",
+    "category": "honesty",
+    "name": "Contradicted premises are stated plainly in the headline",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U1",
+    "category": "usefulness",
+    "name": "Client-requested weak methods are addressed (why / why not)",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U2",
+    "category": "usefulness",
+    "name": "Feasibility plan is concrete",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U3",
+    "category": "usefulness",
+    "name": "Questions cover the high-impact unknowns",
+    "status": "pass",
+    "detail": ""
+   }
+  ],
+  "passed": 14,
+  "total": 16,
+  "repaired": false,
+  "repair_notes": []
+ },
+ "confidence": {
+  "level": "insufficient",
+  "signals": [
+   {
+    "name": "Information",
+    "level": "low",
+    "value": 0.2,
+    "detail": "2/10 decision-relevant facts known; target defined: yes"
+   },
+   {
+    "name": "Evidence",
+    "level": "high",
+    "value": 1.0,
+    "detail": "Direct application in AFS sources: R_WATER_IN_HYDROCARBON"
+   },
+   {
+    "name": "Scope fit",
+    "level": "high",
+    "value": 1.0,
+    "detail": "Requested use matches the scope of the cited evidence"
+   },
+   {
+    "name": "Client premises",
+    "level": "low",
+    "value": 0.3333333333333333,
+    "detail": "2 contradicted, 0 unverifiable, 1 supported"
+   },
+   {
+    "name": "Verification",
+    "level": "low",
+    "value": 0.29,
+    "detail": "2/7 sourced claims verified; 1 unsupported numbers"
+   }
+  ],
+  "caps": [
+   "R_FIBER_SILICA_MIR: cap low",
+   "R_CERTAINTY_DEMAND: cap low",
+   "Weak verification: lowered one level"
+  ],
+  "per_method": [
+   {
+    "method_id": "MIR",
+    "level": "insufficient",
+    "detail": "lead, screening score 4"
+   },
+   {
+    "method_id": "NIR",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   },
+   {
+    "method_id": "RAMAN",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   },
+   {
+    "method_id": "UVVIS",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "FLUO",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   }
+  ],
+  "raise_with": [
+   "Is the sample clear, turbid or opaque, and does this change during the process?",
+   "What concentration range must be covered, and what is the smallest change that matters?",
+   "Which independent reference method (and its uncertainty) can provide calibration values?"
+  ]
+ },
+ "council": null,
+ "coach": {
+  "completeness": 2,
+  "total": 10,
+  "fields": [
+   {
+    "name": "optics",
+    "label": "Optical behaviour (clear / turbid / opaque)",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Is the sample clear, turbid or opaque, and does this change during the process?"
+   },
+   {
+    "name": "range",
+    "label": "Concentration range",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What concentration range must be covered, and what is the smallest change that matters?"
+   },
+   {
+    "name": "reference",
+    "label": "Reference method",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Which independent reference method (and its uncertainty) can provide calibration values?"
+   },
+   {
+    "name": "conditions",
+    "label": "Process conditions at the probe",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What temperature, pressure, flow, fouling and cleaning conditions apply at the probe?"
+   },
+   {
+    "name": "accuracy",
+    "label": "Accuracy / acceptance criteria",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Which accuracy, bias or acceptance limits must the measurement meet?"
+   },
+   {
+    "name": "timing",
+    "label": "Response time / update rate",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "How quickly must a change be detected (update rate, response time)?"
+   },
+   {
+    "name": "points",
+    "label": "Number of measuring points",
+    "status": "unknown",
+    "impact": "low",
+    "question": "How many measuring points or streams need monitoring?"
+   },
+   {
+    "name": "target",
+    "label": "Target variable / analyte",
+    "status": "stated",
+    "impact": "high",
+    "question": "Which variable or analyte must be measured, and which changes must be distinguished?"
+   },
+   {
+    "name": "matrix",
+    "label": "Sample matrix and phase",
+    "status": "stated",
+    "impact": "high",
+    "question": "What is the sample (liquid, powder, melt, tissue...) and its main components?"
+   },
+   {
+    "name": "installation",
+    "label": "Installation and fiber link",
+    "status": "inferred",
+    "impact": "medium",
+    "question": "Where can the probe be installed, and how far away will the analyzer be?"
+   }
+  ],
+  "template": "We want to investigate water content in a petroleum line using MIR ATR. The analyzer would be in another building. We already have a silica fiber cable from a visible or NIR measurement setup and would like to reuse it. The link length, routing and operating conditions have not yet been supplied. Can the assistant approve this concept? \n\nMissing facts: \n- Optical behaviour (clear / turbid / opaque): [optical behaviour of the sample, e.g. 'clear, turbid, or opaque'] \n- Concentration range: [concentration range to be covered, e.g. '0.1% to 5%'] \n- Reference method: [independent reference method and its uncertainty, e.g. 'Karl Fischer titration, \u00b10.05%'] \n- Process conditions at the probe: [temperature, pressure, flow, fouling and cleaning conditions at the probe, e.g. '80\u00b0C, 10 bar, 5 m/s, fouling risk'] \n- Accuracy / acceptance criteria: [required accuracy, bias or acceptance limits, e.g. '\u00b10.2%'] \n- Response time / update rate: [required update rate or response time, e.g. '1 s'] \n- Number of measuring points: [number of measuring points or streams, e.g. '3']"
+ },
+ "diff": [],
+ "trace": [
+  {
+   "stage": "extract",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 2467,
+   "completion_tokens": 569,
+   "latency_ms": 3308,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "premise",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 2971,
+   "completion_tokens": 856,
+   "latency_ms": 2068,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "report",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 5686,
+   "completion_tokens": 2112,
+   "latency_ms": 22267,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 0,
+   "completion_tokens": 0,
+   "latency_ms": 51014,
+   "cached": false,
+   "ok": false,
+   "error": "Error code: 413 - {'error': {'message': 'Request too large for model `openai/gpt-oss-120b` in organization `org_01ksam1n2gfqp8g0tjj8w0r013` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 8381, please reduce your message size and try again. Need more tokens? Upgrade to Dev"
+  },
+  {
+   "stage": "coach",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 579,
+   "completion_tokens": 306,
+   "latency_ms": 413,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  }
+ ],
+ "timings_ms": {
+  "extract": 3351,
+  "rules": 76,
+  "retrieve": 2056,
+  "premise": 2072,
+  "report": 22280,
+  "verify": 54877,
+  "coach": 416,
+  "total": 85150
+ },
+ "error": ""
+}

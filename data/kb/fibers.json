@@ -1,0 +1,83 @@
+{
+  "_about": "Fiber families and approximate transmission ranges, transcribed from the S02 p.6 figure. Ranges are approximate figure values, not product specifications. Link lengths, losses and ratings for a specific cable are NOT given by the sources and must be confirmed by AFS.",
+  "fibers": [
+    {
+      "id": "UV_SILICA",
+      "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+      "range_um": [0.18, 1.2],
+      "family": "silica",
+      "maker": "art photonics",
+      "used_for": ["UV/Vis absorption", "fluorescence", "Raman"],
+      "sources": [{"source": "S02", "page": 6}]
+    },
+    {
+      "id": "VISNIR_SILICA",
+      "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+      "range_um": [0.35, 2.4],
+      "family": "silica",
+      "maker": "art photonics",
+      "used_for": ["NIR", "Vis", "Raman", "fluorescence"],
+      "notes": [
+        {"text": "Robust 100-300 m cables made with low-OH silica fibers are shown for remote industrial process control (Vis-NIR).", "source": "S02", "page": 7},
+        {"text": "Al- and Cu-alloy coated fibers are free of polymer jacket fluorescence for Raman and fluorescence spectroscopy.", "source": "S02", "page": 7}
+      ],
+      "sources": [{"source": "S02", "page": 6}, {"source": "S02", "page": 7}]
+    },
+    {
+      "id": "CIR",
+      "name": "Chalcogenide As-S IR fiber (CIR)",
+      "range_um": [1.1, 6.5],
+      "family": "chalcogenide",
+      "maker": "art photonics",
+      "used_for": ["MIR ATR (upper MIR, about 4000-1540 cm-1)", "combi probes"],
+      "notes": [
+        {"text": "CIR fibers carry the IR channel of the ZrO2 ATR + fluorescence combi probe.", "source": "S04", "page": 2}
+      ],
+      "sources": [{"source": "S02", "page": 6}, {"source": "S02", "page": 9}]
+    },
+    {
+      "id": "PIR",
+      "name": "Polycrystalline silver-halide IR fiber (PIR)",
+      "range_um": [3.0, 17.0],
+      "family": "polycrystalline",
+      "maker": "art photonics",
+      "used_for": ["MIR ATR in the fingerprint region", "FTIR process spectroscopy"],
+      "notes": [
+        {"text": "PIR transmission range 3-16 um matches the fingerprint region of molecular vibrations.", "source": "S02", "page": 8},
+        {"text": "High NA (>0.3) of PIR fibers gives much better coupling with FTIR spectrometers than hollow waveguides.", "source": "S02", "page": 10},
+        {"text": "PIR-fiber FTIR (diamond cone ATR) shown for API in hot polymer extrusion.", "source": "S02", "page": 14}
+      ],
+      "sources": [{"source": "S02", "page": 6}, {"source": "S02", "page": 8}]
+    },
+    {
+      "id": "HWG",
+      "name": "Hollow glass waveguide",
+      "range_um": [2.0, 18.0],
+      "family": "hollow",
+      "maker": "third party",
+      "used_for": ["laser power delivery (QCL, CO, CO2 lasers)"],
+      "notes": [
+        {"text": "Hollow waveguides have low NA and very poor coupling efficiency with FTIR spectrometers.", "source": "S02", "page": 10}
+      ],
+      "sources": [{"source": "S02", "page": 6}, {"source": "S02", "page": 10}]
+    },
+    {
+      "id": "INF3",
+      "name": "Indium fluoride fiber",
+      "range_um": [0.3, 5.5],
+      "family": "fluoride",
+      "maker": "Le Verre Fluore (shown on the AFS slide)",
+      "used_for": ["UV to about 5.5 um"],
+      "sources": [{"source": "S02", "page": 6}]
+    },
+    {
+      "id": "ZBLAN",
+      "name": "Zirconium fluoride fiber",
+      "range_um": [0.3, 4.5],
+      "family": "fluoride",
+      "maker": "Le Verre Fluore (shown on the AFS slide)",
+      "used_for": ["UV to about 4.5 um"],
+      "sources": [{"source": "S02", "page": 6}]
+    }
+  ]
+}

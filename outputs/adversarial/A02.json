@@ -1,0 +1,1768 @@
+{
+ "id": "571c5a319f",
+ "created": "2026-10-17T01:28:38",
+ "mode": "fast",
+ "enquiry": "We would like to use fluorescence spectroscopy to measure sodium chloride concentration in our brine tanks because fluorescence is extremely sensitive.",
+ "answers": {},
+ "parent_run_id": null,
+ "requirements": {
+  "summary": "Client wants to use fluorescence spectroscopy to measure sodium chloride concentration in brine tanks, claiming fluorescence is extremely sensitive.",
+  "target_variables": [
+   "sodium chloride concentration"
+  ],
+  "target_defined": "yes",
+  "matrix": "saline",
+  "phase": "liquid",
+  "optical_behavior": "unknown",
+  "aqueous": "yes",
+  "fluorescent_target": "yes",
+  "heterogeneous": "unknown",
+  "temperature": "unknown",
+  "fouling_risk": "unknown",
+  "process_context": "unknown",
+  "analyzer_remote": "unknown",
+  "link_length_known": "no",
+  "existing_assets": [],
+  "requested_methods": [
+   "FLUO"
+  ],
+  "reference_method": "unknown",
+  "concentration_level": "unknown",
+  "measurement_points": "unknown",
+  "facts": [
+   {
+    "field": "target_variable",
+    "value": "sodium chloride concentration",
+    "status": "stated",
+    "quote": "sodium chloride concentration"
+   },
+   {
+    "field": "measurement_method",
+    "value": "fluorescence spectroscopy",
+    "status": "stated",
+    "quote": "fluorescence spectroscopy"
+   },
+   {
+    "field": "measurement_context",
+    "value": "brine tanks",
+    "status": "stated",
+    "quote": "brine tanks"
+   }
+  ],
+  "unknowns": [
+   {
+    "item": "concentration_level",
+    "why_it_matters": "Determines required sensitivity and calibration range",
+    "impact": "high"
+   },
+   {
+    "item": "optical_behavior",
+    "why_it_matters": "Affects signal quality in saline solution",
+    "impact": "medium"
+   },
+   {
+    "item": "link_length_known",
+    "why_it_matters": "Needed for fiber routing and attenuation considerations",
+    "impact": "low"
+   },
+   {
+    "item": "analyzer_remote",
+    "why_it_matters": "Impacts design of remote sensing setup",
+    "impact": "low"
+   }
+  ],
+  "premises": [
+   {
+    "id": "P1",
+    "statement": "fluorescence is extremely sensitive",
+    "kind": "method_claim"
+   },
+   {
+    "id": "P2",
+    "statement": "measure sodium chloride concentration in brine tanks",
+    "kind": "other"
+   }
+  ]
+ },
+ "rule_hits": [
+  {
+   "rule_id": "R_AQUEOUS",
+   "title": "Water-rich media",
+   "severity": "info",
+   "text": "Water absorbs strongly in the IR; Raman shows low water absorbance and suits aqueous media. MIR is used via ATR (very short path).",
+   "scores": {
+    "RAMAN": 1
+   },
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "source": "S01",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "rule_id": "R_NO_REFERENCE",
+   "title": "Reference method unknown",
+   "severity": "info",
+   "text": "",
+   "scores": {},
+   "question": {
+    "text": "Which independent reference method, uncertainty and sampling time will provide the reference values?",
+    "impact": "high",
+    "why": "Calibration and validation need independent reference values."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S01",
+     "page": 10
+    }
+   ]
+  }
+ ],
+ "coverage": [
+  {
+   "method_id": "NIR",
+   "method_range_um": [
+    0.78,
+    2.5
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.78,
+      1.2
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.78,
+      2.4
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      1.1,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.0,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "MIR",
+   "method_range_um": [
+    2.5,
+    25.0
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      2.5,
+      6.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": [
+      3.0,
+      17.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.5,
+      18.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      2.5,
+      5.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      2.5,
+      4.5
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "RAMAN",
+   "method_range_um": [
+    0.4,
+    1.1
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "UVVIS",
+   "method_range_um": [
+    0.19,
+    0.74
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.19,
+      0.74
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "FLUO",
+   "method_range_um": [
+    0.25,
+    0.8
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.25,
+      0.8
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  }
+ ],
+ "matrix": [
+  {
+   "method_id": "RAMAN",
+   "name": "Raman spectroscopy",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_AQUEOUS",
+     "delta": 1,
+     "reason": "Water-rich media [S01 p.16, S01 p.5]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "NIR",
+   "name": "NIR spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "MIR",
+   "name": "MIR spectroscopy (ATR)",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "UVVIS",
+   "name": "UV/Vis spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "FLUO",
+   "name": "Fluorescence spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": true
+  }
+ ],
+ "evidence": [
+  {
+   "ref": "E1",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 16,
+   "text": "well with cell density. While UV/Vis tracks growth, Raman spectroscopy can be used in the same reactor to provide a \"molecular fingerprint\" for direct detection of specific metabolites like glucose, acetate, or lactate. This combination is practical because Raman is particularly well- suited for aqueous environments, as it exhibits low absorbance for water molecules compared to infrared methods. - Precision Monitoring Across Concentration Ranges: labs equipped with both Near-Infrared (NIR) and Fluorescence spectroscopy can solve the problem of monitoring analytes at widely varying concentrations. NIR spectroscopy is effective for tracking major components like glucose or glycerol in the millimolar range but may lack the sensitivity to detect trace compounds below 0.1 percent. To fill this gap, Fluorescence spectroscopy can be used for high- sensitivity detection (down to the nM-\u00b5M range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin. By using both, a researcher can maintain high-precision control over both the main carbon source and the delicate metabolic state of the cells. - Precision Monitoring Across Optical Density Ranges: When measuring media in the UV-Vis spectrum, the selection",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.1018
+  },
+  {
+   "ref": "E2",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 16,
+   "text": "used for high- sensitivity detection (down to the nM-\u00b5M range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin. By using both, a researcher can maintain high-precision control over both the main carbon source and the delicate metabolic state of the cells. - Precision Monitoring Across Optical Density Ranges: When measuring media in the UV-Vis spectrum, the selection of an optical probe is primarily dictated by the sample's optical density (OD) and its ability to attenuate light. For highly transparent liquids with low optical density, UV-Transmission or Transflection probes are ideal; they pass light through a defined path length (typically 1 mm to 10 mm), allowing for high sensitivity and accurate quantification of low- concentration analytes. However, as the media becomes more opaque, turbid, or highly concentrated, the signal in a standard transmission setup becomes saturated because the light cannot penetrate the bulk of the sample. In these high-OD scenarios, a UV-ATR (Attenuated Total Reflection) probe is used. Instead of passing light through the sample, ATR relies on the evanescent wave that penetrates only a few micrometers into",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.1007
+  },
+  {
+   "ref": "E3",
+   "kind": "claim",
+   "source": "S01",
+   "page": 16,
+   "text": "As media become opaque, turbid or concentrated, transmission saturates; ATR (a few micrometres of evanescent-wave depth) measures such fluids without dilution. Quote: \"In these high-OD scenarios, a UV-ATR (Attenuated Total Reflection) probe is used.\"",
+   "quote": "In these high-OD scenarios, a UV-ATR (Attenuated Total Reflection) probe is used.",
+   "scope": "general_method",
+   "score": 0.0885
+  },
+  {
+   "ref": "E4",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 11,
+   "text": "the low intensity of Raman signals, which are several orders of magnitude weaker than IR absorption peaks in the IR range (when these spectra are compared in the original photon count units). Furthermore, observing Raman bands is often complicated by light scattering from the illuminating laser, and for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity. These effects can be eliminated by using specialized optical filters and probes of a special design. The Raman spectrometer detector must be highly sensitive and have a wide dynamic range. Because of these characteristics, a Raman spectrometer has significant design differences from a spectrometer for recording absorption spectra, which operates in the same spectral region (400\u20131100 nm) of visible and shortwave NIR radiation. The Raman spectrometer supplied with this multispectral laboratory is designed to record Raman spectra of various samples, such as liquid mixtures containing organic and inorganic substances, biological tissue, powdered materials of various origins, etc. The resulting spectra can be used for both qualitative and quantitative analysis of mixtures. Measuring the IR and Raman spectra",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0838
+  },
+  {
+   "ref": "E5",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 6,
+   "text": "(emission) liquid 2-5 mm average high high Raman-probe liquid, powder, solid 4 UV/Visibl e spectrosc opy cuvette absorption liquid 1-5 mm high low low ATR probe 0.1-1 mu low avera ge Diffuse reflection- probe diffuse reflection solid, pill 1-5 mm low low Transmission or transflection probe Transmission liquid 1-10 mm low probe, lens emission of an external source radiating sample any high 5 Fluorime try cuvette 90\u00b0 fluorescence (emission) liquid 10mm high low low fluorimetric probe liquid, solid 1-5 mm",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0741
+  },
+  {
+   "ref": "E6",
+   "kind": "claim",
+   "source": "S01",
+   "page": 12,
+   "text": "The Raman signal depends linearly on concentration over a wide range, so it can be used for calibration models. Quote: \"dependence on concentration is linear over a wide range of intensities.\"",
+   "quote": "dependence on concentration is linear over a wide range of intensities.",
+   "scope": "general_method",
+   "score": 0.0715
+  },
+  {
+   "ref": "E7",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 6,
+   "text": "6 Table 1. Comparative characteristics of spectral methods and measurement techniques. \u2116Method Measurement method Physical phenomenon Sample Type Optical path, depth Sensitiv ity Selectivit y Cost 1 IR spectrosc opy ATR- platform absorption liquid,paste, soft 1-6 mu average high high ATR probe* cuvette liquid 10-100 mu high avera ge sample layer solid film 5-50 mu sample surface diffuse reflection solid 10 mu average 2 NIR spectrosc opy cuvette transmission liquid 1-5 mm average average avera ge Transmission or transflection probe liquid, colloidal 1-10 mm avera ge Diffuse reflection- probe diffuse reflection Scattering media, powder 0.5-1 mm integrating sphere solid, powder 5-10 mm surface at a distance solid, powder 2-5 mm avera ge 3 Raman spectrosc opy cuvette 90\u00b0 raman scattering (emission) liquid 2-5 mm average high high Raman-probe liquid, powder, solid 4 UV/Visibl e spectrosc opy cuvette absorption liquid 1-5 mm high low low ATR probe 0.1-1 mu low avera ge Diffuse reflection- probe diffuse reflection solid, pill 1-5 mm low low Transmission or transflection probe Transmission liquid 1-10 mm low probe, lens emission of an external source radiating sample",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0699
+  },
+  {
+   "ref": "E8",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 12,
+   "text": "12 dependence on concentration is linear over a wide range of intensities. Therefore, Raman spectra (as well as IR absorption spectra) can be used to construct chemometric models\u2014calibration or classification ones. Fig.3 Raman fiber probe. Images courtesy of art photonics GmbH. 5.4. Fluorescence Analysis (includes a fluorescence spectrometer, excitation laser, and fluorescence fiber probe) Fluorimetry is based on measuring the broad emission signal observed upon irradiation of certain samples in the UV and visible regions. The fluorescence peak is shifted to longer wavelengths compared to the excitation radiation of the source (laser or LED). This method is frequently used in biology and biotechnology. Recently, it has become a key method for online analysis of biotechnological processes. Fluorescence spectroscopy can be used for multispectral measurements, for example, in combination with Mid-IR or NIR spectroscopy. Fig.4 Fluorescent fiber probe. Image courtesy of art photonics GmbH.",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.068
+  },
+  {
+   "ref": "E9",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 16,
+   "text": "the media becomes more opaque, turbid, or highly concentrated, the signal in a standard transmission setup becomes saturated because the light cannot penetrate the bulk of the sample. In these high-OD scenarios, a UV-ATR (Attenuated Total Reflection) probe is used. Instead of passing light through the sample, ATR relies on the evanescent wave that penetrates only a few micrometers into the medium at the crystal interface, effectively creating an extremely short path length that enables the measurement of \"black\" or highly scattering fluids without dilution. Equipping a facility with both probe types significantly increases laboratory flexibility, as it allows researchers to pivot between different samples without changing instruments. This versatile analytical capability enables the lab to participate in a broader range of research projects, spanning from traditional pharmaceutical quality control to the complex monitoring required in advanced materials science and industrial process development.",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0673
+  },
+  {
+   "ref": "E10",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 17,
+   "text": "highly concentrated dairy products, such as yogurt, butter, or whole milk concentrates. The main equipment includes a fiber optic probe where one set of fibers delivers light to the sample and the other collects the \"backscattered\" light. Experimentally, the probe is flush-mounted into a pipe or vat to interact directly with the flowing medium. Because the light does not penetrate deeply, the method is sensitive to the surface characteristics and fat globule size. Data processing may involve converting the reflectance values to absorbance and applying Multiplicative Scatter Correction (MSC) or Standard Normal Variate (SNV) transformations to remove physical interference caused by the scattering nature of the milk particles before using Partial Least Squares (PLS) regression to quantify fat and protein.",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0597
+  }
+ ],
+ "retrieval": {
+  "queries": [
+   "sodium chloride concentration in saline liquid",
+   "unknown liquid probe geometry Raman spectroscopy",
+   "Water-rich media Reference method unknown",
+   "We would like to use fluorescence spectroscopy to measure sodium chloride concentration in our brine tanks because fluorescence is extremely sensitive.",
+   "FLUO limitations sodium chloride concentration"
+  ],
+  "bm25": {
+   "sodium chloride concentration in saline liquid": [
+    48,
+    212,
+    230,
+    52,
+    51,
+    19,
+    216,
+    228
+   ],
+   "unknown liquid probe geometry Raman spectroscopy": [
+    182,
+    153,
+    233,
+    183,
+    18,
+    19,
+    72,
+    147
+   ],
+   "Water-rich media Reference method unknown": [
+    233,
+    223,
+    182,
+    68,
+    47,
+    195,
+    45,
+    20
+   ],
+   "We would like to use fluorescence spectroscopy to measure sodium chloride concentration in our brine tanks because fluorescence is extremely sensitive.": [
+    47,
+    226,
+    48,
+    49,
+    225,
+    77,
+    51,
+    50
+   ],
+   "FLUO limitations sodium chloride concentration": [
+    72,
+    242,
+    63,
+    251,
+    212,
+    230,
+    273,
+    248
+   ]
+  },
+  "dense": {
+   "sodium chloride concentration in saline liquid": [
+    92,
+    193,
+    228,
+    52,
+    142,
+    156,
+    19,
+    227
+   ],
+   "unknown liquid probe geometry Raman spectroscopy": [
+    36,
+    156,
+    19,
+    153,
+    218,
+    147,
+    152,
+    45
+   ],
+   "Water-rich media Reference method unknown": [
+    228,
+    68,
+    145,
+    247,
+    69,
+    195,
+    51,
+    137
+   ],
+   "We would like to use fluorescence spectroscopy to measure sodium chloride concentration in our brine tanks because fluorescence is extremely sensitive.": [
+    226,
+    47,
+    37,
+    196,
+    172,
+    35,
+    188,
+    60
+   ],
+   "FLUO limitations sodium chloride concentration": [
+    273,
+    194,
+    188,
+    212,
+    13,
+    274,
+    48,
+    92
+   ]
+  },
+  "fused": [
+   [
+    47,
+    0.1018
+   ],
+   [
+    48,
+    0.1007
+   ],
+   [
+    228,
+    0.0885
+   ],
+   [
+    35,
+    0.0838
+   ],
+   [
+    19,
+    0.0741
+   ],
+   [
+    212,
+    0.0715
+   ],
+   [
+    18,
+    0.0699
+   ],
+   [
+    37,
+    0.068
+   ],
+   [
+    49,
+    0.0673
+   ],
+   [
+    167,
+    0.0634
+   ],
+   [
+    51,
+    0.0597
+   ],
+   [
+    156,
+    0.0585
+   ],
+   [
+    52,
+    0.0578
+   ],
+   [
+    233,
+    0.0565
+   ],
+   [
+    50,
+    0.056
+   ]
+  ],
+  "mmr": [
+   47,
+   48,
+   228,
+   35,
+   19,
+   212,
+   18,
+   37,
+   49,
+   167,
+   51,
+   233,
+   52,
+   156,
+   274,
+   77,
+   50,
+   182,
+   68,
+   92,
+   242,
+   216,
+   230,
+   193,
+   220,
+   227,
+   36,
+   13
+  ],
+  "pinned": [],
+  "used_tokens": 1794
+ },
+ "spectral": {
+  "methods": [
+   {
+    "id": "NIR",
+    "name": "NIR spectroscopy",
+    "range_um": [
+     0.78,
+     2.5
+    ],
+    "label": "780-2500 nm",
+    "source": "S01 p.10"
+   },
+   {
+    "id": "MIR",
+    "name": "Mid-IR spectroscopy (ATR fiber probe)",
+    "range_um": [
+     2.5,
+     25.0
+    ],
+    "label": "4000-400 cm-1 (2.5-25 um)",
+    "source": "S01 p.9"
+   },
+   {
+    "id": "RAMAN",
+    "name": "Raman spectroscopy",
+    "range_um": [
+     0.4,
+     1.1
+    ],
+    "label": "Raman shift in cm-1; excitation laser in nm, stated separately (for example 785 nm)",
+    "source": "S01 p.11"
+   },
+   {
+    "id": "UVVIS",
+    "name": "UV/Visible spectroscopy",
+    "range_um": [
+     0.19,
+     0.74
+    ],
+    "label": "UV 190-360 nm (high sensitivity region), visible about 400-740 nm",
+    "source": "S01 p.5"
+   },
+   {
+    "id": "FLUO",
+    "name": "Fluorescence spectroscopy (fluorimetry)",
+    "range_um": [
+     0.25,
+     0.8
+    ],
+    "label": "Depends on the fluorescent species; UV/visible excitation, emission at longer wavelengths",
+    "source": "S01 p.12"
+   }
+  ],
+  "fibers": [
+   {
+    "id": "UV_SILICA",
+    "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.18,
+     1.2
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "VISNIR_SILICA",
+    "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.35,
+     2.4
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "CIR",
+    "name": "Chalcogenide As-S IR fiber (CIR)",
+    "range_um": [
+     1.1,
+     6.5
+    ],
+    "family": "chalcogenide"
+   },
+   {
+    "id": "PIR",
+    "name": "Polycrystalline silver-halide IR fiber (PIR)",
+    "range_um": [
+     3.0,
+     17.0
+    ],
+    "family": "polycrystalline"
+   },
+   {
+    "id": "HWG",
+    "name": "Hollow glass waveguide",
+    "range_um": [
+     2.0,
+     18.0
+    ],
+    "family": "hollow"
+   },
+   {
+    "id": "INF3",
+    "name": "Indium fluoride fiber",
+    "range_um": [
+     0.3,
+     5.5
+    ],
+    "family": "fluoride"
+   },
+   {
+    "id": "ZBLAN",
+    "name": "Zirconium fluoride fiber",
+    "range_um": [
+     0.3,
+     4.5
+    ],
+    "family": "fluoride"
+   }
+  ],
+  "bands": [],
+  "client_silica": false
+ },
+ "premises": [
+  {
+   "premise_id": "P1",
+   "statement": "fluorescence is extremely sensitive",
+   "verdict": "supported",
+   "explanation": "The evidence states fluorescence spectroscopy can detect analytes down to the nM\u2011\u00b5M range, indicating very high sensitivity.",
+   "citations": [
+    {
+     "source": "S01",
+     "page": 16,
+     "quote": "Fluorescence spectroscopy can be used for high\u2011sensitivity detection (down to the nM\u2011\u00b5M range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin."
+    }
+   ]
+  },
+  {
+   "premise_id": "P2",
+   "statement": "measure sodium chloride concentration in brine tanks",
+   "verdict": "contradicted",
+   "explanation": "No evidence or reference is provided that fluorescence spectroscopy can quantify sodium chloride in aqueous brine; the rule set flags the lack of reference.",
+   "citations": [
+    {
+     "source": "S01",
+     "page": 5,
+     "quote": "(info)  (sources: S01 p.5, S01 p.10)"
+    },
+    {
+     "source": "S01",
+     "page": 5,
+     "quote": "(info)  (sources: S01 p.5, S01 p.10)"
+    }
+   ]
+  }
+ ],
+ "report": {
+  "decision_status": "insufficient_information",
+  "headline": "Fluorescence spectroscopy cannot be confirmed for quantifying sodium chloride in brine without supporting reference data.",
+  "requirements_stated": [
+   "measure sodium chloride concentration",
+   "use fluorescence spectroscopy",
+   "liquid aqueous brine matrix"
+  ],
+  "key_unknowns": [
+   "actual concentration range of NaCl in the tanks",
+   "optical behavior of NaCl solutions (fluorescence response, background interference)",
+   "availability of a fluorophore or labeling strategy for NaCl",
+   "required optical path length for adequate signal"
+  ],
+  "clarification_questions": [
+   {
+    "question": "What is the expected concentration range of NaCl in the brine tanks?",
+    "why": "Determines whether fluorescence detection limits (nM\u2011\u00b5M) are relevant and influences path\u2011length design.",
+    "impact": "high"
+   },
+   {
+    "question": "Do you have or plan to add a fluorescent probe or label that specifically binds NaCl?",
+    "why": "Fluorescence of NaCl itself is negligible; a selective fluorophore is required for indirect measurement.",
+    "impact": "high"
+   },
+   {
+    "question": "What is the optical density / turbidity of the brine, and are there interfering species that fluoresce?",
+    "why": "High OD can saturate transmission probes and cause background fluorescence, affecting feasibility.",
+    "impact": "medium"
+   },
+   {
+    "question": "Is remote (in\u2011line) measurement required, or can samples be withdrawn for lab analysis?",
+    "why": "Impacts probe design, fiber type, and whether a lab\u2011scale trial is sufficient.",
+    "impact": "medium"
+   },
+   {
+    "question": "Can you provide details of the existing fluorescence instrument (excitation wavelength, detector range) that can be leveraged?",
+    "why": "Ensures compatibility with any proposed fluorophore and defines spectral range.",
+    "impact": "low"
+   }
+  ],
+  "recommendations": [
+   {
+    "method": "Exploratory feasibility study using a fluorophore that binds NaCl (e.g., a sodium\u2011sensitive dye) with fluorescence detection",
+    "method_ids": [
+     "FLUO"
+    ],
+    "role": "conditional",
+    "rationale": [
+     {
+      "text": "Fluorescence offers high sensitivity for labeled species, but requires a specific fluorescent tag for NaCl.",
+      "kind": "proposal",
+      "citations": []
+     },
+     {
+      "text": "Existing evidence shows fluorescence can detect low\u2011concentration biomolecules, suggesting the detection principle is viable if a suitable label exists.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 16,
+        "quote": "Fluorescence spectroscopy can be used for high\u2011sensitivity detection (down to the nM\u2011\u00b5M range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin."
+       }
+      ]
+     }
+    ],
+    "conditions": "Only if a sodium\u2011specific fluorescent probe is identified and compatible with the brine matrix."
+   },
+   {
+    "method": "Raman spectroscopy (back\u2011scattering probe) for direct quantification of NaCl",
+    "method_ids": [
+     "RAMAN"
+    ],
+    "role": "comparison",
+    "rationale": [
+     {
+      "text": "Raman shows low water absorbance and can be applied to aqueous media, with linear concentration dependence for inorganic salts.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 16,
+        "quote": "Raman spectroscopy can be used in the same reactor to provide a \"molecular fingerprint\" for direct detection of specific metabolites... well suited for aqueous environments."
+       },
+       {
+        "source": "S01",
+        "page": 12,
+        "quote": "dependence on concentration is linear over a wide range of intensities."
+       }
+      ]
+     },
+     {
+      "text": "Assumption: Raman cross\u2011section for NaCl is sufficient for the expected concentration range.",
+      "kind": "assumption",
+      "citations": []
+     }
+    ],
+    "conditions": "Requires evaluation of Raman signal strength for the target NaCl levels."
+   }
+  ],
+  "measurement_concept": [
+   {
+    "text": "Client seeks direct fluorescence detection of NaCl in aqueous brine.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "Fluorescence spectroscopy can achieve nM\u2011\u00b5M sensitivity for fluorescent analytes such as NADH, tryptophan, riboflavin (S01 p.16).",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "Fluorescence spectroscopy can be used for high\u2011sensitivity detection (down to the nM\u2011\u00b5M range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin."
+     }
+    ]
+   },
+   {
+    "text": "No evidence in the provided sources shows fluorescence can quantify inorganic salts such as NaCl in aqueous solution.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "Assumption: NaCl itself does not exhibit intrinsic fluorescence in the UV\u2011Vis range.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "spectral_range": [
+   {
+    "text": "Fluorescence excitation typically in UV\u2011Vis with emission shifted to longer wavelengths; exact range depends on fluorophore used.",
+    "kind": "proposal",
+    "citations": []
+   }
+  ],
+  "risks": [
+   {
+    "text": "NaCl lacks intrinsic fluorescence; without a selective fluorophore the method will not generate a measurable signal.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "High salt concentration can quench fluorescence or cause inner\u2011filter effects, reducing sensitivity.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "Background fluorescence from impurities or dissolved organic matter may mask any weak signal.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "feasibility_plan": {
+   "samples": [
+    "Laboratory brine solutions spiked with known NaCl concentrations covering the expected range",
+    "Brine samples containing potential interferents (e.g., organic matter, other salts)"
+   ],
+   "reference": [
+    "Standard ion\u2011chromatography or conductivity measurements as independent reference"
+   ],
+   "comparison": [
+    "Fluorescence with candidate NaCl\u2011binding dye vs. Raman spectroscopy on the same samples"
+   ],
+   "decision_basis": [
+    "Achieve client\u2011agreed detection limit and linearity across the target range",
+    "Signal\u2011to\u2011noise ratio sufficient for real\u2011time monitoring"
+   ],
+   "steps": [
+    "1. Survey commercially available sodium\u2011sensitive fluorescent dyes and select up to three candidates.",
+    "2. Prepare calibration standards in brine and record fluorescence spectra using the client\u2019s excitation source.",
+    "3. Record Raman spectra of the same standards with a 90\u00b0 back\u2011scattering probe.",
+    "4. Compare calibration performance (linearity, limit of detection) against ion\u2011chromatography reference.",
+    "5. Assess probe fouling and optical interference under realistic tank conditions.",
+    "6. Summarize results and recommend the most viable method for further scale\u2011up."
+   ]
+  },
+  "pathway": {
+   "next_step": "Conduct the outlined multi\u2011method laboratory feasibility trial.",
+   "likely_path": "B",
+   "why": "The client seeks a new measurement capability; a combined fluorescence (if a suitable probe exists) and Raman evaluation will inform whether a customized multi\u2011spectral system is justified."
+  },
+  "assumptions": [
+   "NaCl does not fluoresce intrinsically.",
+   "A suitable fluorescent probe for NaCl is not yet identified.",
+   "The client\u2019s brine is optically clear enough for transmission\u2011type fluorescence probes."
+  ]
+ },
+ "verification": {
+  "claims": [
+   {
+    "location": "recommendations[0].rationale[0]",
+    "text": "Fluorescence offers high sensitivity for labeled species, but requires a specific fluorescent tag for NaCl.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "recommendations[0].rationale[1]",
+    "text": "Existing evidence shows fluorescence can detect low\u2011concentration biomolecules, suggesting the detection principle is viable if a suitable label exists.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "Fluorescence spectroscopy can be used for high\u2011sensitivity detection (down to the nM\u2011\u00b5M range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[1].rationale[0]",
+    "text": "Raman shows low water absorbance and can be applied to aqueous media, with linear concentration dependence for inorganic salts.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "S01 p.16: quote not on page (85)",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "Raman spectroscopy can be used in the same reactor to provide a \"molecular fingerprint\" for direct detection of specific metabolites... well suited for aqueous environments."
+     },
+     {
+      "source": "S01",
+      "page": 12,
+      "quote": "dependence on concentration is linear over a wide range of intensities."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[1].rationale[1]",
+    "text": "Assumption: Raman cross\u2011section for NaCl is sufficient for the expected concentration range.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[0]",
+    "text": "Client seeks direct fluorescence detection of NaCl in aqueous brine.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[1]",
+    "text": "Fluorescence spectroscopy can achieve nM\u2011\u00b5M sensitivity for fluorescent analytes such as NADH, tryptophan, riboflavin (S01 p.16).",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "Fluorescence spectroscopy can be used for high\u2011sensitivity detection (down to the nM\u2011\u00b5M range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin."
+     }
+    ]
+   },
+   {
+    "location": "measurement_concept[2]",
+    "text": "No evidence in the provided sources shows fluorescence can quantify inorganic salts such as NaCl in aqueous solution.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[3]",
+    "text": "Assumption: NaCl itself does not exhibit intrinsic fluorescence in the UV\u2011Vis range.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "spectral_range[0]",
+    "text": "Fluorescence excitation typically in UV\u2011Vis with emission shifted to longer wavelengths; exact range depends on fluorophore used.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[0]",
+    "text": "NaCl lacks intrinsic fluorescence; without a selective fluorophore the method will not generate a measurable signal.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[1]",
+    "text": "High salt concentration can quench fluorescence or cause inner\u2011filter effects, reducing sensitivity.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[2]",
+    "text": "Background fluorescence from impurities or dissolved organic matter may mask any weak signal.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   }
+  ],
+  "numbers": [],
+  "client_facts": [],
+  "n_sourced": 3,
+  "n_verified": 3,
+  "n_unsupported_numbers": 0,
+  "n_bad_client_facts": 0
+ },
+ "quality": {
+  "items": [
+   {
+    "id": "S1",
+    "category": "structure",
+    "name": "All required sections present",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S2",
+    "category": "structure",
+    "name": "3-6 questions, highest impact first",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S3",
+    "category": "structure",
+    "name": "Plan has samples, reference, comparison, decision basis",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S4",
+    "category": "structure",
+    "name": "Decision status consistent with rule findings",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G1",
+    "category": "grounding",
+    "name": "Sourced claims verified on the cited page",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G2",
+    "category": "grounding",
+    "name": "No unsupported numbers",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G3",
+    "category": "grounding",
+    "name": "No invented client facts",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G4",
+    "category": "grounding",
+    "name": "Evidence used within its scope",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G5",
+    "category": "grounding",
+    "name": "Each recommendation has a sourced reason",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H1",
+    "category": "honesty",
+    "name": "No guarantee or readiness wording",
+    "status": "fail",
+    "detail": "'Ensures' at clarification_questions[4]"
+   },
+   {
+    "id": "H2",
+    "category": "honesty",
+    "name": "Units: Raman shift in cm-1, excitation in nm",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H3",
+    "category": "honesty",
+    "name": "Fiber choice consistent with spectral coverage",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H4",
+    "category": "honesty",
+    "name": "Contradicted premises are stated plainly in the headline",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U1",
+    "category": "usefulness",
+    "name": "Client-requested weak methods are addressed (why / why not)",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U2",
+    "category": "usefulness",
+    "name": "Feasibility plan is concrete",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U3",
+    "category": "usefulness",
+    "name": "Questions cover the high-impact unknowns",
+    "status": "warn",
+    "detail": "0/1 high-impact rule questions covered"
+   }
+  ],
+  "passed": 14,
+  "total": 16,
+  "repaired": true,
+  "repair_notes": [
+   "G2 fixed",
+   "G3 fixed"
+  ]
+ },
+ "confidence": {
+  "level": "insufficient",
+  "signals": [
+   {
+    "name": "Information",
+    "level": "low",
+    "value": 0.2,
+    "detail": "2/10 decision-relevant facts known; target defined: yes"
+   },
+   {
+    "name": "Evidence",
+    "level": "low",
+    "value": 0.3333333333333333,
+    "detail": "Only general method knowledge applies; no direct application example in the sources"
+   },
+   {
+    "name": "Scope fit",
+    "level": "high",
+    "value": 1.0,
+    "detail": "Requested use matches the scope of the cited evidence"
+   },
+   {
+    "name": "Client premises",
+    "level": "low",
+    "value": 0.3333333333333333,
+    "detail": "1 contradicted, 0 unverifiable, 1 supported"
+   },
+   {
+    "name": "Verification",
+    "level": "high",
+    "value": 1.0,
+    "detail": "3/3 sourced claims verified; 0 unsupported numbers"
+   }
+  ],
+  "caps": [],
+  "per_method": [
+   {
+    "method_id": "RAMAN",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   },
+   {
+    "method_id": "NIR",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "MIR",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "UVVIS",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "FLUO",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   }
+  ],
+  "raise_with": [
+   "Is the sample clear, turbid or opaque, and does this change during the process?",
+   "What concentration range must be covered, and what is the smallest change that matters?",
+   "Which independent reference method (and its uncertainty) can provide calibration values?"
+  ]
+ },
+ "council": null,
+ "coach": {
+  "completeness": 2,
+  "total": 10,
+  "fields": [
+   {
+    "name": "optics",
+    "label": "Optical behaviour (clear / turbid / opaque)",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Is the sample clear, turbid or opaque, and does this change during the process?"
+   },
+   {
+    "name": "range",
+    "label": "Concentration range",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What concentration range must be covered, and what is the smallest change that matters?"
+   },
+   {
+    "name": "reference",
+    "label": "Reference method",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Which independent reference method (and its uncertainty) can provide calibration values?"
+   },
+   {
+    "name": "conditions",
+    "label": "Process conditions at the probe",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What temperature, pressure, flow, fouling and cleaning conditions apply at the probe?"
+   },
+   {
+    "name": "accuracy",
+    "label": "Accuracy / acceptance criteria",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Which accuracy, bias or acceptance limits must the measurement meet?"
+   },
+   {
+    "name": "installation",
+    "label": "Installation and fiber link",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Where can the probe be installed, and how far away will the analyzer be?"
+   },
+   {
+    "name": "timing",
+    "label": "Response time / update rate",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "How quickly must a change be detected (update rate, response time)?"
+   },
+   {
+    "name": "points",
+    "label": "Number of measuring points",
+    "status": "unknown",
+    "impact": "low",
+    "question": "How many measuring points or streams need monitoring?"
+   },
+   {
+    "name": "target",
+    "label": "Target variable / analyte",
+    "status": "stated",
+    "impact": "high",
+    "question": "Which variable or analyte must be measured, and which changes must be distinguished?"
+   },
+   {
+    "name": "matrix",
+    "label": "Sample matrix and phase",
+    "status": "stated",
+    "impact": "high",
+    "question": "What is the sample (liquid, powder, melt, tissue...) and its main components?"
+   }
+  ],
+  "template": "We would like to use fluorescence spectroscopy to measure sodium chloride concentration in our brine tanks because fluorescence is extremely sensitive. The sample is [optical behaviour, e.g. 'clear / turbid / opaque'] and this may change during the process. The concentration range to be covered is [concentration range, e.g. 'x to y %'] and the smallest change that matters is [smallest change, e.g. '0.1%']. Calibration values can be provided by [reference method, e.g. 'ICP-OES'] with an uncertainty of [uncertainty, e.g. '\u00b10.5%']. At the probe, the process conditions are [temperature, pressure, flow, fouling and cleaning conditions, e.g. '80\u00b0C, 5 bar, 1 m/s, fouling present, cleaning by ...']. The measurement must meet an accuracy of [accuracy / acceptance criteria, e.g. '\u00b11%'] or bias limits. The probe can be installed at [installation location, e.g. 'in-line, 2 m from analyzer'] and the analyzer will be [distance, e.g. '2 m away']. The response time required is [response time / update rate, e.g. '5 s'] and the update rate is [update rate, e.g. '1 Hz']. We need to monitor [number of measuring points, e.g. '3'] measuring points or streams."
+ },
+ "diff": [],
+ "trace": [
+  {
+   "stage": "extract",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 1535,
+   "completion_tokens": 540,
+   "latency_ms": 1014,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "premise",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 2673,
+   "completion_tokens": 442,
+   "latency_ms": 26985,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "report",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 4475,
+   "completion_tokens": 1823,
+   "latency_ms": 44059,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 4876,
+   "completion_tokens": 2020,
+   "latency_ms": 51017,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "coach",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 501,
+   "completion_tokens": 326,
+   "latency_ms": 625,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  }
+ ],
+ "timings_ms": {
+  "extract": 1015,
+  "rules": 2,
+  "retrieve": 437,
+  "premise": 26986,
+  "report": 44060,
+  "verify": 51038,
+  "coach": 626,
+  "total": 124287
+ },
+ "error": ""
+}

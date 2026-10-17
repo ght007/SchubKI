@@ -1,0 +1,16 @@
+[
+ {
+  "id": "H04",
+  "status": "insufficient_information",
+  "confidence": "insufficient",
+  "quality": "14/16",
+  "verified": "2/7",
+  "bad_numbers": 1,
+  "leads": "MIR",
+  "llm_calls": 5,
+  "fallbacks": 1,
+  "secs": 85.2,
+  "expect": "OK",
+  "error": ""
+ }
+]

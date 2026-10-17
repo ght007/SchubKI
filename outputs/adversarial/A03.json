@@ -1,0 +1,2063 @@
+{
+ "id": "9da54acfba",
+ "created": "2026-10-17T01:30:42",
+ "mode": "fast",
+ "enquiry": "We read the combined MIR and fluorescence paper on chicken tissues. Can we cite it as proof that the probe is validated for automatic meat quality grading in our slaughterhouse line? We have no data of our own.",
+ "answers": {},
+ "parent_run_id": null,
+ "requirements": {
+  "summary": "Client wants to cite a MIR and fluorescence paper on chicken tissues as proof that the probe is validated for automatic meat quality grading in their slaughterhouse line, but they have no data of their own.",
+  "target_variables": [
+   "meat quality grading"
+  ],
+  "target_defined": "partial",
+  "matrix": "unknown",
+  "phase": "unknown",
+  "optical_behavior": "unknown",
+  "aqueous": "unknown",
+  "fluorescent_target": "unknown",
+  "heterogeneous": "unknown",
+  "temperature": "unknown",
+  "fouling_risk": "unknown",
+  "process_context": "production",
+  "analyzer_remote": "unknown",
+  "link_length_known": "no",
+  "existing_assets": [],
+  "requested_methods": [
+   "MIR",
+   "FLUO"
+  ],
+  "reference_method": "unknown",
+  "concentration_level": "unknown",
+  "measurement_points": "unknown",
+  "facts": [
+   {
+    "field": "target_defined",
+    "value": "partial",
+    "status": "stated",
+    "quote": "automatic meat quality grading"
+   },
+   {
+    "field": "requested_methods",
+    "value": "MIR",
+    "status": "stated",
+    "quote": "MIR and fluorescence"
+   },
+   {
+    "field": "requested_methods",
+    "value": "FLUO",
+    "status": "stated",
+    "quote": "MIR and fluorescence"
+   },
+   {
+    "field": "existing_assets",
+    "value": "none",
+    "status": "stated",
+    "quote": "no data of our own"
+   }
+  ],
+  "unknowns": [
+   {
+    "item": "validation status of probe for slaughterhouse line",
+    "why_it_matters": "Determines if external paper suffices for validation",
+    "impact": "high"
+   },
+   {
+    "item": "specific conditions of slaughterhouse line (temperature, matrix, optical behavior)",
+    "why_it_matters": "May affect probe performance",
+    "impact": "high"
+   }
+  ],
+  "premises": [
+   {
+    "id": "P1",
+    "statement": "The combined MIR and fluorescence paper on chicken tissues can be cited as proof that the probe is validated for automatic meat quality grading in our slaughterhouse line.",
+    "kind": "evidence_claim"
+   },
+   {
+    "id": "P2",
+    "statement": "We have no data of our own.",
+    "kind": "other"
+   }
+  ]
+ },
+ "rule_hits": [
+  {
+   "rule_id": "R_FLUO_NEEDS_TARGET",
+   "title": "Fluorescence needs a fluorescent target",
+   "severity": "block",
+   "text": "Fluorescence has high sensitivity but low selectivity, and most chemicals do not fluoresce. Without a defined fluorescent target, marker or reference relationship, sensitivity alone does not justify reporting a concentration.",
+   "scores": {
+    "FLUO": -3
+   },
+   "question": {
+    "text": "Is there a known fluorescent species (e.g. NADH, tryptophan, riboflavin) whose signal has been related to the requested variable with reference data?",
+    "impact": "high",
+    "why": "Without it fluorescence cannot be the primary method."
+   },
+   "cap_confidence": "low",
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S01",
+     "page": 6
+    },
+    {
+     "source": "S04",
+     "page": 4
+    }
+   ]
+  },
+  {
+   "rule_id": "R_EVIDENCE_AS_PROOF",
+   "title": "A cited study is a reason to test, not proof",
+   "severity": "warn",
+   "text": "A published application is a reason to test a method on the client's material, not proof that it will work for a new setup, matrix or use.",
+   "scores": {},
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S03",
+     "page": 14
+    },
+    {
+     "source": "S04",
+     "page": 1
+    }
+   ]
+  },
+  {
+   "rule_id": "R_RAMAN_FLUO_BACKGROUND",
+   "title": "Raman fluorescence background risk",
+   "severity": "info",
+   "text": "Raman signals are weak and, for many organic or biological samples, fluorescence can overlay them. Check background and signal quality on real samples; state excitation wavelength and Raman shift separately.",
+   "scores": {},
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 11
+    },
+    {
+     "source": "S02",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "rule_id": "R_HETEROGENEOUS",
+   "title": "Heterogeneous samples need same-point measurements",
+   "severity": "info",
+   "text": "For heterogeneous samples, different methods must sample the same small spot; alternating separate probes cannot guarantee this. A combined MIR ATR + fluorescence probe acquires both from the same point.",
+   "scores": {
+    "MIR": 1,
+    "FLUO": 1
+   },
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [
+    "Compare a combined same-point probe with sequential single probes on the same sample sites."
+   ],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 8
+    },
+    {
+     "source": "S04",
+     "page": 2
+    },
+    {
+     "source": "S01",
+     "page": 14
+    }
+   ]
+  },
+  {
+   "rule_id": "R_NO_REFERENCE",
+   "title": "Reference method unknown",
+   "severity": "info",
+   "text": "",
+   "scores": {},
+   "question": {
+    "text": "Which independent reference method, uncertainty and sampling time will provide the reference values?",
+    "impact": "high",
+    "why": "Calibration and validation need independent reference values."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S01",
+     "page": 10
+    }
+   ]
+  }
+ ],
+ "coverage": [
+  {
+   "method_id": "NIR",
+   "method_range_um": [
+    0.78,
+    2.5
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.78,
+      1.2
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.78,
+      2.4
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      1.1,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.0,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "MIR",
+   "method_range_um": [
+    2.5,
+    25.0
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      2.5,
+      6.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": [
+      3.0,
+      17.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.5,
+      18.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      2.5,
+      5.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      2.5,
+      4.5
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "RAMAN",
+   "method_range_um": [
+    0.4,
+    1.1
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "UVVIS",
+   "method_range_um": [
+    0.19,
+    0.74
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.19,
+      0.74
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "FLUO",
+   "method_range_um": [
+    0.25,
+    0.8
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.25,
+      0.8
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  }
+ ],
+ "matrix": [
+  {
+   "method_id": "MIR",
+   "name": "MIR spectroscopy (ATR)",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_HETEROGENEOUS",
+     "delta": 1,
+     "reason": "Heterogeneous samples need same-point measurements [S01 p.8, S04 p.2]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": true
+  },
+  {
+   "method_id": "NIR",
+   "name": "NIR spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "RAMAN",
+   "name": "Raman spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "UVVIS",
+   "name": "UV/Vis spectroscopy",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "FLUO",
+   "name": "Fluorescence spectroscopy",
+   "score": -2,
+   "contributions": [
+    {
+     "rule_id": "R_FLUO_NEEDS_TARGET",
+     "delta": -3,
+     "reason": "Fluorescence needs a fluorescent target [S01 p.5, S01 p.6]"
+    },
+    {
+     "rule_id": "R_HETEROGENEOUS",
+     "delta": 1,
+     "reason": "Heterogeneous samples need same-point measurements [S01 p.8, S04 p.2]"
+    }
+   ],
+   "verdict": "not_supported",
+   "requested_by_client": true
+  }
+ ],
+ "evidence": [
+  {
+   "ref": "E1",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "NIR penetrates up to several millimetres even into dense samples and works with ordinary glass optics, making it suited to online and remote fiber measurements. Quote: \"NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics\"",
+   "quote": "NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E2",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Strong MIR absorption limits transmission measurements to very thin samples, which is why ATR probes are used. Quote: \"strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)\"",
+   "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)",
+   "scope": "general_method",
+   "score": 0.0603
+  },
+  {
+   "ref": "E3",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Raman needs special probes; Raman and MIR spectra carry complementary information. Quote: \"the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.\"",
+   "quote": "the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.",
+   "scope": "general_method",
+   "score": 0.0389
+  },
+  {
+   "ref": "E4",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "UV spectroscopy is very sensitive but strong spectral overlap makes chemometrics necessary for mixtures. Quote: \"the strong overlap of spectral signals in UV spectra complicates the analysis of real samples and makes the use of chemometric algorithms a necessary component\"",
+   "quote": "the strong overlap of spectral signals in UV spectra complicates the analysis of real samples and makes the use of chemometric algorithms a necessary component",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E5",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Fluorimetry relies on secondary emission of certain substances; most chemicals do not fluoresce, so it is mainly used in medicine, biology and biotechnology. Quote: \"However, most chemicals do not exhibit this property.\"",
+   "quote": "However, most chemicals do not exhibit this property.",
+   "scope": "general_method",
+   "score": 0.0306
+  },
+  {
+   "ref": "E6",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "NIR, UV and fluorescence give broad overlapping signals; MIR gives well-defined peaks; extracting information needs chemometric models (calibration or classification) that are built and validated. Quote: \"Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals\"",
+   "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals",
+   "scope": "general_method",
+   "score": 0.0391
+  },
+  {
+   "ref": "E7",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Chemometric software covers preprocessing, construction, validation and application of calibration or classification models. Quote: \"preliminary data preparation (preprocessing), construction, validation, and application of predictive models, specifically calibration or classification models.\"",
+   "quote": "preliminary data preparation (preprocessing), construction, validation, and application of predictive models, specifically calibration or classification models.",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E8",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Selecting a spectral method for a specific problem is complex and depends on many factors. Quote: \"selecting a spectral method for a specific analytical problem is a complex task requiring specialized knowledge in chemistry, physics, and mathematics.\"",
+   "quote": "selecting a spectral method for a specific analytical problem is a complex task requiring specialized knowledge in chemistry, physics, and mathematics.",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E9",
+   "kind": "claim",
+   "source": "S01",
+   "page": 18,
+   "text": "Fluorescence, Raman and MIR ATR can add molecular specificity to NIR in milk analysis. Quote: \"advanced labs often incorporate Fluorescence, Raman, and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural information that NIR might miss.\"",
+   "quote": "advanced labs often incorporate Fluorescence, Raman, and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural information that NIR might miss.",
+   "scope": "general_method",
+   "score": 0.0963
+  },
+  {
+   "ref": "E10",
+   "kind": "claim",
+   "source": "S04",
+   "page": 1,
+   "text": "S04 developed a probe for simultaneous ATR MIR and fluorescence and demonstrated it on model biological tissue samples. Quote: \"The capability of the probe to deliver complementary chemical information from the same measurement point has been illustrated using model samples of biological tissue.\"",
+   "quote": "The capability of the probe to deliver complementary chemical information from the same measurement point has been illustrated using model samples of biological tissue.",
+   "scope": "lab_demo_model_tissue",
+   "score": 0.0864
+  },
+  {
+   "ref": "E11",
+   "kind": "chunk",
+   "source": "S04",
+   "page": 3,
+   "text": "Supporting Information). The observed loss of intensity in the \ufb02uorescence channel is due to a smaller number of detection \ufb01bers, as dictated by the optimal geometry of the ATR crystal. No mutual in\ufb02uence of the combined spectroscopic methods was found. The probe design, construction, and technical evaluation was performed by art photonics GmbH (Berlin, Germany). Multispectral Classi\ufb01cation of Biological Tissue. The developed multispectral probe was tested in the practical analysis of biological tissue samples using di\ufb00erent organs and parts of the chicken: breast, fat, and liver. The general chemical similarity of biological objects makes spectroscopic recognition of di\ufb00erent tissue types a nontrivial task, which requires careful optimization of the measurement technique. Commercially produced poultry combines the availability of fresh samples and the variability of tissue types, making it an attractive model system for evaluating spectroscopic methods and equipment. To provide the necessary statistical representativeness of the data, three samples of each tissue type were prepared. The samples were large enough to re\ufb02ect the possible heterogeneity of the tissue. Each sample was represented by \ufb01ve distributed points. This experimental design resulted",
+   "quote": null,
+   "scope": "lab_demonstration",
+   "score": 0.0794
+  },
+  {
+   "ref": "E12",
+   "kind": "claim",
+   "source": "S01",
+   "page": 14,
+   "text": "A combined MIR-ATR + fluorescence probe acquires complementary information from the exact same point, critical for heterogeneous solids such as tissue or rapidly changing liquids. Quote: \"allows for the simultaneous acquisition of complementary chemical information from the exact same measurement point\"",
+   "quote": "allows for the simultaneous acquisition of complementary chemical information from the exact same measurement point",
+   "scope": "general_method",
+   "score": 0.075
+  },
+  {
+   "ref": "E13",
+   "kind": "chunk",
+   "source": "S04",
+   "page": 3,
+   "text": "with the sample is limited to the \ufb02at crystal tip, although at the expense of a possible loss of IR signal intensity. In the future, the probe size can be reduced to the critical diameter of 2 mm that is limited by the minimal thickness of CIR \ufb01bers, which enables endoscopic applications. ATR head and hence the spot of multispectral measurement can then be reduced to about 1 mm. The ATR crystal shape can also be modi\ufb01ed to minimize the probe and to optimize the measured spot. The comparison of multispectral probe with its single- method analogues using the standard isopropanol and \ufb02uorescein samples has shown good signal quality of the combined techniques (see Figure S-3 and discussion in the Supporting Information). The observed loss of intensity in the \ufb02uorescence channel is due to a smaller number of detection \ufb01bers, as dictated by the optimal geometry of the ATR crystal. No mutual in\ufb02uence of the combined spectroscopic methods was found. The probe design, construction, and technical evaluation was performed by art photonics GmbH (Berlin, Germany). Multispectral Classi\ufb01cation of Biological Tissue.",
+   "quote": null,
+   "scope": "lab_demonstration",
+   "score": 0.0695
+  },
+  {
+   "ref": "E14",
+   "kind": "claim",
+   "source": "S01",
+   "page": 3,
+   "text": "When the sample composition is incompletely known, several spectroscopy approaches should be tested to select the most suitable method or combination. Quote: \"The ability to test various optical spectroscopy approaches is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method or combination of methods.\"",
+   "quote": "The ability to test various optical spectroscopy approaches is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method or combination of methods.",
+   "scope": "general_method",
+   "score": 0.0584
+  }
+ ],
+ "retrieval": {
+  "queries": [
+   "meat quality grading in unknown unknown",
+   "unknown unknown probe geometry MIR spectroscopy (ATR)",
+   "Fluorescence needs a fluorescent target A cited study is a reason to test, not proof Raman fluorescence background risk Heterogeneous samples need same-point measurements",
+   "We read the combined MIR and fluorescence paper on chicken tissues. Can we cite it as proof that the probe is validated for automatic meat quality grading in our slaughterhouse line? We have no data of our own.",
+   "MIR FLUO limitations meat quality grading"
+  ],
+  "bm25": {
+   "meat quality grading in unknown unknown": [
+    182,
+    89,
+    88,
+    270,
+    45,
+    117,
+    44,
+    87
+   ],
+   "unknown unknown probe geometry MIR spectroscopy (ATR)": [
+    183,
+    182,
+    70,
+    153,
+    72,
+    214,
+    199,
+    205
+   ],
+   "Fluorescence needs a fluorescent target A cited study is a reason to test, not proof Raman fluorescence background risk Heterogeneous samples need same-point measurements": [
+    210,
+    215,
+    198,
+    188,
+    242,
+    189,
+    261,
+    34
+   ],
+   "We read the combined MIR and fluorescence paper on chicken tissues. Can we cite it as proof that the probe is validated for automatic meat quality grading in our slaughterhouse line? We have no data of our own.": [
+    147,
+    128,
+    40,
+    76,
+    270,
+    88,
+    150,
+    77
+   ],
+   "MIR FLUO limitations meat quality grading": [
+    72,
+    251,
+    185,
+    242,
+    63,
+    158,
+    89,
+    88
+   ]
+  },
+  "dense": {
+   "meat quality grading in unknown unknown": [
+    89,
+    128,
+    123,
+    121,
+    165,
+    87,
+    102,
+    159
+   ],
+   "unknown unknown probe geometry MIR spectroscopy (ATR)": [
+    199,
+    266,
+    205,
+    214,
+    185,
+    215,
+    39,
+    236
+   ],
+   "Fluorescence needs a fluorescent target A cited study is a reason to test, not proof Raman fluorescence background risk Heterogeneous samples need same-point measurements": [
+    273,
+    198,
+    47,
+    210,
+    37,
+    35,
+    188,
+    215
+   ],
+   "We read the combined MIR and fluorescence paper on chicken tissues. Can we cite it as proof that the probe is validated for automatic meat quality grading in our slaughterhouse line? We have no data of our own.": [
+    266,
+    159,
+    215,
+    165,
+    177,
+    71,
+    171,
+    170
+   ],
+   "MIR FLUO limitations meat quality grading": [
+    192,
+    236,
+    272,
+    101,
+    126,
+    185,
+    102,
+    71
+   ]
+  },
+  "fused": [
+   [
+    236,
+    0.0963
+   ],
+   [
+    266,
+    0.0864
+   ],
+   [
+    159,
+    0.0794
+   ],
+   [
+    215,
+    0.075
+   ],
+   [
+    158,
+    0.0695
+   ],
+   [
+    185,
+    0.0603
+   ],
+   [
+    88,
+    0.0591
+   ],
+   [
+    182,
+    0.0584
+   ],
+   [
+    270,
+    0.0583
+   ],
+   [
+    273,
+    0.0578
+   ],
+   [
+    192,
+    0.0575
+   ],
+   [
+    147,
+    0.0562
+   ],
+   [
+    71,
+    0.0552
+   ],
+   [
+    250,
+    0.0552
+   ],
+   [
+    39,
+    0.0546
+   ]
+  ],
+  "mmr": [
+   236,
+   266,
+   159,
+   215,
+   158,
+   185,
+   182,
+   88,
+   270,
+   192,
+   273,
+   147,
+   71,
+   39,
+   250,
+   89,
+   72,
+   101,
+   272,
+   153,
+   87,
+   214,
+   69,
+   129,
+   186,
+   189,
+   100,
+   204
+  ],
+  "pinned": [
+   184,
+   185,
+   186,
+   187,
+   188,
+   189,
+   190,
+   191,
+   192,
+   193,
+   194,
+   259,
+   260,
+   261,
+   262,
+   263,
+   264,
+   266,
+   267,
+   272,
+   273,
+   274
+  ],
+  "used_tokens": 1282
+ },
+ "spectral": {
+  "methods": [
+   {
+    "id": "NIR",
+    "name": "NIR spectroscopy",
+    "range_um": [
+     0.78,
+     2.5
+    ],
+    "label": "780-2500 nm",
+    "source": "S01 p.10"
+   },
+   {
+    "id": "MIR",
+    "name": "Mid-IR spectroscopy (ATR fiber probe)",
+    "range_um": [
+     2.5,
+     25.0
+    ],
+    "label": "4000-400 cm-1 (2.5-25 um)",
+    "source": "S01 p.9"
+   },
+   {
+    "id": "RAMAN",
+    "name": "Raman spectroscopy",
+    "range_um": [
+     0.4,
+     1.1
+    ],
+    "label": "Raman shift in cm-1; excitation laser in nm, stated separately (for example 785 nm)",
+    "source": "S01 p.11"
+   },
+   {
+    "id": "UVVIS",
+    "name": "UV/Visible spectroscopy",
+    "range_um": [
+     0.19,
+     0.74
+    ],
+    "label": "UV 190-360 nm (high sensitivity region), visible about 400-740 nm",
+    "source": "S01 p.5"
+   },
+   {
+    "id": "FLUO",
+    "name": "Fluorescence spectroscopy (fluorimetry)",
+    "range_um": [
+     0.25,
+     0.8
+    ],
+    "label": "Depends on the fluorescent species; UV/visible excitation, emission at longer wavelengths",
+    "source": "S01 p.12"
+   }
+  ],
+  "fibers": [
+   {
+    "id": "UV_SILICA",
+    "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.18,
+     1.2
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "VISNIR_SILICA",
+    "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.35,
+     2.4
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "CIR",
+    "name": "Chalcogenide As-S IR fiber (CIR)",
+    "range_um": [
+     1.1,
+     6.5
+    ],
+    "family": "chalcogenide"
+   },
+   {
+    "id": "PIR",
+    "name": "Polycrystalline silver-halide IR fiber (PIR)",
+    "range_um": [
+     3.0,
+     17.0
+    ],
+    "family": "polycrystalline"
+   },
+   {
+    "id": "HWG",
+    "name": "Hollow glass waveguide",
+    "range_um": [
+     2.0,
+     18.0
+    ],
+    "family": "hollow"
+   },
+   {
+    "id": "INF3",
+    "name": "Indium fluoride fiber",
+    "range_um": [
+     0.3,
+     5.5
+    ],
+    "family": "fluoride"
+   },
+   {
+    "id": "ZBLAN",
+    "name": "Zirconium fluoride fiber",
+    "range_um": [
+     0.3,
+     4.5
+    ],
+    "family": "fluoride"
+   }
+  ],
+  "bands": [
+   {
+    "id": "B_GAS_MIR",
+    "range_um": [
+     4.0,
+     10.0
+    ],
+    "region": "MIR",
+    "analytes": [
+     "CO2",
+     "CO",
+     "NO",
+     "NO2",
+     "SO2",
+     "SO3",
+     "CH4",
+     "NH3",
+     "H2O vapour"
+    ],
+    "source": "S02",
+    "page": 17,
+    "note": "Gas-phase absorption bands (figure).",
+    "matched": [
+     "NO"
+    ]
+   }
+  ],
+  "client_silica": false
+ },
+ "premises": [
+  {
+   "premise_id": "P1",
+   "statement": "The combined MIR and fluorescence paper on chicken tissues can be cited as proof that the probe is validated for automatic meat quality grading in our slaughterhouse line.",
+   "verdict": "contradicted",
+   "explanation": "A published application is only a reason to test the method on the client's material, not proof it works for a new setup, matrix or use.",
+   "citations": [
+    {
+     "source": "S03",
+     "page": 14,
+     "quote": "A published application is a reason to test a method on the client's material, not proof that it will work for a new setup, matrix or use."
+    }
+   ]
+  },
+  {
+   "premise_id": "P2",
+   "statement": "We have no data of our own.",
+   "verdict": "unverifiable",
+   "explanation": "The claim is a self\u2011statement with no supporting evidence provided in the pack.",
+   "citations": []
+  }
+ ],
+ "report": {
+  "decision_status": "insufficient_information",
+  "headline": "The published chicken tissue study cannot be used as proof of validation for automatic meat quality grading in your slaughterhouse line without client\u2011specific testing.",
+  "requirements_stated": [
+   "Cite MIR and fluorescence paper as proof of probe validation for automatic meat quality grading in slaughterhouse line",
+   "No client data available"
+  ],
+  "key_unknowns": [
+   "Actual optical properties and matrix effects of the slaughterhouse meat stream (temperature, surface moisture, fat content)",
+   "Presence of a specific fluorescent target or marker linked to the desired quality grading variables"
+  ],
+  "clarification_questions": [
+   {
+    "question": "What specific meat quality attributes (e.g., tenderness, fat content, color) are you aiming to grade?",
+    "why": "Defining the target variable determines whether a fluorescent marker or MIR absorbance feature can be linked to the grading outcome.",
+    "impact": "high"
+   },
+   {
+    "question": "Can you provide details on the slaughter line environment (e.g., temperature, lighting, sample presentation, throughput speed)?",
+    "why": "Environmental conditions affect probe performance and may require adaptation of the ATR geometry or fiber material.",
+    "impact": "high"
+   },
+   {
+    "question": "Do you have any candidate fluorescent compounds or intrinsic fluorophores that correlate with the quality attributes?",
+    "why": "Fluorescence requires a defined target; without it the method lacks selectivity.",
+    "impact": "medium"
+   },
+   {
+    "question": "What is the acceptable decision latency for the grading system (seconds per carcass)?",
+    "why": "Response time influences whether a combined MIR\u2011ATR + fluorescence probe can meet production throughput.",
+    "impact": "medium"
+   },
+   {
+    "question": "Are you able to collect reference measurements (e.g., lab assays, sensory panels) for a set of carcasses?",
+    "why": "Reference data are needed to build and validate chemometric models for the proposed methods.",
+    "impact": "low"
+   }
+  ],
+  "recommendations": [
+   {
+    "method": "Combined MIR\u2011ATR + fluorescence (same\u2011point probe)",
+    "method_ids": [
+     "MIR",
+     "FLUO"
+    ],
+    "role": "conditional",
+    "rationale": [
+     {
+      "text": "The probe demonstrated simultaneous acquisition on model biological tissues, showing feasibility of same\u2011point measurement for heterogeneous samples.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S04",
+        "page": 1,
+        "quote": "The capability of the probe to deliver complementary chemical information from the same measurement point has been illustrated using model samples of biological tissue."
+       },
+       {
+        "source": "S01",
+        "page": 14,
+        "quote": "allows for the simultaneous acquisition of complementary chemical information from the exact same measurement point"
+       }
+      ]
+     },
+     {
+      "text": "Fluorescence requires a defined target; without it the channel may not contribute to grading.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 5,
+        "quote": "However, most chemicals do not exhibit this property."
+       }
+      ]
+     },
+     {
+      "text": "Proceed only after establishing a fluorescent marker linked to the desired quality attribute and after collecting representative slaughterhouse samples for model building.",
+      "kind": "proposal",
+      "citations": []
+     }
+    ],
+    "conditions": "Only if a suitable fluorescent target is identified and representative meat samples with reference quality grades are available."
+   },
+   {
+    "method": "MIR\u2011ATR alone (single\u2011point probe)",
+    "method_ids": [
+     "MIR"
+    ],
+    "role": "comparison",
+    "rationale": [
+     {
+      "text": "MIR provides well\u2011defined peaks that can be correlated to compositional attributes (e.g., moisture, fat) without needing a fluorescent marker.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 5,
+        "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals"
+       }
+      ]
+     },
+     {
+      "text": "ATR geometry limits sampling depth, which may be acceptable for surface\u2011related quality traits.",
+      "kind": "assumption",
+      "citations": []
+     },
+     {
+      "text": "Develop a chemometric calibration using reference assays from slaughterhouse carcasses.",
+      "kind": "proposal",
+      "citations": []
+     }
+    ],
+    "conditions": "If fluorescence cannot be linked to a target, MIR\u2011ATR alone may still support grading of surface\u2011related attributes."
+   }
+  ],
+  "measurement_concept": [
+   {
+    "text": "Client seeks to use a combined MIR\u2011ATR and fluorescence probe to obtain chemical specificity for meat quality grading.",
+    "kind": "client_fact",
+    "citations": []
+   },
+   {
+    "text": "MIR\u2011ATR provides well\u2011defined absorption peaks useful for identifying functional groups related to composition, but requires thin sampling zones (<50\u202f\u00b5m).",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)"
+     }
+    ]
+   },
+   {
+    "text": "Fluorescence offers high sensitivity but low selectivity and needs a specific fluorescent target to be meaningful.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "Fluorimetry relies on secondary emission of certain substances; most chemicals do not fluoresce, so it is mainly used in medicine, biology and biotechnology."
+     },
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "However, most chemicals do not exhibit this property."
+     }
+    ]
+   },
+   {
+    "text": "A combined probe can acquire both MIR\u2011ATR and fluorescence from the exact same point, which is advantageous for heterogeneous samples.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 14,
+      "quote": "allows for the simultaneous acquisition of complementary chemical information from the exact same measurement point"
+     },
+     {
+      "source": "S04",
+      "page": 1,
+      "quote": "The capability of the probe to deliver complementary chemical information from the same measurement point has been illustrated using model samples of biological tissue."
+     }
+    ]
+   }
+  ],
+  "spectral_range": [
+   {
+    "text": "MIR range (\u22484000\u2013600\u202fcm\u207b\u00b9) provides distinct absorption bands for functional groups.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "Fluorescence emission wavelengths depend on the chosen fluorophore; no target defined yet.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "risks": [
+   {
+    "text": "Without a defined fluorescent target, the fluorescence channel may not correlate with the quality attributes.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "Fluorimetry relies on secondary emission of certain substances; most chemicals do not fluoresce"
+     }
+    ]
+   },
+   {
+    "text": "MIR\u2011ATR requires a thin interaction zone; sampling heterogeneous meat surfaces may lead to variable pathlengths and signal intensity.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "Citing the chicken tissue paper as proof of validation would be misleading because the study was a lab demonstration on model tissues, not on an industrial slaughter line.",
+    "kind": "proposal",
+    "citations": []
+   }
+  ],
+  "feasibility_plan": {
+   "samples": [
+    "Representative carcasses covering the full range of expected quality grades",
+    "Different tissue locations (breast, thigh, skin) to capture heterogeneity"
+   ],
+   "reference": [
+    "Laboratory reference assays for the target quality attributes (e.g., shear force, intramuscular fat)",
+    "Sensory panel scores if applicable"
+   ],
+   "comparison": [
+    "Combined MIR\u2011ATR + fluorescence probe vs. MIR\u2011ATR single\u2011method probe",
+    "Probe measurements vs. reference assays"
+   ],
+   "decision_basis": [
+    "Client\u2011agreed accuracy and repeatability criteria for each quality attribute",
+    "Statistical significance of correlation (e.g., R\u00b2, RMSEP) against reference"
+   ],
+   "steps": [
+    "1. Define the specific quality attribute(s) and identify or develop a fluorescent marker if feasible.",
+    "2. Collect a pilot set of carcasses (\u224830) spanning the attribute range and record probe spectra with both combined and MIR\u2011only configurations.",
+    "3. Perform reference laboratory analyses on the same samples.",
+    "4. Build chemometric models (e.g., PLS) for each configuration and evaluate against client\u2011agreed performance criteria.",
+    "5. Assess robustness across temperature and moisture variations typical of the slaughter line.",
+    "6. Decide on the final configuration based on model performance and operational constraints."
+   ]
+  },
+  "pathway": {
+   "next_step": "Conduct a multi\u2011method lab trial with representative slaughterhouse samples to evaluate combined MIR\u2011ATR + fluorescence versus MIR\u2011ATR alone.",
+   "likely_path": "B",
+   "why": "The client needs experimental evidence before the probe can be claimed validated for production; a customized multi\u2011spectral system trial aligns with pathway B."
+  },
+  "assumptions": [
+   "The slaughterhouse meat stream is optically heterogeneous and may contain surface moisture.",
+   "No existing chemometric model for the specific grading variables is available."
+  ]
+ },
+ "verification": {
+  "claims": [
+   {
+    "location": "recommendations[0].rationale[0]",
+    "text": "The probe demonstrated simultaneous acquisition on model biological tissues, showing feasibility of same\u2011point measurement for heterogeneous samples.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S04",
+      "page": 1,
+      "quote": "The capability of the probe to deliver complementary chemical information from the same measurement point has been illustrated using model samples of biological tissue."
+     },
+     {
+      "source": "S01",
+      "page": 14,
+      "quote": "allows for the simultaneous acquisition of complementary chemical information from the exact same measurement point"
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[1]",
+    "text": "Fluorescence requires a defined target; without it the channel may not contribute to grading.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "However, most chemicals do not exhibit this property."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[2]",
+    "text": "Proceed only after establishing a fluorescent marker linked to the desired quality attribute and after collecting representative slaughterhouse samples for model building.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "recommendations[1].rationale[0]",
+    "text": "MIR provides well\u2011defined peaks that can be correlated to compositional attributes (e.g., moisture, fat) without needing a fluorescent marker.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals"
+     }
+    ]
+   },
+   {
+    "location": "recommendations[1].rationale[1]",
+    "text": "ATR geometry limits sampling depth, which may be acceptable for surface\u2011related quality traits.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "recommendations[1].rationale[2]",
+    "text": "Develop a chemometric calibration using reference assays from slaughterhouse carcasses.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[0]",
+    "text": "Client seeks to use a combined MIR\u2011ATR and fluorescence probe to obtain chemical specificity for meat quality grading.",
+    "kind": "client_fact",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[1]",
+    "text": "MIR\u2011ATR provides well\u2011defined absorption peaks useful for identifying functional groups related to composition, but requires thin sampling zones (<50\u202f\u00b5m).",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)"
+     }
+    ]
+   },
+   {
+    "location": "measurement_concept[2]",
+    "text": "Fluorescence offers high sensitivity but low selectivity and needs a specific fluorescent target to be meaningful.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "S01 p.5: quote not on page (64)",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "Fluorimetry relies on secondary emission of certain substances; most chemicals do not fluoresce, so it is mainly used in medicine, biology and biotechnology."
+     },
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "However, most chemicals do not exhibit this property."
+     }
+    ]
+   },
+   {
+    "location": "measurement_concept[3]",
+    "text": "A combined probe can acquire both MIR\u2011ATR and fluorescence from the exact same point, which is advantageous for heterogeneous samples.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 14,
+      "quote": "allows for the simultaneous acquisition of complementary chemical information from the exact same measurement point"
+     },
+     {
+      "source": "S04",
+      "page": 1,
+      "quote": "The capability of the probe to deliver complementary chemical information from the same measurement point has been illustrated using model samples of biological tissue."
+     }
+    ]
+   },
+   {
+    "location": "spectral_range[0]",
+    "text": "MIR range (\u22484000\u2013600\u202fcm\u207b\u00b9) provides distinct absorption bands for functional groups.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "spectral_range[1]",
+    "text": "Fluorescence emission wavelengths depend on the chosen fluorophore; no target defined yet.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[0]",
+    "text": "Without a defined fluorescent target, the fluorescence channel may not correlate with the quality attributes.",
+    "kind": "sourced",
+    "status": "unverified",
+    "detail": "S01 p.5: quote not on page (65)",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "Fluorimetry relies on secondary emission of certain substances; most chemicals do not fluoresce"
+     }
+    ]
+   },
+   {
+    "location": "risks[1]",
+    "text": "MIR\u2011ATR requires a thin interaction zone; sampling heterogeneous meat surfaces may lead to variable pathlengths and signal intensity.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[2]",
+    "text": "Citing the chicken tissue paper as proof of validation would be misleading because the study was a lab demonstration on model tissues, not on an industrial slaughter line.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   }
+  ],
+  "numbers": [
+   {
+    "location": "measurement_concept[1]",
+    "number": "50\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "spectral_range[0]",
+    "number": "4000\u2013600\u202fcm\u207b\u00b9",
+    "status": "supported",
+    "detail": ""
+   }
+  ],
+  "client_facts": [
+   {
+    "location": "measurement_concept[0]",
+    "text": "Client seeks to use a combined MIR\u2011ATR and fluorescence probe to obtain chemical specificity for meat quality grading.",
+    "kind": "client_fact",
+    "status": "verified",
+    "detail": "",
+    "citations": []
+   }
+  ],
+  "n_sourced": 7,
+  "n_verified": 6,
+  "n_unsupported_numbers": 0,
+  "n_bad_client_facts": 0
+ },
+ "quality": {
+  "items": [
+   {
+    "id": "S1",
+    "category": "structure",
+    "name": "All required sections present",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S2",
+    "category": "structure",
+    "name": "3-6 questions, highest impact first",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S3",
+    "category": "structure",
+    "name": "Plan has samples, reference, comparison, decision basis",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S4",
+    "category": "structure",
+    "name": "Decision status consistent with rule findings",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G1",
+    "category": "grounding",
+    "name": "Sourced claims verified on the cited page",
+    "status": "warn",
+    "detail": "6/7 verified; problems at risks[0]"
+   },
+   {
+    "id": "G2",
+    "category": "grounding",
+    "name": "No unsupported numbers",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G3",
+    "category": "grounding",
+    "name": "No invented client facts",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G4",
+    "category": "grounding",
+    "name": "Evidence used within its scope",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G5",
+    "category": "grounding",
+    "name": "Each recommendation has a sourced reason",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H1",
+    "category": "honesty",
+    "name": "No guarantee or readiness wording",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H2",
+    "category": "honesty",
+    "name": "Units: Raman shift in cm-1, excitation in nm",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H3",
+    "category": "honesty",
+    "name": "Fiber choice consistent with spectral coverage",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H4",
+    "category": "honesty",
+    "name": "Contradicted premises are stated plainly in the headline",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U1",
+    "category": "usefulness",
+    "name": "Client-requested weak methods are addressed (why / why not)",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U2",
+    "category": "usefulness",
+    "name": "Feasibility plan is concrete",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U3",
+    "category": "usefulness",
+    "name": "Questions cover the high-impact unknowns",
+    "status": "pass",
+    "detail": ""
+   }
+  ],
+  "passed": 15,
+  "total": 16,
+  "repaired": true,
+  "repair_notes": [
+   "G1 fixed"
+  ]
+ },
+ "confidence": {
+  "level": "insufficient",
+  "signals": [
+   {
+    "name": "Information",
+    "level": "insufficient",
+    "value": 0.0,
+    "detail": "0/10 decision-relevant facts known; target defined: partial"
+   },
+   {
+    "name": "Evidence",
+    "level": "low",
+    "value": 0.3333333333333333,
+    "detail": "Direct application in AFS sources: R_HETEROGENEOUS"
+   },
+   {
+    "name": "Scope fit",
+    "level": "medium",
+    "value": 0.6666666666666666,
+    "detail": "Sources show lab or application examples; production performance is unconfirmed"
+   },
+   {
+    "name": "Client premises",
+    "level": "low",
+    "value": 0.3333333333333333,
+    "detail": "1 contradicted, 1 unverifiable, 0 supported"
+   },
+   {
+    "name": "Verification",
+    "level": "medium",
+    "value": 0.86,
+    "detail": "6/7 sourced claims verified; 0 unsupported numbers"
+   }
+  ],
+  "caps": [
+   "R_FLUO_NEEDS_TARGET: cap low"
+  ],
+  "per_method": [
+   {
+    "method_id": "MIR",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   },
+   {
+    "method_id": "NIR",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "RAMAN",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "UVVIS",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   },
+   {
+    "method_id": "FLUO",
+    "level": "insufficient",
+    "detail": "not_supported, screening score -2"
+   }
+  ],
+  "raise_with": [
+   "What is the sample (liquid, powder, melt, tissue...) and its main components?",
+   "Is the sample clear, turbid or opaque, and does this change during the process?",
+   "What concentration range must be covered, and what is the smallest change that matters?"
+  ]
+ },
+ "council": null,
+ "coach": {
+  "completeness": 0,
+  "total": 10,
+  "fields": [
+   {
+    "name": "matrix",
+    "label": "Sample matrix and phase",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What is the sample (liquid, powder, melt, tissue...) and its main components?"
+   },
+   {
+    "name": "optics",
+    "label": "Optical behaviour (clear / turbid / opaque)",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Is the sample clear, turbid or opaque, and does this change during the process?"
+   },
+   {
+    "name": "range",
+    "label": "Concentration range",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What concentration range must be covered, and what is the smallest change that matters?"
+   },
+   {
+    "name": "reference",
+    "label": "Reference method",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Which independent reference method (and its uncertainty) can provide calibration values?"
+   },
+   {
+    "name": "conditions",
+    "label": "Process conditions at the probe",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What temperature, pressure, flow, fouling and cleaning conditions apply at the probe?"
+   },
+   {
+    "name": "accuracy",
+    "label": "Accuracy / acceptance criteria",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Which accuracy, bias or acceptance limits must the measurement meet?"
+   },
+   {
+    "name": "installation",
+    "label": "Installation and fiber link",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Where can the probe be installed, and how far away will the analyzer be?"
+   },
+   {
+    "name": "timing",
+    "label": "Response time / update rate",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "How quickly must a change be detected (update rate, response time)?"
+   },
+   {
+    "name": "points",
+    "label": "Number of measuring points",
+    "status": "unknown",
+    "impact": "low",
+    "question": "How many measuring points or streams need monitoring?"
+   },
+   {
+    "name": "target",
+    "label": "Target variable / analyte",
+    "status": "inferred",
+    "impact": "high",
+    "question": "Which variable or analyte must be measured, and which changes must be distinguished?"
+   }
+  ],
+  "template": "We read the combined MIR and fluorescence paper on chicken tissues. Can we cite it as proof that the probe is validated for automatic meat quality grading in our slaughterhouse line? We have no data of our own.\n\nSample matrix and phase: [sample matrix and phase, e.g. 'tissue, solid']\nOptical behaviour: [optical behaviour, e.g. 'opaque, does it change during process?']\nConcentration range: [concentration range, e.g. 'x to y %']\nReference method: [reference method and its uncertainty]\nProcess conditions at the probe: [temperature, pressure, flow, fouling, cleaning conditions]\nAccuracy / acceptance criteria: [accuracy, bias or acceptance limits]\nInstallation and fiber link: [installation location and distance to analyzer]\nResponse time / update rate: [required update rate or response time]\nNumber of measuring points: [number of measuring points or streams]"
+ },
+ "diff": [],
+ "trace": [
+  {
+   "stage": "extract",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 1554,
+   "completion_tokens": 392,
+   "latency_ms": 1183,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "premise",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 2397,
+   "completion_tokens": 368,
+   "latency_ms": 20584,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "report",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 4242,
+   "completion_tokens": 2293,
+   "latency_ms": 35486,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 5064,
+   "completion_tokens": 2570,
+   "latency_ms": 63083,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "coach",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 545,
+   "completion_tokens": 224,
+   "latency_ms": 535,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  }
+ ],
+ "timings_ms": {
+  "extract": 1184,
+  "rules": 3,
+  "retrieve": 384,
+  "premise": 20584,
+  "report": 35487,
+  "verify": 63102,
+  "coach": 535,
+  "total": 121298
+ },
+ "error": ""
+}

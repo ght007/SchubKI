@@ -1,0 +1,800 @@
+{
+ "_about": "Method profiles (curated, every statement sourced) plus the measurement techniques of S01 Table 1 (p.6) converted from AFS_method_comparison_table.xlsx. Ratings are the source's qualitative ratings, not measured values.",
+ "combinations": [
+  {
+   "id": "NIR+RAMAN",
+   "methods": [
+    "NIR",
+    "RAMAN"
+   ],
+   "use": "Powder blends: blend potency and coating in the feed frame; low-level data fusion with PLS.",
+   "sources": [
+    {
+     "source": "S01",
+     "page": 15
+    }
+   ]
+  },
+  {
+   "id": "MIR+FLUO",
+   "methods": [
+    "MIR",
+    "FLUO"
+   ],
+   "use": "Heterogeneous soft samples (tissue): simultaneous ATR + fluorescence from the same point (ZrO2 combi probe).",
+   "sources": [
+    {
+     "source": "S04",
+     "page": 2
+    },
+    {
+     "source": "S01",
+     "page": 8
+    }
+   ]
+  },
+  {
+   "id": "MIR+RAMAN",
+   "methods": [
+    "MIR",
+    "RAMAN"
+   ],
+   "use": "Complementary vibrational information; combi ATR + Raman probe with 680 / 785 nm excitation.",
+   "sources": [
+    {
+     "source": "S02",
+     "page": 16
+    },
+    {
+     "source": "S01",
+     "page": 11
+    }
+   ]
+  },
+  {
+   "id": "NIR+FLUO",
+   "methods": [
+    "NIR",
+    "FLUO"
+   ],
+   "use": "Yeast fermentation biomass and metabolites; major components (NIR) plus trace fluorescent cofactors.",
+   "sources": [
+    {
+     "source": "S01",
+     "page": 7
+    },
+    {
+     "source": "S01",
+     "page": 16
+    }
+   ]
+  },
+  {
+   "id": "UVVIS+RAMAN",
+   "methods": [
+    "UVVIS",
+    "RAMAN"
+   ],
+   "use": "Bioprocess: turbidity-based biomass trend plus Raman metabolites in the same reactor.",
+   "sources": [
+    {
+     "source": "S01",
+     "page": 16
+    }
+   ]
+  }
+ ],
+ "combination_caveats": [
+  {
+   "text": "Different methods must sample the same spot, ideally simultaneously, for heterogeneous or fast-changing samples.",
+   "source": "S01",
+   "page": 8
+  },
+  {
+   "text": "Acquisition rates differ; data must be synchronised to a common time step.",
+   "source": "S01",
+   "page": 8
+  },
+  {
+   "text": "Variables of different methods are not equivalent; data fusion algorithms are needed.",
+   "source": "S01",
+   "page": 9
+  }
+ ],
+ "methods": [
+  {
+   "id": "NIR",
+   "name": "NIR spectroscopy",
+   "nominal_range": {
+    "label": "780-2500 nm",
+    "um": [
+     0.78,
+     2.5
+    ],
+    "source": "S01",
+    "page": 10,
+    "note": "Nominal method range, not the usable range of a specific instrument, fiber or probe."
+   },
+   "geometries": [
+    "diffuse reflection",
+    "transmission",
+    "transflection"
+   ],
+   "compatible_fibers": [
+    "VISNIR_SILICA"
+   ],
+   "typical_samples": [
+    "powders",
+    "scattering media",
+    "opaque dairy products",
+    "clear or semi-transparent liquids (transmission)"
+   ],
+   "strengths": [
+    {
+     "text": "Most common online analysis method performed with fiber optic probes.",
+     "source": "S01",
+     "page": 10
+    },
+    {
+     "text": "Large penetration depth (up to several millimetres) and standard glass optics make it suited to online and remote fiber measurements.",
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "text": "Diffuse reflectance allows measurement of scattering samples, including without direct contact.",
+     "source": "S01",
+     "page": 10
+    },
+    {
+     "text": "Used for blend potency in a tablet press feed frame (with Raman).",
+     "source": "S01",
+     "page": 15
+    },
+    {
+     "text": "Reflection for opaque or concentrated dairy products; transmission for transparent liquids such as whey.",
+     "source": "S01",
+     "page": 17
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Broad, overlapping bands require chemometrics.",
+     "source": "S01",
+     "page": 10
+    },
+    {
+     "text": "May lack sensitivity for trace compounds below 0.1 percent.",
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "text": "Reflection is sensitive to surface characteristics and fat globule size.",
+     "source": "S01",
+     "page": 17
+    },
+    {
+     "text": "Transmission fails when the product becomes too thick or fat-rich.",
+     "source": "S01",
+     "page": 18
+    }
+   ],
+   "preconditions": [
+    "A matrix-specific calibration against independent reference values is needed."
+   ]
+  },
+  {
+   "id": "MIR",
+   "name": "Mid-IR spectroscopy (ATR fiber probe)",
+   "nominal_range": {
+    "label": "4000-400 cm-1 (2.5-25 um)",
+    "um": [
+     2.5,
+     25.0
+    ],
+    "source": "S01",
+    "page": 9,
+    "note": "With fiber probes the usable range is limited by the fiber (CIR about 1.1-6.5 um, PIR about 3-17 um) and by the ATR crystal."
+   },
+   "geometries": [
+    "ATR",
+    "transflection",
+    "cuvette",
+    "sample layer",
+    "diffuse reflection"
+   ],
+   "compatible_fibers": [
+    "CIR",
+    "PIR"
+   ],
+   "typical_samples": [
+    "liquids",
+    "pastes",
+    "soft solids",
+    "biological tissue (ATR)",
+    "hot polymer melt (diamond ATR)"
+   ],
+   "strengths": [
+    {
+     "text": "One of the most informative methods; well-defined absorption peaks and high sensitivity.",
+     "source": "S01",
+     "page": 9
+    },
+    {
+     "text": "ATR fiber probes analyse liquids and elastic solids at a distance from the spectrometer, without sampling.",
+     "source": "S01",
+     "page": 10
+    },
+    {
+     "text": "Complementary to Raman.",
+     "source": "S01",
+     "page": 11
+    },
+    {
+     "text": "Lab spectra of water in petroleum with ZrO2 / diamond ATR probes.",
+     "source": "S02",
+     "page": 13
+    },
+    {
+     "text": "API in hot polymer measured with a diamond cone ATR probe and PIR-fiber FTIR.",
+     "source": "S02",
+     "page": 14
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Strong absorption limits transmission to very thin samples (usually below 50 um); ATR is used instead.",
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "text": "ATR needs tight contact with the probe head; suited to liquids and soft solids.",
+     "source": "S04",
+     "page": 4
+    },
+    {
+     "text": "Water absorbs strongly in the IR compared with Raman.",
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "text": "Silica fibers do not transmit the MIR; chalcogenide or polycrystalline fibers are needed.",
+     "source": "S02",
+     "page": 6
+    }
+   ],
+   "preconditions": [
+    "IR fiber (CIR or PIR) and an ATR crystal compatible with the medium.",
+    "Contact, fouling and cleaning must be assessed."
+   ]
+  },
+  {
+   "id": "RAMAN",
+   "name": "Raman spectroscopy",
+   "nominal_range": {
+    "label": "Raman shift in cm-1; excitation laser in nm, stated separately (for example 785 nm)",
+    "um": [
+     0.4,
+     1.1
+    ],
+    "source": "S01",
+    "page": 11,
+    "note": "Signals are recorded in the visible / short-wave NIR (about 400-1100 nm detector region). Excitation examples: 785 nm (S01 p.15), 680 nm and 785 nm (S02 p.16)."
+   },
+   "geometries": [
+    "Raman probe",
+    "cuvette 90 deg"
+   ],
+   "compatible_fibers": [
+    "UV_SILICA",
+    "VISNIR_SILICA"
+   ],
+   "typical_samples": [
+    "liquids",
+    "powders",
+    "solids",
+    "aqueous bioprocess media"
+   ],
+   "strengths": [
+    {
+     "text": "Well suited to aqueous media: low water absorbance compared with infrared methods.",
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "text": "Molecular fingerprint for metabolites such as glucose, acetate or lactate.",
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "text": "Signal is linear with concentration over a wide range; usable for calibration models.",
+     "source": "S01",
+     "page": 12
+    },
+    {
+     "text": "Captures the molecular backbone and symmetric non-polar groups, complementary to NIR.",
+     "source": "S01",
+     "page": 15
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Raman signals are several orders of magnitude weaker than IR absorption.",
+     "source": "S01",
+     "page": 11
+    },
+    {
+     "text": "Fluorescence (luminescence) of many organic compounds can overlay the Raman bands.",
+     "source": "S01",
+     "page": 11
+    },
+    {
+     "text": "Requires special probes and filters; high cost rating.",
+     "source": "S01",
+     "page": 6
+    }
+   ],
+   "preconditions": [
+    "Check fluorescence background on real samples.",
+    "State laser excitation and Raman shift range separately."
+   ]
+  },
+  {
+   "id": "UVVIS",
+   "name": "UV/Visible spectroscopy",
+   "nominal_range": {
+    "label": "UV 190-360 nm (high sensitivity region), visible about 400-740 nm",
+    "um": [
+     0.19,
+     0.74
+    ],
+    "source": "S01",
+    "page": 5,
+    "note": "Range depends on target and setup."
+   },
+   "geometries": [
+    "transmission",
+    "transflection",
+    "ATR (UV-ATR for high optical density)",
+    "diffuse reflection",
+    "cuvette"
+   ],
+   "compatible_fibers": [
+    "UV_SILICA"
+   ],
+   "typical_samples": [
+    "clear liquids",
+    "high optical density liquids (UV-ATR)",
+    "cell suspensions (turbidity)"
+   ],
+   "strengths": [
+    {
+     "text": "Very high sensitivity, especially in the UV.",
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "text": "Low-cost, robust tool for biomass trends: suspension turbidity correlates with cell density.",
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "text": "Transmission/transflection for clear liquids; UV-ATR for opaque, turbid or highly concentrated media.",
+     "source": "S01",
+     "page": 16
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Strong overlap of spectral signals; chemometrics needed for mixtures.",
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "text": "Low selectivity rating.",
+     "source": "S01",
+     "page": 6
+    }
+   ],
+   "preconditions": [
+    "A defined absorbing species or a justified optical indicator.",
+    "Turbidity / optical density is not a direct count of viable cells."
+   ]
+  },
+  {
+   "id": "FLUO",
+   "name": "Fluorescence spectroscopy (fluorimetry)",
+   "nominal_range": {
+    "label": "Depends on the fluorescent species; UV/visible excitation, emission at longer wavelengths",
+    "um": [
+     0.25,
+     0.8
+    ],
+    "source": "S01",
+    "page": 12,
+    "note": "Approximate window for the coverage map only."
+   },
+   "geometries": [
+    "fluorimetric probe",
+    "cuvette 90 deg",
+    "combi probe with MIR ATR"
+   ],
+   "compatible_fibers": [
+    "UV_SILICA",
+    "VISNIR_SILICA"
+   ],
+   "typical_samples": [
+    "biological media and tissue",
+    "samples with a fluorescent component (e.g. some vegetable products, mineral oils)"
+   ],
+   "strengths": [
+    {
+     "text": "High sensitivity (nM-uM) for fluorescent cofactors and amino acids such as NADH, tryptophan and riboflavin.",
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "text": "Key method for online analysis of biotechnological processes; combinable with MIR or NIR.",
+     "source": "S01",
+     "page": 12
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Most chemicals do not fluoresce.",
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "text": "Low selectivity rating.",
+     "source": "S01",
+     "page": 6
+    },
+    {
+     "text": "Limited to samples containing at least one fluorescent component.",
+     "source": "S04",
+     "page": 4
+    }
+   ],
+   "preconditions": [
+    "A defined fluorescent target, marker or a justified indicator relationship with reference data."
+   ]
+  }
+ ],
+ "techniques": [
+  {
+   "id": "T01",
+   "method_id": "MIR",
+   "method": "IR spectroscopy",
+   "technique": "ATR platform",
+   "phenomenon": "absorption",
+   "sample_types": [
+    "liquid",
+    "paste",
+    "soft"
+   ],
+   "optical_path_or_depth": "1-6 um",
+   "sensitivity": "average",
+   "selectivity": "high",
+   "cost": "high",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T02",
+   "method_id": "MIR",
+   "method": "IR spectroscopy",
+   "technique": "ATR probe*",
+   "phenomenon": "absorption",
+   "sample_types": [
+    "liquid",
+    "paste",
+    "soft"
+   ],
+   "optical_path_or_depth": "1-6 um",
+   "sensitivity": "average",
+   "selectivity": "high",
+   "cost": "high",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T03",
+   "method_id": "MIR",
+   "method": "IR spectroscopy",
+   "technique": "cuvette",
+   "phenomenon": "absorption",
+   "sample_types": [
+    "liquid"
+   ],
+   "optical_path_or_depth": "10-100 um",
+   "sensitivity": "high",
+   "selectivity": "high",
+   "cost": "average",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T04",
+   "method_id": "MIR",
+   "method": "IR spectroscopy",
+   "technique": "sample layer",
+   "phenomenon": "absorption",
+   "sample_types": [
+    "solid film"
+   ],
+   "optical_path_or_depth": "5-50 um",
+   "sensitivity": "high",
+   "selectivity": "high",
+   "cost": "average",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T05",
+   "method_id": "MIR",
+   "method": "IR spectroscopy",
+   "technique": "sample surface",
+   "phenomenon": "diffuse reflection",
+   "sample_types": [
+    "solid"
+   ],
+   "optical_path_or_depth": "10 um",
+   "sensitivity": "average",
+   "selectivity": "high",
+   "cost": "average",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T06",
+   "method_id": "NIR",
+   "method": "NIR spectroscopy",
+   "technique": "cuvette",
+   "phenomenon": "transmission",
+   "sample_types": [
+    "liquid"
+   ],
+   "optical_path_or_depth": "1-5 mm",
+   "sensitivity": "average",
+   "selectivity": "average",
+   "cost": "average",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T07",
+   "method_id": "NIR",
+   "method": "NIR spectroscopy",
+   "technique": "transmission or transflection probe",
+   "phenomenon": "transmission",
+   "sample_types": [
+    "liquid",
+    "colloidal"
+   ],
+   "optical_path_or_depth": "1-10 mm",
+   "sensitivity": "average",
+   "selectivity": "average",
+   "cost": "average",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T08",
+   "method_id": "NIR",
+   "method": "NIR spectroscopy",
+   "technique": "diffuse reflection probe",
+   "phenomenon": "diffuse reflection",
+   "sample_types": [
+    "scattering media",
+    "powder"
+   ],
+   "optical_path_or_depth": "0.5-1 mm",
+   "sensitivity": "average",
+   "selectivity": "average",
+   "cost": "average",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T09",
+   "method_id": "NIR",
+   "method": "NIR spectroscopy",
+   "technique": "integrating sphere",
+   "phenomenon": "diffuse reflection",
+   "sample_types": [
+    "solid",
+    "powder"
+   ],
+   "optical_path_or_depth": "5-10 mm",
+   "sensitivity": "average",
+   "selectivity": "average",
+   "cost": "average",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T10",
+   "method_id": "NIR",
+   "method": "NIR spectroscopy",
+   "technique": "surface at a distance",
+   "phenomenon": "diffuse reflection",
+   "sample_types": [
+    "solid",
+    "powder"
+   ],
+   "optical_path_or_depth": "2-5 mm",
+   "sensitivity": "average",
+   "selectivity": "average",
+   "cost": "average",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T11",
+   "method_id": "RAMAN",
+   "method": "Raman spectroscopy",
+   "technique": "cuvette 90 deg",
+   "phenomenon": "Raman scattering (emission)",
+   "sample_types": [
+    "liquid"
+   ],
+   "optical_path_or_depth": "2-5 mm",
+   "sensitivity": "average",
+   "selectivity": "high",
+   "cost": "high",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T12",
+   "method_id": "RAMAN",
+   "method": "Raman spectroscopy",
+   "technique": "Raman probe",
+   "phenomenon": "Raman scattering (emission)",
+   "sample_types": [
+    "liquid",
+    "powder",
+    "solid"
+   ],
+   "optical_path_or_depth": "2-5 mm",
+   "sensitivity": "average",
+   "selectivity": "high",
+   "cost": "high",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T13",
+   "method_id": "UVVIS",
+   "method": "UV/Visible spectroscopy",
+   "technique": "cuvette",
+   "phenomenon": "absorption",
+   "sample_types": [
+    "liquid"
+   ],
+   "optical_path_or_depth": "1-5 mm",
+   "sensitivity": "high",
+   "selectivity": "low",
+   "cost": "low",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T14",
+   "method_id": "UVVIS",
+   "method": "UV/Visible spectroscopy",
+   "technique": "ATR probe",
+   "phenomenon": "absorption",
+   "sample_types": [
+    "liquid"
+   ],
+   "optical_path_or_depth": "0.1-1 um",
+   "sensitivity": "low",
+   "selectivity": "low",
+   "cost": "average",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T15",
+   "method_id": "UVVIS",
+   "method": "UV/Visible spectroscopy",
+   "technique": "diffuse reflection probe",
+   "phenomenon": "diffuse reflection",
+   "sample_types": [
+    "solid",
+    "pill"
+   ],
+   "optical_path_or_depth": "1-5 mm",
+   "sensitivity": "low",
+   "selectivity": "low",
+   "cost": "low",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T16",
+   "method_id": "UVVIS",
+   "method": "UV/Visible spectroscopy",
+   "technique": "transmission or transflection probe",
+   "phenomenon": "transmission",
+   "sample_types": [
+    "liquid"
+   ],
+   "optical_path_or_depth": "1-10 mm",
+   "sensitivity": "low",
+   "selectivity": "low",
+   "cost": "low",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T17",
+   "method_id": "UVVIS",
+   "method": "UV/Visible spectroscopy",
+   "technique": "probe, lens",
+   "phenomenon": "emission of an external source",
+   "sample_types": [
+    "radiating sample"
+   ],
+   "optical_path_or_depth": "any",
+   "sensitivity": "high",
+   "selectivity": "low",
+   "cost": "low",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T18",
+   "method_id": "FLUO",
+   "method": "Fluorimetry",
+   "technique": "cuvette 90 deg",
+   "phenomenon": "fluorescence (emission)",
+   "sample_types": [
+    "liquid"
+   ],
+   "optical_path_or_depth": "10 mm",
+   "sensitivity": "high",
+   "selectivity": "low",
+   "cost": "low",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  },
+  {
+   "id": "T19",
+   "method_id": "FLUO",
+   "method": "Fluorimetry",
+   "technique": "fluorimetric probe",
+   "phenomenon": "fluorescence (emission)",
+   "sample_types": [
+    "liquid",
+    "solid"
+   ],
+   "optical_path_or_depth": "1-5 mm",
+   "sensitivity": "high",
+   "selectivity": "low",
+   "cost": "low",
+   "source": "S01",
+   "page": 6,
+   "cite": "S01 Table 1 (p.6)"
+  }
+ ]
+}

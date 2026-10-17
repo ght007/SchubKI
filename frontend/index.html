@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- Single page: header, enquiry/coach, tabs, evidence drawer. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AFS Assessment Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <defs><linearGradient id="spec" x1="0" x2="1"><stop offset="0" stop-color="#6d28d9"/><stop offset=".3" stop-color="#2563eb"/><stop offset=".55" stop-color="#16a34a"/><stop offset=".75" stop-color="#eab308"/><stop offset="1" stop-color="#dc2626"/></linearGradient></defs>
+        <path d="M3 30 C 14 30, 14 10, 25 10 S 34 18, 37 18" fill="none" stroke="url(#spec)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="3" cy="30" r="3" fill="var(--ink)"/>
+      </svg>
+      <div>
+        <div class="brand-name">AFS Assessment Assistant</div>
+        <div class="brand-sub">First technical assessment for in-line spectroscopy enquiries</div>
+      </div>
+    </div>
+    <div id="status" class="status" aria-live="polite"></div>
+  </header>
+
+  <div id="fiber" class="fiber" aria-label="Pipeline progress"></div>
+
+  <main class="shell">
+    <aside class="left" id="left">
+      <section id="enquiry" class="panel"></section>
+      <section id="coach" class="panel"></section>
+    </aside>
+
+    <section class="center">
+      <nav class="tabs" id="tabs" role="tablist"></nav>
+      <div id="view" class="view"></div>
+    </section>
+
+    <aside class="drawer" id="drawer" aria-label="Source viewer"></aside>
+  </main>
+
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1855 @@
+{
+ "id": "e563bd5b9d",
+ "created": "2026-10-17T01:35:37",
+ "mode": "fast",
+ "enquiry": "What detection limit will Raman achieve for glucose in our CHO cell culture? We need the exact number today for a purchase decision.",
+ "answers": {},
+ "parent_run_id": null,
+ "requirements": {
+  "summary": "",
+  "target_variables": [],
+  "target_defined": "yes",
+  "matrix": "unknown",
+  "phase": "unknown",
+  "optical_behavior": "unknown",
+  "aqueous": "yes",
+  "fluorescent_target": "unknown",
+  "heterogeneous": "unknown",
+  "temperature": "ambient",
+  "fouling_risk": "unknown",
+  "process_context": "lab_research",
+  "analyzer_remote": "unknown",
+  "link_length_known": "no",
+  "existing_assets": [],
+  "requested_methods": [],
+  "reference_method": "unknown",
+  "concentration_level": "unknown",
+  "measurement_points": "unknown",
+  "facts": [],
+  "unknowns": [],
+  "premises": []
+ },
+ "rule_hits": [
+  {
+   "rule_id": "R_GLUCOSE_NOT_FLUORESCENT_TARGET",
+   "title": "Glucose is reached by vibrational methods",
+   "severity": "info",
+   "text": "In the AFS material glucose and similar metabolites are associated with Raman, NIR and MIR, not with fluorescence.",
+   "scores": {
+    "RAMAN": 2,
+    "MIR": 1,
+    "NIR": 1
+   },
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "source": "S01",
+     "page": 17
+    },
+    {
+     "source": "S02",
+     "page": 18
+    }
+   ]
+  },
+  {
+   "rule_id": "R_RAMAN_FLUO_BACKGROUND",
+   "title": "Raman fluorescence background risk",
+   "severity": "info",
+   "text": "Raman signals are weak and, for many organic or biological samples, fluorescence can overlay them. Check background and signal quality on real samples; state excitation wavelength and Raman shift separately.",
+   "scores": {},
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 11
+    },
+    {
+     "source": "S02",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "rule_id": "R_AQUEOUS",
+   "title": "Water-rich media",
+   "severity": "info",
+   "text": "Water absorbs strongly in the IR; Raman shows low water absorbance and suits aqueous media. MIR is used via ATR (very short path).",
+   "scores": {
+    "RAMAN": 1
+   },
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "source": "S01",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "rule_id": "R_BIOPROCESS",
+   "title": "Bioprocess monitoring",
+   "severity": "info",
+   "text": "No single sensor is optimal for every bioprocess analyte: UV/Vis turbidity for biomass trends, Raman for metabolites in aqueous media, NIR for major components (mM), fluorescence for fluorescent cofactors (NADH, tryptophan, riboflavin).",
+   "scores": {
+    "RAMAN": 1,
+    "NIR": 1,
+    "UVVIS": 1,
+    "FLUO": 1
+   },
+   "question": {
+    "text": "Which variables are the targets (e.g. total biomass, viable biomass, specific metabolites) and which reference assay exists for each?",
+    "impact": "high",
+    "why": "Each variable maps to a different optical signal."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "source": "S01",
+     "page": 17
+    },
+    {
+     "source": "S01",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "rule_id": "R_NO_REFERENCE",
+   "title": "Reference method unknown",
+   "severity": "info",
+   "text": "",
+   "scores": {},
+   "question": {
+    "text": "Which independent reference method, uncertainty and sampling time will provide the reference values?",
+    "impact": "high",
+    "why": "Calibration and validation need independent reference values."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S01",
+     "page": 10
+    }
+   ]
+  }
+ ],
+ "coverage": [
+  {
+   "method_id": "NIR",
+   "method_range_um": [
+    0.78,
+    2.5
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.78,
+      1.2
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.78,
+      2.4
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      1.1,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.0,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "MIR",
+   "method_range_um": [
+    2.5,
+    25.0
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      2.5,
+      6.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": [
+      3.0,
+      17.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.5,
+      18.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      2.5,
+      5.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      2.5,
+      4.5
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "RAMAN",
+   "method_range_um": [
+    0.4,
+    1.1
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "UVVIS",
+   "method_range_um": [
+    0.19,
+    0.74
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.19,
+      0.74
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "FLUO",
+   "method_range_um": [
+    0.25,
+    0.8
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.25,
+      0.8
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  }
+ ],
+ "matrix": [
+  {
+   "method_id": "RAMAN",
+   "name": "Raman spectroscopy",
+   "score": 4,
+   "contributions": [
+    {
+     "rule_id": "R_GLUCOSE_NOT_FLUORESCENT_TARGET",
+     "delta": 2,
+     "reason": "Glucose is reached by vibrational methods [S01 p.16, S01 p.17]"
+    },
+    {
+     "rule_id": "R_AQUEOUS",
+     "delta": 1,
+     "reason": "Water-rich media [S01 p.16, S01 p.5]"
+    },
+    {
+     "rule_id": "R_BIOPROCESS",
+     "delta": 1,
+     "reason": "Bioprocess monitoring [S01 p.16, S01 p.17]"
+    }
+   ],
+   "verdict": "lead",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "NIR",
+   "name": "NIR spectroscopy",
+   "score": 2,
+   "contributions": [
+    {
+     "rule_id": "R_GLUCOSE_NOT_FLUORESCENT_TARGET",
+     "delta": 1,
+     "reason": "Glucose is reached by vibrational methods [S01 p.16, S01 p.17]"
+    },
+    {
+     "rule_id": "R_BIOPROCESS",
+     "delta": 1,
+     "reason": "Bioprocess monitoring [S01 p.16, S01 p.17]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "MIR",
+   "name": "MIR spectroscopy (ATR)",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_GLUCOSE_NOT_FLUORESCENT_TARGET",
+     "delta": 1,
+     "reason": "Glucose is reached by vibrational methods [S01 p.16, S01 p.17]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "UVVIS",
+   "name": "UV/Vis spectroscopy",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_BIOPROCESS",
+     "delta": 1,
+     "reason": "Bioprocess monitoring [S01 p.16, S01 p.17]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "FLUO",
+   "name": "Fluorescence spectroscopy",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_BIOPROCESS",
+     "delta": 1,
+     "reason": "Bioprocess monitoring [S01 p.16, S01 p.17]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  }
+ ],
+ "evidence": [
+  {
+   "ref": "E1",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 16,
+   "text": "well with cell density. While UV/Vis tracks growth, Raman spectroscopy can be used in the same reactor to provide a \"molecular fingerprint\" for direct detection of specific metabolites like glucose, acetate, or lactate. This combination is practical because Raman is particularly well- suited for aqueous environments, as it exhibits low absorbance for water molecules compared to infrared methods. - Precision Monitoring Across Concentration Ranges: labs equipped with both Near-Infrared (NIR) and Fluorescence spectroscopy can solve the problem of monitoring analytes at widely varying concentrations. NIR spectroscopy is effective for tracking major components like glucose or glycerol in the millimolar range but may lack the sensitivity to detect trace compounds below 0.1 percent. To fill this gap, Fluorescence spectroscopy can be used for high- sensitivity detection (down to the nM-\u00b5M range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin. By using both, a researcher can maintain high-precision control over both the main carbon source and the delicate metabolic state of the cells. - Precision Monitoring Across Optical Density Ranges: When measuring media in the UV-Vis spectrum, the selection",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0638
+  },
+  {
+   "ref": "E2",
+   "kind": "claim",
+   "source": "S01",
+   "page": 16,
+   "text": "Raman can detect metabolites such as glucose, acetate or lactate and suits aqueous media because water absorbs little compared with IR methods. Quote: \"Raman is particularly well-suited for aqueous environments, as it exhibits low absorbance for water molecules compared to infrared methods.\"",
+   "quote": "Raman is particularly well-suited for aqueous environments, as it exhibits low absorbance for water molecules compared to infrared methods.",
+   "scope": "general_method",
+   "score": 0.0636
+  },
+  {
+   "ref": "E3",
+   "kind": "claim",
+   "source": "S01",
+   "page": 16,
+   "text": "Raman gives a molecular fingerprint for specific metabolites like glucose, acetate or lactate. Quote: \"direct detection of specific metabolites like glucose, acetate, or lactate.\"",
+   "quote": "direct detection of specific metabolites like glucose, acetate, or lactate.",
+   "scope": "general_method",
+   "score": 0.0628
+  },
+  {
+   "ref": "E4",
+   "kind": "claim",
+   "source": "S01",
+   "page": 18,
+   "text": "Fluorescence, Raman and MIR ATR can add molecular specificity to NIR in milk analysis. Quote: \"advanced labs often incorporate Fluorescence, Raman, and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural information that NIR might miss.\"",
+   "quote": "advanced labs often incorporate Fluorescence, Raman, and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural information that NIR might miss.",
+   "scope": "general_method",
+   "score": 0.0609
+  },
+  {
+   "ref": "E5",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 16,
+   "text": "16 3. Fiber Optic Techniques for Real-Time Monitoring of Bioprocessing. Having access to a full suite of fiber-optic spectroscopic techniques - rather than relying on a single method - allows a lab to address the diverse analytical challenges of bioprocessing, where no single sensor is universally optimal for every analyte or condition. Each technique offers distinct advantages in sensitivity, specificity, and cost-effectiveness that can be strategically combined to optimize production. - Multimodal Metabolite and Biomass Tracking: a primary advantage of having multiple techniques is the ability to monitor both complex chemical structures and overall physical process trends simultaneously. For instance, UV/Vis spectroscopy can be deployed as a low- cost, robust tool for real-time biomass monitoring, as cell suspension turbidity correlates well with cell density. While UV/Vis tracks growth, Raman spectroscopy can be used in the same reactor to provide a \"molecular fingerprint\" for direct detection of specific metabolites like glucose, acetate, or lactate. This combination is practical because Raman is particularly well- suited for aqueous environments, as it exhibits low absorbance for water molecules compared to infrared methods. - Precision",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0607
+  },
+  {
+   "ref": "E6",
+   "kind": "claim",
+   "source": "S01",
+   "page": 17,
+   "text": "S01 Fig. 7 maps bioprocess variables to spectral regions (e.g. glucose and lactate in NIR and MIR; NAD(P)H and cell mass in fluorescence). Quote: \"Fig. 7. Spectral range for bioprocess monitoring with accessible variables.\"",
+   "quote": "Fig. 7. Spectral range for bioprocess monitoring with accessible variables.",
+   "scope": "literature_overview",
+   "score": 0.0594
+  },
+  {
+   "ref": "E7",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Raman needs special probes; Raman and MIR spectra carry complementary information. Quote: \"the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.\"",
+   "quote": "the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.",
+   "scope": "general_method",
+   "score": 0.0559
+  },
+  {
+   "ref": "E8",
+   "kind": "claim",
+   "source": "S01",
+   "page": 16,
+   "text": "NIR tracks major components such as glucose or glycerol in the millimolar range but may lack sensitivity below 0.1 percent. Quote: \"NIR spectroscopy is effective for tracking major components like glucose or glycerol in the millimolar range but may lack the sensitivity to detect trace compounds below 0.1 percent.\"",
+   "quote": "NIR spectroscopy is effective for tracking major components like glucose or glycerol in the millimolar range but may lack the sensitivity to detect trace compounds below 0.1 percent.",
+   "scope": "general_method",
+   "score": 0.0546
+  },
+  {
+   "ref": "E9",
+   "kind": "claim",
+   "source": "S01",
+   "page": 3,
+   "text": "When the sample composition is incompletely known, several spectroscopy approaches should be tested to select the most suitable method or combination. Quote: \"The ability to test various optical spectroscopy approaches is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method or combination of methods.\"",
+   "quote": "The ability to test various optical spectroscopy approaches is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method or combination of methods.",
+   "scope": "general_method",
+   "score": 0.0479
+  },
+  {
+   "ref": "E10",
+   "kind": "claim",
+   "source": "S01",
+   "page": 11,
+   "text": "Raman signals are weak and, for many organic compounds, overlaid by much stronger fluorescence. Quote: \"for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity.\"",
+   "quote": "for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity.",
+   "scope": "general_method",
+   "score": 0.0429
+  },
+  {
+   "ref": "E11",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 13,
+   "text": "addresses the challenges posed by the inherent heterogeneity of biological tissues, which often makes it difficult to rely on a single spectroscopic method for a definitive diagnosis. To perform this task, the multispectral laboratory can utilize an advanced analytical platform consisting of a combination of various spectral system such as - High-resolution FTIR spectrometer for mid-infrared (MIR) analysis together with mid-infrared ATR probe - UV-VIS spectrometer and 470 nm laser coupled with a fluorescence fiber probe - NIR spectrometer and NIR light source (Tungsten-Halogen Lamp) coupled with a NIR reflection fiber probe The experimental procedure involves the direct contact of the probe tip with the tissue during an operation, such as for kidney, colon, or rectal cancer. The MIR-ATR component captures the \"chemical fingerprint\" of the tissue's surface layer, typically at a depth of few microns, providing information on molecular composition and biochemical changes. Concurrently, the fluorescence or near-infrared (NIR) signals penetrate deeper into the sample, offering morphological insights and subsurface chemical data. This simultaneous measurement is crucial for medical applications where local tissue properties and precisely localized data are",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0432
+  },
+  {
+   "ref": "E12",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 5,
+   "text": "5 For example, NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics, as well as standard lamps as light sources, making it ideal for online applications, including remote measurements via fiber optic probes. In contrast, strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR) by connecting appropriate attachments and probes. Measurement of the weak Raman effect requires special probes but is recorded in the visible and NIR spectral regions. Moreover, the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition. UV-visible spectroscopy is based on electronic transitions between molecular energy levels. It has very high sensitivity, especially in the UV region (190-360 nm), but requires the use of special light sources and fiber optic probes. However, the strong overlap of spectral",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0421
+  },
+  {
+   "ref": "E13",
+   "kind": "chunk",
+   "source": "S02",
+   "page": 14,
+   "text": "\"NIR-Reflex & MIR-ATR-spectroscopy to control polymer extrusion in-line\". \"Control of API-production with PIR-fiber FTIR-spectroscopy in Pharma Industry.\" \"Spectra of API in hot polymer obtained with Diamond cone ATR probe coupled to iC10 FTIR (MTAC).\" Figure: hot melt extruder scheme (material feeder, screw, barrel, die, die adaptor, NIR, PAT console, \"Feed forward control for waste gate switch\", good product / waste); photo of an NIR probe at the extruder barrel and die. [PDF text] Control of API- production with PIR-fiber FTIR- spectroscopy in Pharma Industry www.artphotonics.com Spectra of API in hot polymer obtained with Diamond cone ATR probe coupled to iC10 FTIR (MTAC) NIR-Reflex & MIR-ATR-spectroscopy to control polymer extrusion in-line",
+   "quote": null,
+   "scope": "company slides",
+   "score": 0.0413
+  },
+  {
+   "ref": "E14",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 18,
+   "text": "the milk changes during processing, the inline monitoring remains accurate and robust. In some cases, a Transflection probe can already be a combined solution working well for low-fat and high-fat containing milk products. NIR Spectrometer and NIR light source remain the same for both reflection and transmission techniques. While NIR is the workhorse of the dairy industry, advanced labs often incorporate Fluorescence, Raman, and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural information that NIR might miss. These methods provide a higher level of \"molecular specificity,\" making them useful for specialized monitoring in milk analysis. Fig. 8. Multispectral lab for milk analysis. Image courtesy of art photonics GmbH.",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0389
+  }
+ ],
+ "retrieval": {
+  "queries": [
+   "composition in unknown unknown",
+   "unknown unknown probe geometry Raman spectroscopy NIR spectroscopy MIR spectroscopy (ATR)",
+   "Glucose is reached by vibrational methods Raman fluorescence background risk Water-rich media Bioprocess monitoring",
+   "What detection limit will Raman achieve for glucose in our CHO cell culture? We need the exact number today for a purchase decision."
+  ],
+  "bm25": {
+   "composition in unknown unknown": [
+    182,
+    2,
+    186,
+    76,
+    9,
+    40,
+    14,
+    8
+   ],
+   "unknown unknown probe geometry Raman spectroscopy NIR spectroscopy MIR spectroscopy (ATR)": [
+    183,
+    236,
+    72,
+    70,
+    199,
+    182,
+    214,
+    153
+   ],
+   "Glucose is reached by vibrational methods Raman fluorescence background risk Water-rich media Bioprocess monitoring": [
+    223,
+    229,
+    47,
+    210,
+    46,
+    233,
+    224,
+    50
+   ],
+   "What detection limit will Raman achieve for glucose in our CHO cell culture? We need the exact number today for a purchase decision.": [
+    2,
+    7,
+    224,
+    47,
+    17,
+    131,
+    223,
+    229
+   ]
+  },
+  "dense": {
+   "composition in unknown unknown": [
+    182,
+    121,
+    200,
+    122,
+    9,
+    195,
+    211,
+    144
+   ],
+   "unknown unknown probe geometry Raman spectroscopy NIR spectroscopy MIR spectroscopy (ATR)": [
+    199,
+    236,
+    30,
+    183,
+    43,
+    39,
+    205,
+    14
+   ],
+   "Glucose is reached by vibrational methods Raman fluorescence background risk Water-rich media Bioprocess monitoring": [
+    47,
+    223,
+    46,
+    224,
+    229,
+    37,
+    21,
+    225
+   ],
+   "What detection limit will Raman achieve for glucose in our CHO cell culture? We need the exact number today for a purchase decision.": [
+    224,
+    223,
+    47,
+    212,
+    210,
+    35,
+    46,
+    236
+   ]
+  },
+  "fused": [
+   [
+    47,
+    0.0638
+   ],
+   [
+    223,
+    0.0636
+   ],
+   [
+    224,
+    0.0628
+   ],
+   [
+    236,
+    0.0609
+   ],
+   [
+    46,
+    0.0607
+   ],
+   [
+    229,
+    0.0594
+   ],
+   [
+    186,
+    0.0559
+   ],
+   [
+    225,
+    0.0546
+   ],
+   [
+    182,
+    0.0479
+   ],
+   [
+    39,
+    0.0432
+   ],
+   [
+    210,
+    0.0429
+   ],
+   [
+    14,
+    0.0421
+   ],
+   [
+    70,
+    0.0413
+   ],
+   [
+    58,
+    0.0397
+   ],
+   [
+    54,
+    0.0389
+   ]
+  ],
+  "mmr": [
+   47,
+   223,
+   224,
+   236,
+   46,
+   229,
+   186,
+   225,
+   182,
+   210,
+   39,
+   14,
+   70,
+   58,
+   54,
+   215,
+   158,
+   2,
+   183,
+   199,
+   212,
+   205,
+   9,
+   220,
+   20,
+   214,
+   153,
+   35
+  ],
+  "pinned": [],
+  "used_tokens": 1799
+ },
+ "spectral": {
+  "methods": [
+   {
+    "id": "NIR",
+    "name": "NIR spectroscopy",
+    "range_um": [
+     0.78,
+     2.5
+    ],
+    "label": "780-2500 nm",
+    "source": "S01 p.10"
+   },
+   {
+    "id": "MIR",
+    "name": "Mid-IR spectroscopy (ATR fiber probe)",
+    "range_um": [
+     2.5,
+     25.0
+    ],
+    "label": "4000-400 cm-1 (2.5-25 um)",
+    "source": "S01 p.9"
+   },
+   {
+    "id": "RAMAN",
+    "name": "Raman spectroscopy",
+    "range_um": [
+     0.4,
+     1.1
+    ],
+    "label": "Raman shift in cm-1; excitation laser in nm, stated separately (for example 785 nm)",
+    "source": "S01 p.11"
+   },
+   {
+    "id": "UVVIS",
+    "name": "UV/Visible spectroscopy",
+    "range_um": [
+     0.19,
+     0.74
+    ],
+    "label": "UV 190-360 nm (high sensitivity region), visible about 400-740 nm",
+    "source": "S01 p.5"
+   },
+   {
+    "id": "FLUO",
+    "name": "Fluorescence spectroscopy (fluorimetry)",
+    "range_um": [
+     0.25,
+     0.8
+    ],
+    "label": "Depends on the fluorescent species; UV/visible excitation, emission at longer wavelengths",
+    "source": "S01 p.12"
+   }
+  ],
+  "fibers": [
+   {
+    "id": "UV_SILICA",
+    "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.18,
+     1.2
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "VISNIR_SILICA",
+    "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.35,
+     2.4
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "CIR",
+    "name": "Chalcogenide As-S IR fiber (CIR)",
+    "range_um": [
+     1.1,
+     6.5
+    ],
+    "family": "chalcogenide"
+   },
+   {
+    "id": "PIR",
+    "name": "Polycrystalline silver-halide IR fiber (PIR)",
+    "range_um": [
+     3.0,
+     17.0
+    ],
+    "family": "polycrystalline"
+   },
+   {
+    "id": "HWG",
+    "name": "Hollow glass waveguide",
+    "range_um": [
+     2.0,
+     18.0
+    ],
+    "family": "hollow"
+   },
+   {
+    "id": "INF3",
+    "name": "Indium fluoride fiber",
+    "range_um": [
+     0.3,
+     5.5
+    ],
+    "family": "fluoride"
+   },
+   {
+    "id": "ZBLAN",
+    "name": "Zirconium fluoride fiber",
+    "range_um": [
+     0.3,
+     4.5
+    ],
+    "family": "fluoride"
+   }
+  ],
+  "bands": [
+   {
+    "id": "B_600_1050",
+    "range_um": [
+     6.0,
+     10.5
+    ],
+    "region": "MIR fingerprint",
+    "analytes": [
+     "ethanol",
+     "glucose",
+     "glutamine",
+     "organic acids",
+     "ammonium"
+    ],
+    "source": "S02",
+    "page": 18,
+    "note": "Slide shows sub-bands 6.0-8.0 and 8.0-10.5 um.",
+    "matched": [
+     "glucose"
+    ]
+   }
+  ],
+  "client_silica": false
+ },
+ "premises": [],
+ "report": {
+  "decision_status": "insufficient_information",
+  "headline": "We cannot provide a specific Raman detection limit for glucose in your CHO cell culture without additional data.",
+  "requirements_stated": [
+   "target_defined: yes",
+   "aqueous: yes",
+   "temperature: ambient",
+   "process_context: lab_research"
+  ],
+  "key_unknowns": [
+   "glucose concentration range of interest",
+   "acceptable detection limit (client\u2011agreed numeric value)",
+   "sample matrix composition (media components, cell density, turbidity)",
+   "excitation wavelength and probe geometry planned for Raman",
+   "availability of reference analytical method for validation"
+  ],
+  "clarification_questions": [
+   {
+    "question": "What is the concentration range of glucose you need to monitor and the specific detection limit you consider acceptable?",
+    "why": "The required detection limit defines whether Raman\u2019s typical sensitivity (often >0.1\u202f% w/w) meets your need or if another method is required.",
+    "impact": "high"
+   },
+   {
+    "question": "What is the optical clarity and turbidity of your cell culture broth (cell density, presence of particles, color)?",
+    "why": "High turbidity can increase fluorescence background and scatter, affecting Raman signal quality.",
+    "impact": "high"
+   },
+   {
+    "question": "Which Raman excitation wavelength and probe design (e.g., immersion, fiber\u2011optic probe) are you planning to use?",
+    "why": "Excitation wavelength influences fluorescence background and Raman scattering efficiency; probe design impacts collection efficiency.",
+    "impact": "medium"
+   },
+   {
+    "question": "Do you have an independent reference method (e.g., HPLC, enzymatic assay) to generate calibration and validation data?",
+    "why": "Reference data are required to build and test a quantitative Raman model for glucose.",
+    "impact": "medium"
+   },
+   {
+    "question": "Is there a requirement for real\u2011time, inline monitoring, or will measurements be taken offline from sampled broth?",
+    "why": "Inline deployment imposes constraints on probe robustness and path length that affect achievable detection limits.",
+    "impact": "low"
+   }
+  ],
+  "recommendations": [
+   {
+    "method": "Raman (fiber\u2011optic probe, visible/NIR excitation)",
+    "method_ids": [
+     "RAMAN"
+    ],
+    "role": "primary",
+    "rationale": [
+     {
+      "text": "Raman is identified as suitable for aqueous bioprocess monitoring of metabolites such as glucose.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 16,
+        "quote": "Raman spectroscopy can be used in the same reactor to provide a \"molecular fingerprint\" for direct detection of specific metabolites like glucose, acetate, or lactate."
+       }
+      ]
+     },
+     {
+      "text": "A quantitative model must be built using representative broth samples spanning the client\u2011agreed glucose range and validated against an independent reference assay.",
+      "kind": "proposal",
+      "citations": []
+     }
+    ],
+    "conditions": "Only if representative samples, excitation wavelength, and reference data are provided."
+   },
+   {
+    "method": "NIR (diffuse reflectance) as complementary screening",
+    "method_ids": [
+     "NIR"
+    ],
+    "role": "conditional",
+    "rationale": [
+     {
+      "text": "NIR can track glucose in the millimolar range but may lack sensitivity below 0.1\u202f% w/w.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 16,
+        "quote": "NIR spectroscopy is effective for tracking major components like glucose or glycerol in the millimolar range but may lack the sensitivity to detect trace compounds below 0.1 percent."
+       }
+      ]
+     },
+     {
+      "text": "Testing NIR alongside Raman can clarify whether the required detection limit is achievable with a simpler, lower\u2011cost method.",
+      "kind": "proposal",
+      "citations": []
+     }
+    ],
+    "conditions": "If the required detection limit is \u22650.1\u202f% w/w."
+   }
+  ],
+  "measurement_concept": [
+   {
+    "text": "Raman spectroscopy can provide a molecular fingerprint for glucose in aqueous bioprocess media.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "direct detection of specific metabolites like glucose, acetate, or lactate."
+     },
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "Raman is particularly well\u2011suited for aqueous environments, as it exhibits low absorbance for water molecules compared to infrared methods."
+     }
+    ]
+   },
+   {
+    "text": "Raman signals are intrinsically weak and may be overlaid by fluorescence from organic components.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 11,
+      "quote": "for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity."
+     }
+    ]
+   },
+   {
+    "text": "Assumption: The client expects a detection limit in the low\u2011percent or sub\u2011percent range, which is typical for Raman in bioprocess applications.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "spectral_range": [
+   {
+    "text": "Raman measurements are recorded in the visible to near\u2011infrared region; excitation wavelength and Raman shift must be specified during method development.",
+    "kind": "proposal",
+    "citations": []
+   }
+  ],
+  "risks": [
+   {
+    "text": "Fluorescence background from media components or cells can mask the weak Raman signal of glucose.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 11,
+      "quote": "for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity."
+     }
+    ]
+   },
+   {
+    "text": "Variability in cell density and media composition may cause scattering and baseline drift, affecting reproducibility.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "feasibility_plan": {
+   "samples": [
+    "Representative CHO culture broth at low, mid, and high glucose concentrations covering the client\u2011agreed range.",
+    "Blank media (no cells) to assess fluorescence background.",
+    "Spiked samples with known glucose additions for calibration."
+   ],
+   "reference": [
+    "Enzymatic glucose assay or HPLC as independent concentration reference."
+   ],
+   "comparison": [
+    "Raman probe vs. NIR diffuse\u2011reflection probe (if considered).",
+    "Different excitation wavelengths (e.g., alternative wavelengths) to evaluate fluorescence impact."
+   ],
+   "decision_basis": [
+    "Achieved detection limit meets client\u2011agreed numeric target.",
+    "Model robustness across process variability (cell density, turbidity).",
+    "Signal\u2011to\u2011noise ratio and repeatability within acceptable limits."
+   ],
+   "steps": [
+    "1. Define the exact glucose detection limit required by the client.",
+    "2. Prepare a set of broth samples spanning that range and measure with Raman (selected excitation) and reference assay.",
+    "3. Evaluate fluorescence background; if excessive, test alternative excitation wavelengths or fluorescence suppression techniques.",
+    "4. Build a chemometric calibration model (e.g., PLS) and assess prediction error against the reference.",
+    "5. If Raman does not meet the target, repeat steps 2\u20114 with NIR to verify its suitability.",
+    "6. Summarize results and recommend the method that satisfies the detection limit and operational constraints."
+   ]
+  },
+  "pathway": {
+   "next_step": "Conduct a multi\u2011method lab trial with Raman (and optionally NIR) on representative CHO broth samples, using an independent reference assay to quantify detection performance.",
+   "likely_path": "B",
+   "why": "The client seeks a quantitative detection limit for a specific analyte in a research\u2011scale bioprocess; a customized multi\u2011spectral lab trial will provide the data needed to decide on purchase."
+  },
+  "assumptions": [
+   "The client\u2019s required detection limit is in the sub\u2011percent to low\u2011percent range typical for Raman bioprocess applications.",
+   "No prior Raman data on this specific CHO broth are available."
+  ]
+ },
+ "verification": {
+  "claims": [
+   {
+    "location": "recommendations[0].rationale[0]",
+    "text": "Raman is identified as suitable for aqueous bioprocess monitoring of metabolites such as glucose.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "Raman spectroscopy can be used in the same reactor to provide a \"molecular fingerprint\" for direct detection of specific metabolites like glucose, acetate, or lactate."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[1]",
+    "text": "A quantitative model must be built using representative broth samples spanning the client\u2011agreed glucose range and validated against an independent reference assay.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "recommendations[1].rationale[0]",
+    "text": "NIR can track glucose in the millimolar range but may lack sensitivity below 0.1\u202f% w/w.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "NIR spectroscopy is effective for tracking major components like glucose or glycerol in the millimolar range but may lack the sensitivity to detect trace compounds below 0.1 percent."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[1].rationale[1]",
+    "text": "Testing NIR alongside Raman can clarify whether the required detection limit is achievable with a simpler, lower\u2011cost method.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[0]",
+    "text": "Raman spectroscopy can provide a molecular fingerprint for glucose in aqueous bioprocess media.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "direct detection of specific metabolites like glucose, acetate, or lactate."
+     },
+     {
+      "source": "S01",
+      "page": 16,
+      "quote": "Raman is particularly well\u2011suited for aqueous environments, as it exhibits low absorbance for water molecules compared to infrared methods."
+     }
+    ]
+   },
+   {
+    "location": "measurement_concept[1]",
+    "text": "Raman signals are intrinsically weak and may be overlaid by fluorescence from organic components.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 11,
+      "quote": "for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity."
+     }
+    ]
+   },
+   {
+    "location": "measurement_concept[2]",
+    "text": "Assumption: The client expects a detection limit in the low\u2011percent or sub\u2011percent range, which is typical for Raman in bioprocess applications.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "spectral_range[0]",
+    "text": "Raman measurements are recorded in the visible to near\u2011infrared region; excitation wavelength and Raman shift must be specified during method development.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "risks[0]",
+    "text": "Fluorescence background from media components or cells can mask the weak Raman signal of glucose.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 11,
+      "quote": "for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity."
+     }
+    ]
+   },
+   {
+    "location": "risks[1]",
+    "text": "Variability in cell density and media composition may cause scattering and baseline drift, affecting reproducibility.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   }
+  ],
+  "numbers": [
+   {
+    "location": "clarification_questions[0]",
+    "number": "0.1\u202f%",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "recommendations[1]",
+    "number": "0.1\u202f%",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "recommendations[1].rationale[0]",
+    "number": "0.1\u202f%",
+    "status": "supported",
+    "detail": ""
+   }
+  ],
+  "client_facts": [],
+  "n_sourced": 5,
+  "n_verified": 5,
+  "n_unsupported_numbers": 0,
+  "n_bad_client_facts": 0
+ },
+ "quality": {
+  "items": [
+   {
+    "id": "S1",
+    "category": "structure",
+    "name": "All required sections present",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S2",
+    "category": "structure",
+    "name": "3-6 questions, highest impact first",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S3",
+    "category": "structure",
+    "name": "Plan has samples, reference, comparison, decision basis",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S4",
+    "category": "structure",
+    "name": "Decision status consistent with rule findings",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G1",
+    "category": "grounding",
+    "name": "Sourced claims verified on the cited page",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G2",
+    "category": "grounding",
+    "name": "No unsupported numbers",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G3",
+    "category": "grounding",
+    "name": "No invented client facts",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G4",
+    "category": "grounding",
+    "name": "Evidence used within its scope",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G5",
+    "category": "grounding",
+    "name": "Each recommendation has a sourced reason",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H1",
+    "category": "honesty",
+    "name": "No guarantee or readiness wording",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H2",
+    "category": "honesty",
+    "name": "Units: Raman shift in cm-1, excitation in nm",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H3",
+    "category": "honesty",
+    "name": "Fiber choice consistent with spectral coverage",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H4",
+    "category": "honesty",
+    "name": "Contradicted premises are stated plainly in the headline",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U1",
+    "category": "usefulness",
+    "name": "Client-requested weak methods are addressed (why / why not)",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U2",
+    "category": "usefulness",
+    "name": "Feasibility plan is concrete",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U3",
+    "category": "usefulness",
+    "name": "Questions cover the high-impact unknowns",
+    "status": "pass",
+    "detail": ""
+   }
+  ],
+  "passed": 16,
+  "total": 16,
+  "repaired": true,
+  "repair_notes": [
+   "G2 fixed"
+  ]
+ },
+ "confidence": {
+  "level": "insufficient",
+  "signals": [
+   {
+    "name": "Information",
+    "level": "low",
+    "value": 0.2,
+    "detail": "2/10 decision-relevant facts known; target defined: yes"
+   },
+   {
+    "name": "Evidence",
+    "level": "high",
+    "value": 1.0,
+    "detail": "Direct application in AFS sources: R_GLUCOSE_NOT_FLUORESCENT_TARGET, R_BIOPROCESS"
+   },
+   {
+    "name": "Scope fit",
+    "level": "high",
+    "value": 1.0,
+    "detail": "Requested use matches the scope of the cited evidence"
+   },
+   {
+    "name": "Client premises",
+    "level": "high",
+    "value": 1.0,
+    "detail": "0 contradicted, 0 unverifiable, 0 supported"
+   },
+   {
+    "name": "Verification",
+    "level": "high",
+    "value": 1.0,
+    "detail": "5/5 sourced claims verified; 0 unsupported numbers"
+   }
+  ],
+  "caps": [],
+  "per_method": [
+   {
+    "method_id": "RAMAN",
+    "level": "insufficient",
+    "detail": "lead, screening score 4"
+   },
+   {
+    "method_id": "NIR",
+    "level": "insufficient",
+    "detail": "candidate, screening score 2"
+   },
+   {
+    "method_id": "MIR",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   },
+   {
+    "method_id": "UVVIS",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   },
+   {
+    "method_id": "FLUO",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   }
+  ],
+  "raise_with": [
+   "What is the sample (liquid, powder, melt, tissue...) and its main components?",
+   "Is the sample clear, turbid or opaque, and does this change during the process?",
+   "What concentration range must be covered, and what is the smallest change that matters?"
+  ]
+ },
+ "council": null,
+ "coach": {
+  "completeness": 2,
+  "total": 10,
+  "fields": [
+   {
+    "name": "matrix",
+    "label": "Sample matrix and phase",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What is the sample (liquid, powder, melt, tissue...) and its main components?"
+   },
+   {
+    "name": "optics",
+    "label": "Optical behaviour (clear / turbid / opaque)",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Is the sample clear, turbid or opaque, and does this change during the process?"
+   },
+   {
+    "name": "range",
+    "label": "Concentration range",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What concentration range must be covered, and what is the smallest change that matters?"
+   },
+   {
+    "name": "reference",
+    "label": "Reference method",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Which independent reference method (and its uncertainty) can provide calibration values?"
+   },
+   {
+    "name": "accuracy",
+    "label": "Accuracy / acceptance criteria",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Which accuracy, bias or acceptance limits must the measurement meet?"
+   },
+   {
+    "name": "installation",
+    "label": "Installation and fiber link",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Where can the probe be installed, and how far away will the analyzer be?"
+   },
+   {
+    "name": "timing",
+    "label": "Response time / update rate",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "How quickly must a change be detected (update rate, response time)?"
+   },
+   {
+    "name": "points",
+    "label": "Number of measuring points",
+    "status": "unknown",
+    "impact": "low",
+    "question": "How many measuring points or streams need monitoring?"
+   },
+   {
+    "name": "target",
+    "label": "Target variable / analyte",
+    "status": "stated",
+    "impact": "high",
+    "question": "Which variable or analyte must be measured, and which changes must be distinguished?"
+   },
+   {
+    "name": "conditions",
+    "label": "Process conditions at the probe",
+    "status": "stated",
+    "impact": "high",
+    "question": "What temperature, pressure, flow, fouling and cleaning conditions apply at the probe?"
+   }
+  ],
+  "template": "What detection limit will Raman achieve for glucose in our CHO cell culture? We need the exact number today for a purchase decision. \n\nSample matrix and phase: [sample matrix and phase, e.g. 'liquid, powder, melt, tissue...']\n\nOptical behaviour: [optical behaviour, e.g. 'clear, turbid, opaque, and whether it changes during the process']\n\nConcentration range: [concentration range to be covered, e.g. 'x to y %']\n\nReference method: [reference method and its uncertainty]\n\nAccuracy / acceptance criteria: [accuracy, bias or acceptance limits]\n\nInstallation and fiber link: [installation location and distance to analyzer]\n\nResponse time / update rate: [required response time or update rate]\n\nNumber of measuring points: [number of measuring points or streams]"
+ },
+ "diff": [],
+ "trace": [
+  {
+   "stage": "extract",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 1538,
+   "completion_tokens": 383,
+   "latency_ms": 814,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "report",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 4679,
+   "completion_tokens": 1920,
+   "latency_ms": 49160,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 5192,
+   "completion_tokens": 2128,
+   "latency_ms": 44770,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "coach",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 505,
+   "completion_tokens": 210,
+   "latency_ms": 457,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  }
+ ],
+ "timings_ms": {
+  "extract": 815,
+  "rules": 3,
+  "retrieve": 264,
+  "premise": 0,
+  "report": 49161,
+  "verify": 44812,
+  "coach": 459,
+  "total": 95611
+ },
+ "error": ""
+}

@@ -1,2 +1,10 @@
-.idea/
-.idea/*
+.env
+__pycache__/
+*.pyc
+.venv/
+data/cache/*
+!data/cache/.gitkeep
+data/raw/*.pdf
+data/raw/*.docx
+data/raw/*.xlsx
+.DS_Store

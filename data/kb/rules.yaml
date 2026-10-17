@@ -1,0 +1,326 @@
+# Premise/screening rules, every rule with a source.
+#
+# Rules are GENERAL domain knowledge taken from the AFS sources. None is written for a
+# specific scenario. They are evaluated against the extracted Requirements (schemas.py).
+#
+# Condition language (rules.py):
+#   when: {all: [...]} | {any: [...]}            (nested allowed)
+#   {field: F, eq: V} | {field: F, in: [..]} | {field: F, not_in: [..]}
+#   {field: F, contains: V}        list field contains V
+#   {field: F, text_any: [..]}     lower-cased text of F contains any keyword
+#   {field: F, known: false}       value is unknown / empty
+#   Special field "text" = enquiry + extracted summary + targets + matrix (lower-cased).
+#
+# Effects:
+#   scores: {METHOD: +n/-n}        method screening contribution (shown in the matrix)
+#   flag: {severity: block|warn|info, text: ...}   premise / risk message
+#   question: {text, impact: high|medium|low, why}
+#   cap_confidence: high|medium|low|insufficient
+#   status_hint: insufficient_information | outside_supported_scope
+#   plan: [...]                    elements the feasibility plan must contain
+#   sources: [{source, page}]      ALWAYS present
+
+rules:
+
+# ---------------------------------------------------------------- hardware physics
+- id: R_FIBER_SILICA_MIR
+  title: Silica fiber cannot carry MIR
+  when:
+    all:
+      - {field: requested_methods, contains: MIR}
+      - {field: existing_assets, text_any: [silica, "vis-nir", "visible", "nir cable", "nir fiber", "nir fibre", glass fiber, glass fibre, "vis/nir", "visible or nir"]}
+  flag: {severity: block, text: "Silica fibers transmit only up to about 2.4 um (VIS-NIR silica 350-2400 nm). MIR ATR needs chalcogenide (CIR, about 1.1-6.5 um) or polycrystalline (PIR, about 3-17 um) fiber, so an existing silica link cannot be approved for MIR."}
+  scores: {}
+  question: {text: "Which spectral region must the link carry, and what length, routing, bend radius, temperature and installation conditions apply between probe and analyzer?", impact: high, why: "Decides whether any IR fiber link is feasible; the sources give no MIR link-length figure."}
+  cap_confidence: low
+  sources: [{source: S02, page: 6}, {source: S02, page: 9}]
+
+- id: R_REMOTE_MIR_LINK
+  title: Remote MIR analyzer needs link confirmation
+  when:
+    all:
+      - {field: analyzer_remote, eq: "yes"}
+      - {field: link_length_known, eq: "no"}
+  flag: {severity: warn, text: "The sources show 100-300 m silica cables for Vis-NIR process control only. No MIR fiber link length is stated in the supplied material, so any long MIR link must be confirmed by AFS before a concept is approved."}
+  question: {text: "What is the fiber route length between the measuring point and the analyzer location, and can the analyzer be moved closer?", impact: high, why: "Long links favour Vis-NIR silica; MIR fiber links need AFS confirmation."}
+  sources: [{source: S02, page: 7}, {source: S01, page: 5}]
+
+# ---------------------------------------------------------------- calibration and transfer
+- id: R_CALIBRATION_MATRIX
+  title: Calibrations are matrix specific
+  when:
+    any:
+      - {field: premise_kinds, contains: reuse_claim}
+      - {field: existing_assets, text_any: [calibration, "chemometric model", "pls model", "existing model"]}
+  flag: {severity: warn, text: "NIR and other spectra need chemometric calibration models built and validated on the actual matrix. A new API or excipient blend changes the spectra, so an existing calibration must be re-validated and normally rebuilt; reuse is a hypothesis to test, not an assumption."}
+  question: {text: "Which components, concentration ranges and physical properties differ between the old and the new formulation, and how many reference-assayed samples of the new blend can be prepared?", impact: high, why: "Determines whether the old model can be checked at all and how much new calibration work is needed."}
+  plan: ["Test the existing calibration on new-formulation samples with reference values before any reuse.", "Build and validate a new calibration on held-out batches."]
+  sources: [{source: S01, page: 10}, {source: S01, page: 5}, {source: S03, page: 14}]
+
+- id: R_ADD_METHOD_NOT_A_FIX
+  title: Adding a method does not keep a calibration valid
+  when:
+    all:
+      - {field: premise_kinds, contains: reuse_claim}
+      - {field: requested_methods, known: true}
+  flag: {severity: warn, text: "Adding a second method (for example Raman) does not make an existing single-method calibration valid. Data from different methods are not equivalent; a fused model needs synchronised data, fusion algorithms and its own calibration and validation."}
+  scores: {}
+  sources: [{source: S01, page: 8}, {source: S01, page: 9}, {source: S01, page: 15}]
+
+# ---------------------------------------------------------------- method preconditions
+- id: R_FLUO_NEEDS_TARGET
+  title: Fluorescence needs a fluorescent target
+  when:
+    all:
+      - {field: requested_methods, contains: FLUO}
+      - {field: fluorescent_target, not_in: ["yes"]}
+  flag: {severity: block, text: "Fluorescence has high sensitivity but low selectivity, and most chemicals do not fluoresce. Without a defined fluorescent target, marker or reference relationship, sensitivity alone does not justify reporting a concentration."}
+  scores: {FLUO: -3}
+  question: {text: "Is there a known fluorescent species (e.g. NADH, tryptophan, riboflavin) whose signal has been related to the requested variable with reference data?", impact: high, why: "Without it fluorescence cannot be the primary method."}
+  cap_confidence: low
+  sources: [{source: S01, page: 5}, {source: S01, page: 6}, {source: S04, page: 4}]
+
+- id: R_GLUCOSE_NOT_FLUORESCENT_TARGET
+  title: Glucose is reached by vibrational methods
+  when:
+    all:
+      - {field: text, text_any: [glucose, lactate, acetate, glutamine]}
+  flag: {severity: info, text: "In the AFS material glucose and similar metabolites are associated with Raman, NIR and MIR, not with fluorescence."}
+  scores: {RAMAN: 2, MIR: 1, NIR: 1}
+  sources: [{source: S01, page: 16}, {source: S01, page: 17}, {source: S02, page: 18}]
+
+- id: R_OD_NOT_VIABILITY
+  title: Optical density is not viable biomass
+  when:
+    any:
+      - {field: text, text_any: [viable, "viability", "live cell", "living cell"]}
+  flag: {severity: warn, text: "Turbidity / optical density correlates with cell density but does not by itself distinguish viable from non-viable cells. A viable-biomass claim needs a defined indicator and a viability reference method."}
+  question: {text: "Which reference method defines viable biomass (e.g. viable cell count), and is total biomass or viability the decision variable?", impact: high, why: "Changes which optical signal can serve as an indicator."}
+  sources: [{source: S01, page: 16}, {source: S01, page: 17}]
+
+- id: R_RAMAN_FLUO_BACKGROUND
+  title: Raman fluorescence background risk
+  when:
+    any:
+      - {field: requested_methods, contains: RAMAN}
+      - {field: text, text_any: [ferment, broth, cell culture, biolog, tissue, organic, oil, polymer, api, pharma]}
+  flag: {severity: info, text: "Raman signals are weak and, for many organic or biological samples, fluorescence can overlay them. Check background and signal quality on real samples; state excitation wavelength and Raman shift separately."}
+  sources: [{source: S01, page: 11}, {source: S02, page: 7}]
+
+# ---------------------------------------------------------------- sample optics -> geometry
+- id: R_POWDER
+  title: Powders favour NIR diffuse reflection; Raman as comparison
+  when:
+    any:
+      - {field: phase, eq: powder}
+      - {field: text, text_any: [powder, blend, granul, tablet]}
+  scores: {NIR: 2, RAMAN: 1, MIR: -1}
+  flag: {severity: info, text: "Powders: NIR diffuse reflection probe (scattering media, powder) and Raman probe (liquid, powder, solid) are the table-supported interfaces; NIR and Raman are the common in-line pharmaceutical pair."}
+  sources: [{source: S01, page: 6}, {source: S01, page: 14}, {source: S01, page: 15}]
+
+- id: R_OPAQUE
+  title: Opaque or scattering media favour reflection or ATR
+  when:
+    any:
+      - {field: optical_behavior, in: [opaque, scattering]}
+      - {field: text, text_any: [opaque, concentrate, "highly scattering", paste, yogurt, butter]}
+  scores: {NIR: 2, MIR: 1, UVVIS: -1}
+  flag: {severity: info, text: "Opaque or concentrated media: NIR reflection is used for opaque dairy products; transmission saturates or fails when light cannot penetrate; ATR uses a very short evanescent path."}
+  sources: [{source: S01, page: 17}, {source: S01, page: 18}, {source: S01, page: 16}]
+
+- id: R_CLEAR
+  title: Clear liquids favour transmission or transflection
+  when:
+    any:
+      - {field: optical_behavior, eq: clear}
+      - {field: text, text_any: ["clear ", transparent, whey, permeate, "low optical density"]}
+  scores: {NIR: 1, UVVIS: 1}
+  flag: {severity: info, text: "Clear or semi-transparent liquids: transmission or transflection probes with a defined 1-10 mm path are preferred; reflection can be less representative."}
+  sources: [{source: S01, page: 18}, {source: S01, page: 16}, {source: S01, page: 6}]
+
+- id: R_VARIABLE_OPTICS
+  title: Changing optics or several streams need a geometry comparison
+  when:
+    any:
+      - {field: optical_behavior, eq: variable}
+      - {field: text, text_any: [turbid, "two streams", "both streams", "becomes more", "optically dense", "optical density"]}
+  flag: {severity: warn, text: "Optical behaviour changes (clear vs turbid/opaque). No single geometry should be assumed: compare transmission/transflection with reflection (or ATR) across the full range of states; a transflection probe can sometimes cover both."}
+  question: {text: "What range of turbidity / optical density occurs, and under which operating conditions?", impact: high, why: "Decides transmission vs reflection vs ATR."}
+  plan: ["Include clear and turbid/opaque process states in the sample set.", "Compare geometries on the same samples."]
+  sources: [{source: S01, page: 18}, {source: S01, page: 16}]
+
+- id: R_AQUEOUS
+  title: Water-rich media
+  when:
+    any:
+      - {field: aqueous, eq: "yes"}
+      - {field: text, text_any: [aqueous, "cell culture", ferment, broth, whey, milk]}
+  scores: {RAMAN: 1}
+  flag: {severity: info, text: "Water absorbs strongly in the IR; Raman shows low water absorbance and suits aqueous media. MIR is used via ATR (very short path)."}
+  sources: [{source: S01, page: 16}, {source: S01, page: 5}]
+
+- id: R_TRACE
+  title: Trace levels challenge NIR
+  when:
+    any:
+      - {field: concentration_level, eq: trace}
+      - {field: text, text_any: [trace, ppm, ppb, contaminat]}
+  scores: {NIR: -1}
+  flag: {severity: info, text: "NIR may lack sensitivity for compounds below about 0.1 %; trace targets need a method with sufficient sensitivity and selectivity for the specific species."}
+  sources: [{source: S01, page: 16}]
+
+- id: R_HETEROGENEOUS
+  title: Heterogeneous samples need same-point measurements
+  when:
+    any:
+      - {field: heterogeneous, eq: "yes"}
+      - {field: text, text_any: [heterogeneous, inhomogeneous, tissue, "same location", "same point", "same local"]}
+  scores: {MIR: 1, FLUO: 1}
+  flag: {severity: info, text: "For heterogeneous samples, different methods must sample the same small spot; alternating separate probes cannot guarantee this. A combined MIR ATR + fluorescence probe acquires both from the same point."}
+  plan: ["Compare a combined same-point probe with sequential single probes on the same sample sites."]
+  sources: [{source: S01, page: 8}, {source: S04, page: 2}, {source: S01, page: 14}]
+
+- id: R_HOT_FOULING
+  title: Hot or fouling interfaces
+  when:
+    any:
+      - {field: temperature, eq: hot}
+      - {field: fouling_risk, eq: "yes"}
+      - {field: text, text_any: [hot, melt, extru, fouling, build up, build-up, deposit]}
+  flag: {severity: warn, text: "Hot or fouling interfaces: ATR needs tight, clean contact. The AFS example for API in hot polymer uses a diamond cone ATR probe with PIR-fiber FTIR and an NIR reflection probe; temperature and pressure ratings of a specific probe are not stated and must be confirmed by AFS."}
+  question: {text: "What temperature, pressure, flow and fouling/cleaning conditions apply at the probe position?", impact: high, why: "Decides probe material, crystal and whether ATR contact stays representative."}
+  scores: {MIR: 1, NIR: 1}
+  sources: [{source: S02, page: 14}, {source: S04, page: 4}, {source: S02, page: 13}]
+
+# ---------------------------------------------------------------- application leads (sourced)
+- id: R_WATER_IN_HYDROCARBON
+  title: Water in petroleum / oil
+  when:
+    all:
+      - {field: text, text_any: [water, moisture]}
+      - {field: text, text_any: [petroleum, oil, crude, fuel, hydrocarbon, diesel]}
+  scores: {MIR: 3, NIR: 1}
+  flag: {severity: info, text: "AFS shows lab MIR ATR spectra of oil with 0.1-2.0 % water (absorbance rising between about 4000 and 3000 cm-1) using ZrO2/diamond ATR probes; NIR moisture bands are a comparison option. The slide states no process accuracy or detection limit."}
+  sources: [{source: S02, page: 13}, {source: S02, page: 18}]
+
+- id: R_MOISTURE
+  title: Moisture in solids or bulk material
+  when:
+    all:
+      - {field: text, text_any: [moisture, "water content", humidity, drying]}
+      - {field: text, text_any: [powder, bulk, solid, grain, flour, wood, granul, soil]}
+  scores: {NIR: 2}
+  flag: {severity: info, text: "NIR bands at 1.3-2.2 um carry moisture information; an NIR-LED fiber sensor concept for moisture exists (prototype concept)."}
+  sources: [{source: S02, page: 18}, {source: S02, page: 12}]
+
+- id: R_DAIRY
+  title: Dairy composition
+  when:
+    all:
+      - {field: text, text_any: [milk, dairy, whey, cream, yogurt, butter, cheese]}
+  scores: {NIR: 2}
+  flag: {severity: info, text: "NIR is the workhorse for in-line dairy composition: reflection for opaque/concentrated products, transmission for clear streams; scatter correction (MSC/SNV) before PLS. Fluorescence, Raman and MIR ATR can add specificity."}
+  sources: [{source: S01, page: 17}, {source: S01, page: 18}, {source: S02, page: 18}]
+
+- id: R_PHARMA_BLEND
+  title: Pharmaceutical powder blends
+  when:
+    all:
+      - {field: text, text_any: [api, "active pharmaceutical", potency, excipient]}
+      - {field: text, text_any: [powder, blend, feed frame, tablet]}
+  scores: {NIR: 1, RAMAN: 1}
+  flag: {severity: info, text: "Blend potency in a tablet press feed frame is supported for NIR reflection and Raman (785 nm contact probe); a fused NIR+Raman model is a hypothesis to test against single-method models."}
+  sources: [{source: S01, page: 14}, {source: S01, page: 15}]
+
+- id: R_HOT_MELT_API
+  title: API in polymer extrusion
+  when:
+    all:
+      - {field: text, text_any: [extru, melt]}
+      - {field: text, text_any: [api, "active pharmaceutical", drug]}
+  scores: {MIR: 2, NIR: 1}
+  sources: [{source: S02, page: 14}]
+
+- id: R_BIOPROCESS
+  title: Bioprocess monitoring
+  when:
+    any:
+      - {field: text, text_any: [ferment, "cell culture", bioprocess, bioreactor, broth, yeast]}
+  scores: {RAMAN: 1, NIR: 1, UVVIS: 1, FLUO: 1}
+  flag: {severity: info, text: "No single sensor is optimal for every bioprocess analyte: UV/Vis turbidity for biomass trends, Raman for metabolites in aqueous media, NIR for major components (mM), fluorescence for fluorescent cofactors (NADH, tryptophan, riboflavin)."}
+  question: {text: "Which variables are the targets (e.g. total biomass, viable biomass, specific metabolites) and which reference assay exists for each?", impact: high, why: "Each variable maps to a different optical signal."}
+  sources: [{source: S01, page: 16}, {source: S01, page: 17}, {source: S01, page: 7}]
+
+- id: R_HYDROCARBON
+  title: Hydrocarbons
+  when:
+    any:
+      - {field: text, text_any: [hydrocarbon, petroleum, crude, "mineral oil"]}
+  scores: {MIR: 1}
+  sources: [{source: S02, page: 18}]
+
+# ---------------------------------------------------------------- information sufficiency and scope
+- id: R_TARGET_UNDEFINED
+  title: Target not defined
+  when:
+    any:
+      - {field: target_defined, eq: "no"}
+  flag: {severity: block, text: "The quality variable or contaminant is not defined, so no single method or exact sensor configuration can be justified. The supported next step is to define the target and run an exploratory multi-method comparison of good and off-spec samples."}
+  question: {text: "Which quality variable or specification fails, and what is known about the suspected contaminant (source, chemical class, expected level)?", impact: high, why: "Without a target no method can be selected."}
+  cap_confidence: insufficient
+  status_hint: insufficient_information
+  plan: ["Collect matched in-spec and off-spec samples with independent lab analysis.", "Screen them with several methods (multi-method lab trial) to find discriminating spectral features before choosing a sensor."]
+  sources: [{source: S01, page: 3}, {source: S02, page: 3}, {source: S02, page: 20}, {source: S01, page: 5}]
+
+- id: R_CERTAINTY_DEMAND
+  title: Request for a final configuration on missing facts
+  when:
+    any:
+      - {field: premise_kinds, contains: certainty_request}
+  flag: {severity: warn, text: "An exact configuration cannot be justified before the target, sample optics, conditions and acceptance criteria are known; method selection depends on many factors and is decided by comparison on real samples."}
+  cap_confidence: low
+  sources: [{source: S01, page: 5}, {source: S02, page: 3}]
+
+- id: R_CLINICAL_SCOPE
+  title: Clinical or in vivo use is outside the supported evidence
+  when:
+    any:
+      - {field: process_context, eq: clinical}
+      - {field: text, text_any: ["in vivo", "live surgery", "during surgery", surgical, patient, intraoperative, clinical use]}
+  flag: {severity: block, text: "The supplied clinical evidence is an in vitro proof of concept (two LED NIR prototypes, 14 in vitro samples from 7 patients) and model-tissue lab work. It cannot be quoted as proof that a sensor is ready to guide decisions in live surgery; that use is outside the supported scope and would need clinical validation and regulatory work beyond this assessment."}
+  cap_confidence: insufficient
+  status_hint: outside_supported_scope
+  plan: ["Reproduce the measurement on the client's own setup with ex vivo / in vitro samples and an independent histopathology reference.", "Use pre-registered validation (cross-validation, randomization tests, independent patients) before any clinical study is designed."]
+  sources: [{source: S03, page: 1}, {source: S03, page: 14}, {source: S04, page: 1}]
+
+- id: R_EVIDENCE_AS_PROOF
+  title: A cited study is a reason to test, not proof
+  when:
+    any:
+      - {field: premise_kinds, contains: evidence_claim}
+  flag: {severity: warn, text: "A published application is a reason to test a method on the client's material, not proof that it will work for a new setup, matrix or use."}
+  sources: [{source: S03, page: 14}, {source: S04, page: 1}]
+
+- id: R_NO_REFERENCE
+  title: Reference method unknown
+  when:
+    all:
+      - {field: reference_method, in: ["unknown", "no"]}
+  question: {text: "Which independent reference method, uncertainty and sampling time will provide the reference values?", impact: high, why: "Calibration and validation need independent reference values."}
+  sources: [{source: S01, page: 5}, {source: S01, page: 10}]
+
+- id: R_MULTI_POINT
+  title: Several measuring points
+  when:
+    any:
+      - {field: text, text_any: ["several points", "multiple points", "measuring points", "measurement points", "many points", "positions", "several lines", "two streams", "both streams"]}
+  flag: {severity: info, text: "Several measuring points: a central full-spectrum analyzer with multiplexer and long fibers gives higher accuracy; distributed spectral sensors give lower installation cost (decided after lab trials)."}
+  sources: [{source: S02, page: 18}]
+
+- id: R_MATRIX_CHANGE_TEST_SET
+  title: Representative variation in the test set
+  when:
+    any:
+      - {field: text, text_any: [temperature, texture, particle, density, flow, "operating condition", vary, varies, change]}
+  plan: ["Include the physical variation (temperature, texture, particle size, flow) in the sample set and separate it from composition effects."]
+  sources: [{source: S01, page: 17}, {source: S01, page: 7}]

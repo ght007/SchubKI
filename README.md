@@ -1,2 +1,478 @@
-First Commit
-Nomi is here 
+# AFS Assessment Assistant
+
+**An AI assistant for the first technical assessment of in-line spectroscopy enquiries.**
+Built for the Art Fiber Systems (AFS) challenge, *National AI Hackathon 2026 by SchubKI*.
+
+An industrial customer writes a few sentences: what they want to monitor, where, and what they
+already have. The assistant turns that into a structured, **reviewable** starting point for an AFS
+expert:
+
+1. what the customer actually said, and what is still unknown;
+2. whether the customer's own assumptions hold up against the AFS material;
+3. the clarification questions that would change the decision, highest impact first;
+4. which spectroscopy methods (or combinations) are worth testing, and why, with **verified citations**;
+5. a probe / measurement concept and the relevant spectral range;
+6. risks, uncertainty, and a **computed** confidence level;
+7. a practical first feasibility experiment, mapped onto the AFS pathway (lab trial → Path A / B / C).
+
+The assistant does not replace the expert. It structures the first customer discussion and makes every
+step easy to check.
+
+---
+
+## Contents
+
+1. [Why it is built this way](#1-why-it-is-built-this-way)
+2. [How it maps to the evaluation criteria](#2-how-it-maps-to-the-evaluation-criteria)
+3. [Architecture](#3-architecture)
+4. [The pipeline, stage by stage](#4-the-pipeline-stage-by-stage)
+5. [Knowledge base and use of the AFS materials](#5-knowledge-base-and-use-of-the-afs-materials)
+6. [Retrieval: BM25 + dense, RRF, MMR](#6-retrieval-bm25--dense-rrf-mmr)
+7. [Grounding: verifier, quality gate, confidence](#7-grounding-verifier-quality-gate-confidence)
+8. [Council mode (multi-model)](#8-council-mode-multi-model)
+9. [Enquiry coach and what-if](#9-enquiry-coach-and-what-if)
+10. [The user interface](#10-the-user-interface)
+11. [Installation](#11-installation)
+12. [Running the app](#12-running-the-app)
+13. [Evaluation and reproducing the outputs](#13-evaluation-and-reproducing-the-outputs)
+14. [Configuration](#14-configuration)
+15. [Groq free tier: what to expect](#15-groq-free-tier-what-to-expect)
+16. [API reference](#16-api-reference)
+17. [Repository layout](#17-repository-layout)
+18. [Troubleshooting](#18-troubleshooting)
+19. [Limitations and honest caveats](#19-limitations-and-honest-caveats)
+20. [Future work](#20-future-work)
+
+---
+
+## 1. Why it is built this way
+
+The challenge material says it plainly: *"Some enquiries ask for more certainty than the facts allow.
+A good answer notices this and says so."* and *"Insufficient information can be the right answer."*
+
+A language model on its own is fluent, confident and occasionally wrong, which is the opposite of what
+an expert needs. So the system is split:
+
+| Job | Done by | Why |
+|---|---|---|
+| Physics and scope facts (which fiber carries which wavelength, which method needs which precondition, what a study can prove) | **Deterministic rules** written from the AFS sources | Cannot hallucinate; every rule cites its page |
+| Method screening scores | **Deterministic** sums of sourced rule contributions | Every point in the matrix is traceable |
+| Finding relevant passages | **Hybrid retrieval** (BM25 + embeddings, RRF, MMR) | Small prompts, relevant and diverse evidence |
+| Reading the enquiry, judging premises, writing the report | **Language model** (Groq) | Language understanding and clear explanation |
+| Checking the report | **Deterministic verifier + quality gate** | The model's text is checked against the pages before anyone sees it |
+| Confidence | **Computed** from observable signals | A model rating itself is not calibrated |
+
+If the model is unavailable, every stage has a rule-based fallback, so the app still produces a complete,
+cited (and clearly labelled) assessment.
+
+## 2. How it maps to the evaluation criteria
+
+| Criterion (weight) | What the assistant does |
+|---|---|
+| **Technical quality (30%)** | Rules encode the physics (fiber transmission, sample optics → probe geometry, method preconditions). Method screening is computed, then explained. Council mode lets several models cross-check. |
+| **Use of AFS knowledge (20%)** | 95 curated evidence cards with verbatim quotes from S01–S05, 30 sourced rules, the S01 Table 1 (xlsx), S02 fiber chart and band slide, and a full transcription of the image-only S02 slides. Every sourced sentence carries `[Sxx p.N]` and its quote. |
+| **Feasibility-study plan (15%)** | Every report has representative samples, independent reference measurements, what is compared (methods, geometries, single vs combined models) and a client-agreed decision basis, plus the AFS pathway step. |
+| **Clarification & uncertainty (15%)** | Premise check first; decision status (`provisional_assessment` / `insufficient_information` / `outside_supported_scope`); questions ranked by impact; computed confidence with caps; enquiry coach and what-if re-runs. |
+| **Explainability (10%)** | Every statement is typed (client fact / sourced / assumption / proposal). Click a citation to see the highlighted passage on the original PDF page. Matrix, rules, retrieval and every LLM call are visible. |
+| **Prototype & presentation (10%)** | One-command web app, live streaming of pipeline stages, Markdown export, works offline in rule-only mode. |
+
+## 3. Architecture
+
+```
+                          ┌─────────────────────────── Browser (frontend/, no build step) ───────────────────────────┐
+                          │ enquiry · coach · tabs: assessment, methods, spectral map, confidence, what-if, council,   │
+                          │ trace · source drawer (PDF page with highlighted quote)                                  │
+                          └──────────────────────────────────────┬───────────────────────────────────────────────────┘
+                                                                 │ HTTP + Server-Sent Events
+┌────────────────────────────────────────────────── FastAPI (backend/app) ──────────────────────────────────────────────┐
+│ api/assess.py  api/sources.py  api/runs.py                                                                            │
+│                                                                                                                       │
+│ engine/pipeline.py ─► extract ─► rules + coverage + screen ─► retrieve ─► premise ─► report | council                 │
+│                                   (deterministic)             (kb/)                    │                              │
+│                       ◄─ confidence ◄─ coach ◄─ quality gate (+1 repair) ◄─ verify ◄───┘                              │
+│                                                                                                                       │
+│ llm/client.py: Groq (OpenAI-compatible), JSON schema output, validation + retry, 429/413 handling, cache, fallback   │
+└───────────────┬───────────────────────────────────────────────┬───────────────────────────────────────────────────────┘
+                │                                               │
+     data/cache/afs.db (SQLite)                         data/kb/ (curated knowledge)          data/raw/ (AFS materials)
+     FTS5 BM25 · embeddings · runs ·                    claims · rules · methods · fibers ·    S01–S06, xlsx, docx,
+     LLM cache · expert feedback                        bands · sources · S02 transcription    scenarios
+```
+
+**Stack:** Python 3.12 · FastAPI · Pydantic · SQLite (FTS5) · fastembed (bge-small-en-v1.5, ONNX, CPU) ·
+PyMuPDF · rapidfuzz · Groq via the `openai` SDK · vanilla JavaScript ES modules (no framework, no build).
+
+**Why SQLite and not a vector database:** about 275 indexed records. Brute-force cosine similarity in
+numpy takes microseconds, FTS5 gives BM25 for free, and the whole system runs from one file with one
+command. A separate vector service would add setup risk and no benefit at this size.
+
+## 4. The pipeline, stage by stage
+
+Each stage streams a progress event to the browser (the "fiber" line at the top lights up).
+
+| # | Stage | Module | LLM? | Output |
+|---|---|---|---|---|
+| 1 | **Extract** | `engine/extract.py` | fast model | `Requirements`: stated / inferred / unknown fields, facts with the enquiry's words, unknowns with impact, **client premises** (method claims, reuse claims, evidence claims, certainty requests) |
+| 2 | **Rules** | `engine/rules.py` | no | Fired rules from `rules.yaml`: severity (block / warn / info), score contributions, questions, confidence caps, status hints, plan elements, sources |
+| 2 | **Coverage** | `engine/coverage.py` | no | Method range ↔ fiber transmission ↔ analyte band overlap; flags incompatible client assets (e.g. silica link for MIR) |
+| 2 | **Screen** | `engine/screen.py` | no | Method matrix: score, verdict (lead / candidate / weak / not supported), every contribution with its rule and source |
+| 3 | **Retrieve** | `kb/retrieve.py` | no | Evidence pack (≈10–14 passages) within a token budget |
+| 4 | **Premise check** | `engine/premise.py` | fast model | Each client premise: supported / partly supported / contradicted / unverifiable, with citations |
+| 5 | **Report** | `engine/report.py` | main model | Structured `Report` (status, headline, requirements, questions, recommendations, concept, spectral range, risks, plan, pathway) |
+| 5 | *or* **Council** | `engine/council.py` | all council models | Several drafts → gates → blind cross-judging → winner + merged sections + agreement |
+| 6 | **Verify** | `engine/verify.py` | no | Quote alignment and checks for every citation, number and client fact |
+| 7 | **Quality gate** | `engine/quality.py` | fast model for 1 repair | 16 checks; failures sent back once with exact problems |
+| 8 | **Coach** | `engine/coach.py` | fast model (template) | Completeness x/10, impact-ranked unknowns, improved enquiry template with [blanks] |
+| 8 | **Confidence** | `engine/confidence.py` | no | Level + signals + caps + per-method confidence + "what would raise confidence" |
+
+The run (all of the above, plus the LLM trace and timings) is saved in SQLite and can be reopened at
+`http://localhost:8000/#run=<id>` or exported as Markdown.
+
+## 5. Knowledge base and use of the AFS materials
+
+All curated knowledge lives in `data/kb/`. **Nothing in it is written for a specific scenario**; H01–H06
+were never used to tune anything.
+
+| File | Content | Built from |
+|---|---|---|
+| `claims.jsonl` | **95 evidence cards**: `{id, claim, source, page, quote, scope, topics, methods}`. The quote is copied verbatim from the page. | S01 (p.3–19), S02 (slides 3–20), S03, S04, S05 |
+| `rules.yaml` | **30 general rules**, each with source pages. Examples: silica fiber cannot carry MIR; calibrations are matrix-specific; adding a method does not keep a calibration valid; fluorescence needs a fluorescent target; optical density is not viable biomass; clinical use exceeds in-vitro evidence; undefined target → insufficient information; geometry by sample optics; application leads (dairy, pharma blends, water in petroleum, hot-melt API, bioprocess, moisture). | S01, S02, S03, S04 |
+| `methods.json` | Method profiles (nominal range, geometries, compatible fibers, strengths, limitations, preconditions, each sourced) + all 19 rows of S01 Table 1 + combination notes | `AFS_method_comparison_table.xlsx`, S01 |
+| `fibers.json` | UV-VIS silica 0.18–1.2 µm, VIS-NIR silica 0.35–2.4 µm, CIR 1.1–6.5 µm, PIR 3–17 µm, hollow waveguides 2–18 µm, fluoride fibers | S02 p.6–10 |
+| `bands.json` | Analyte bands (0.85–1.1 µm fat/protein/moisture … 6–10.5 µm glucose, organic acids …), water in oil, gas bands, lipid/amide bands, S01 Fig. 7 bioprocess map | S02 p.13, 17, 18; S04 p.3; S01 p.17 |
+| `sources.json` | Source registry with **evidence scope** (overview, company slides, in-vitro proof of concept, lab demonstration, business) | all |
+| `s02_notes.md` | Transcription of all 20 S02 slides (S02 is image-only, so PDF text extraction returns almost nothing). Marked as "transcribed" wherever it is shown. | S02, read visually |
+
+**Integrity guarantee:** `python -m backend.app.kb.ingest` refuses to build the index if any card's quote
+is not found on its cited page (after normalising ligatures, quotes and line-break hyphens).
+
+**Citation format:** `S01 p.10` = 1-based PDF page (title page counts); `S02 p.13` = slide 13;
+`S01 Table 1 (p.6)` for the table. This follows the organisers' reference document.
+
+**Evidence scope matters.** S03 (two LED prototypes, 14 in-vitro samples from 7 patients) and S04
+(model chicken tissue) are proof-of-concept / lab work. The verifier flags any attempt to use them for a
+readiness claim, and the clinical-scope rule turns such requests into `outside_supported_scope`.
+
+## 6. Retrieval: BM25 + dense, RRF, MMR
+
+1. **Indexing** (`kb/ingest.py`): every source page is cut into overlapping windows (~180 words, 60-word
+   overlap); the 95 evidence cards are indexed too. Text goes into SQLite FTS5 (BM25, Porter stemming);
+   embeddings (bge-small-en-v1.5 via fastembed; a hashing embedder as offline fallback) go in as blobs.
+2. **Queries** (`engine/context.py`): 4–6 queries are built from the extracted requirements (targets +
+   matrix, optics + candidate methods, fired rule titles, the enquiry itself, client assets, requested methods).
+3. **Two rankers per query:** BM25 and dense cosine similarity.
+4. **Reciprocal Rank Fusion** (k = 60) merges all rankings: `score(d) = Σ 1 / (60 + rank)`.
+5. **Maximal Marginal Relevance** (λ = 0.7) picks relevant but non-redundant passages.
+6. **Pinned evidence:** cards on pages cited by blocking or warning rules are always included.
+7. **Token budget** (`MAX_EVIDENCE_TOKENS`, default 1800–2500) keeps prompts within the free tier.
+
+The Trace tab shows the queries and the budget used for each run.
+
+## 7. Grounding: verifier, quality gate, confidence
+
+### Typed statements
+Every sentence in the recommendation, concept, spectral range and risks is one of:
+`client_fact` (said in the enquiry), `sourced` (with `{source, page, quote}`), `assumption`, `proposal`.
+
+### Verifier (`engine/verify.py`, no LLM)
+- **Quote alignment:** models often paraphrase a quote slightly. If a sentence on the cited page clearly
+  matches (or, with a stricter threshold, a sentence on another page of the same source), the quote is
+  replaced by the page's exact wording and marked "aligned". Weak matches are left unverified.
+- **Quote on page:** normalised exact match → `verified`; ≥ 90 fuzzy → `fuzzy` (flagged); else `unverified`.
+- **Scope:** in-vitro / lab / business sources used for readiness words (ready, proven, validated,
+  clinical, surgery, approved …) without negation → `scope_warning`.
+- **Numbers:** every number with a unit (%, nm, µm, cm-1, mm, °C, ppm …) must appear in the enquiry, the
+  evidence, the cited pages or the knowledge base tables; otherwise `unsupported`.
+- **Client facts:** every `client_fact` must be traceable to the enquiry or the answers.
+
+### Quality gate (`engine/quality.py`): 16 checks
+
+| Category | Checks |
+|---|---|
+| Structure | S1 sections present · S2 3–6 questions, highest impact first · S3 plan has samples, reference, comparison, decision basis · S4 decision status consistent with rule findings |
+| Grounding | G1 sourced claims verified · G2 no unsupported numbers · G3 no invented client facts · G4 evidence within scope · G5 each recommendation has a sourced reason |
+| Honesty | H1 no guarantee / readiness wording · H2 Raman shift in cm-1, excitation in nm · H3 fiber choice consistent with coverage · H4 contradicted premises stated in the headline |
+| Usefulness | U1 client-requested weak methods addressed · U2 concrete plan · U3 questions cover high-impact unknowns |
+
+On any **fail**, the report goes back to the model **once** with the exact problems and only the evidence
+it cites. The repaired version is kept only if it scores at least as well. Remaining issues are shown in
+the UI, never hidden.
+
+### Confidence (`engine/confidence.py`)
+Levels: **high / medium / low / insufficient**. Computed as the minimum of:
+- **Information**: coach completeness (stated = 1, inferred = 0.5 of 10 decision facts); target undefined → insufficient;
+- **Evidence**: a direct application example in the sources (dairy, pharma blend, water in petroleum …) vs only general method knowledge;
+- **Scope fit**: requested use vs evidence scope (clinical → insufficient);
+
+then **capped** by rules (e.g. silica link for MIR → low; undefined target → insufficient), and lowered one
+level for weak verification or council disagreement. Also shown: client-premise and model-agreement signals,
+per-method confidence and the questions that would raise it.
+
+## 8. Council mode (multi-model)
+
+1. Each model in `COUNCIL_MODELS` (default `openai/gpt-oss-120b`, `qwen/qwen3.8-27b`, `openai/gpt-oss-20b`)
+   writes a full draft from the same inputs.
+2. **Hard gates first:** the deterministic verifier and quality checks run on every draft; grounding or
+   honesty failures count against a draft regardless of how good it sounds.
+3. **Blind cross-judging:** each model judges only the *other* drafts, anonymised as letters in shuffled
+   order, against a rubric copied from the jury criteria, with the explicit instruction that shorter and
+   well-founded beats long and assertive (LLM judges are known to favour length, their own output and
+   position).
+4. **Winner** = gate-passing draft with the best mean score; its questions and/or plan are replaced by the
+   sections the judges voted best (deterministic merge, no extra LLM call). The result is verified again.
+5. **Agreement** on lead method and decision status is reported and feeds confidence. With only two model
+   families available on this key, the UI states that agreement is weaker evidence than with independent families.
+
+Council mode makes many more calls than Fast mode. On the free tier use it for final outputs, not live demos.
+
+## 9. Enquiry coach and what-if
+
+- **Coach:** ten decision-relevant facts (target, matrix, optics, concentration range, reference method,
+  accuracy, process conditions, installation, measuring points, response time) are marked stated /
+  inferred / unknown and ranked by impact. It also writes an **improved enquiry template** to send to the
+  customer, with `[blanks]` for missing facts. It never fills a blank; a template without blanks is rejected.
+- **What-if:** type the customer's answers (in the coach or the What-if tab) and re-run. The answers are
+  added as stated facts, the whole pipeline runs again, and a before/after diff shows what changed
+  (status, confidence, lead methods, ranking, completeness, AFS path, quality).
+
+## 10. The user interface
+
+Open `http://localhost:8000`.
+
+- **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
+- **Fiber line:** pipeline progress (Read → Rules → Evidence → Premises → Assess → Verify → Coach).
+- **Left:** enquiry box with a scenario loader (H, D and adversarial cases), Fast / Council mode, stage
+  log; enquiry coach below.
+- **Tabs**
+  - *Assessment*: headline, premise check, requirements, questions, recommendations (typed statements,
+    citation chips), concept, spectral range, risks, feasibility experiment, AFS pathway; Markdown download.
+  - *Methods & evidence*: screening matrix with every contribution, fired rules, retrieved passages.
+  - *Spectral map*: log wavelength axis 0.18–20 µm with analyte bands, method ranges and fiber
+    transmission; an incompatible client fiber is drawn in red with the silica limit line.
+  - *Confidence & quality*: signals, caps, the 16 checks, verifier and number tables.
+  - *What-if*: questions with what each would decide, answer fields, before/after diff.
+  - *Council*: drafts, gate failures, judge × draft scores, agreement.
+  - *Trace*: every LLM call (model, tokens, latency, cache, fallback), stage timings, retrieval queries.
+- **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
+  verbatim, the page text with the passage marked, and the original PDF page with the passage highlighted.
+
+## 11. Installation
+
+**Python 3.12** is required in practice. (On Python 3.14, PyMuPDF failed to load its DLL on Windows and
+the embedding runtime may not install.)
+
+### Windows (PowerShell)
+```powershell
+py -3.12 -m venv .venv312
+.\.venv312\Scripts\Activate.ps1          # if blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+python --version                           # must print 3.12.x
+pip install -r requirements.txt
+```
+If PyMuPDF reports `DLL load failed`, install the Microsoft Visual C++ Redistributable (x64):
+`winget install Microsoft.VCRedist.2015+.x64` or https://aka.ms/vs/17/release/vc_redist.x64.exe, then reopen PowerShell.
+
+### macOS / Linux
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Configuration and data
+```bash
+cp .env.example .env          # Windows: copy .env.example .env   -> then add GROQ_API_KEY
+```
+Copy the challenge materials into `data/raw/` with exactly these names:
+
+```
+S01_Multispectral_Laboratory.pdf        S02_AFS_Process_Control_Slides.pdf
+S03_LED_Kidney_Study_2017.pdf           S04_Combi_MIR_Fluorescence_2021.pdf
+S05_AFS_Flyer.pdf                       S06_Laboratory_Link.txt
+AFS_method_comparison_table.xlsx        AFS_Examples_and_Reference.docx
+customer_scenarios_for_final_evaluation.txt
+```
+
+### Build the knowledge index
+```bash
+python -m backend.app.kb.ingest
+```
+Expected: `"pages": 65, "records": 275, "claims": 95, "embed_backend": "fastembed:BAAI/bge-small-en-v1.5"`.
+The first run downloads the embedding model (~67 MB). Symlink warnings on Windows are harmless
+(silence them with `HF_HUB_DISABLE_SYMLINKS_WARNING=1` in `.env`).
+
+### Check the Groq key
+```bash
+python scripts/check_groq.py
+```
+Lists the models your key can use; the model names in `.env` must be among them.
+
+## 12. Running the app
+
+```bash
+python -m uvicorn backend.app.main:app --port 8000
+```
+Open http://localhost:8000. On first start with an empty index the server runs ingest itself.
+
+**No key, or Groq down?** Set `LLM_MOCK=1`. Every stage uses its rule-based fallback; reports are still
+complete, cited and verified, and say they are rule-based.
+
+## 13. Evaluation and reproducing the outputs
+
+| Command | What it does |
+|---|---|
+| `python -m pytest -q` | 12 deterministic tests: RRF/MMR, every evidence quote on its page, wrong-page and scope detection, fiber/fluorescence/clinical/undefined-target rules |
+| `python -m eval.run_cases --set final` | H01–H06 in Fast mode → `outputs/H0x.md` + `.json` |
+| `python -m eval.run_cases --set final --mode council --pause 20` | H01–H06 in Council mode (submission quality; slow on the free tier) |
+| `python -m eval.run_cases --set dev` | D01–D08 → `outputs/dev/` |
+| `python -m eval.run_cases --set adversarial` | A01–A07 (our own trap cases: wrong fiber, non-fluorescent target, model-tissue paper as proof, vague request, many cheap points, demand for a detection limit, prompt injection) with automatic expectation checks |
+| `python -m eval.run_cases --set dev --ids D04 D06` | Selected cases only |
+| `python -m eval.summary` | Regression table across all runs |
+| `python -m eval.judge --dir outputs/dev` | LLM scoring against the six jury criteria (D01/D02 also compared with the organisers' worked answers). Development aid only. |
+
+The run table columns: decision status, confidence, quality x/16, verified claims, unsupported numbers,
+lead methods, LLM calls, **fallbacks** (stages where the model failed and the rule version was used),
+seconds, expectation check.
+
+**Rules followed for H01–H06:** the outputs are generated by the assistant and committed unedited; no
+rule, prompt, card or code path refers to an evaluation scenario.
+
+## 14. Configuration
+
+All settings are read from `.env` (`backend/app/config.py`).
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `GROQ_API_KEY` | – | Groq key |
+| `GROQ_BASE_URL` | `https://api.groq.com/openai/v1` | OpenAI-compatible endpoint |
+| `MODEL_FAST` | `openai/gpt-oss-20b` | extraction, premise check, repair, coach, judging |
+| `MODEL_MAIN` | `openai/gpt-oss-120b` | report (Fast mode) |
+| `COUNCIL_MODELS` | `openai/gpt-oss-120b,qwen/qwen3.8-27b,openai/gpt-oss-20b` | council drafts and judges |
+| `LLM_MOCK` | `0` | `1` = no API calls, rule-based fallbacks |
+| `LLM_CACHE` | `1` | cache validated replies in SQLite by prompt hash (identical re-runs are free) |
+| `LLM_MAX_RETRIES` | `4` | retries on 429 / server errors before a stage falls back |
+| `LLM_TIMEOUT_S` | `90` | per-request timeout |
+| `MAX_EVIDENCE_TOKENS` | `2500` | evidence budget per prompt; 1800 recommended on the free tier |
+| `EMBED_MODEL` | `BAAI/bge-small-en-v1.5` | fastembed model |
+| `EMBED_BACKEND` | empty | `hashing` = skip the model download, use the offline embedder |
+| `DB_PATH`, `RAW_DIR`, `KB_DIR` | `data/cache/afs.db`, `data/raw`, `data/kb` | paths |
+
+## 15. Groq free tier: what to expect
+
+The free tier limits each model separately, per minute **and per day**:
+
+- **Tokens per minute (TPM)**, about 8,000 for `gpt-oss-120b`. Groq counts the prompt **plus the
+  requested maximum output** against it. A report request is ~5–7k, so the next big request usually has to
+  wait for the next minute. You see this as `429 … waiting Ns` lines: normal, the client waits and retries.
+- **Request too large (413):** a single request bigger than the whole per-minute limit can never succeed;
+  the client retries once with a smaller output budget.
+- **Daily limits (tokens or requests per day):** after many runs in one day a model can be exhausted until
+  the daily window resets. The symptom is a long series of `429 … waiting 30.0s` lines on one model with no
+  progress; after the retries the stage falls back to its rule-based version.
+- **Speed:** a Fast-mode case takes roughly 1–3 minutes on the free tier, mostly waiting; Council mode much
+  longer. Cached prompts cost nothing, but any change to prompts, code or knowledge creates new prompts.
+
+Spreading stages across models (only the report on `120b`) uses the separate per-model budgets in parallel.
+
+## 16. API reference
+
+| Method & path | Purpose |
+|---|---|
+| `POST /api/assess` | Run the pipeline; Server-Sent Events stream (`stage`, `detail`, `error`, `result`). Body: `{enquiry, answers?, mode: fast|council}` |
+| `POST /api/assess/sync` | Same, returns the run JSON (scripts, curl) |
+| `POST /api/whatif` | Re-run a saved run with answers; SSE. Body: `{run_id, answers, mode?}` |
+| `GET /api/coach/{run_id}` | Coach result of a run |
+| `GET /api/runs` · `GET /api/runs/{id}` | Saved runs |
+| `GET /api/runs/{id}/export.md` | Markdown export |
+| `GET /api/runs/{id}/trace` | LLM calls, timings, retrieval details |
+| `GET /api/source` | Source registry with pages loaded |
+| `GET /api/source/{doc}/{page}?q=` | Page text, metadata, whether `q` is on the page |
+| `GET /api/source/{doc}/{page}/image?q=` | PNG of the PDF page with `q` highlighted |
+| `GET /api/health` | Index size, embedding backend, mock flag, key present, models |
+| `GET /api/kb/summary` | Claim and rule counts, rule list with sources |
+| `GET /api/examples` | H, D and adversarial scenarios for the UI loader |
+| `POST /api/feedback` · `GET /api/feedback` | Expert feedback on a run (stored in SQLite) |
+
+## 17. Repository layout
+
+```
+afs-assistant/
+├─ README.md                    this file
+├─ requirements.txt · .env.example · .gitignore
+├─ docs/architecture.md         architecture and use of AFS materials (short version)
+├─ data/
+│  ├─ raw/                      AFS challenge materials (not committed)
+│  ├─ kb/                       curated knowledge base (see section 5)
+│  └─ cache/                    afs.db, embedding model, page images (generated)
+├─ backend/app/
+│  ├─ main.py                   FastAPI app, static frontend, startup ingest and model check
+│  ├─ config.py                 settings from .env, source file names
+│  ├─ schemas.py                all Pydantic models (LLM contracts and run objects)
+│  ├─ api/                      assess.py (SSE, what-if) · sources.py (page text/images) · runs.py (runs, export, health, examples, feedback)
+│  ├─ llm/
+│  │  ├─ client.py              Groq client: JSON schema, validation, 429/413, cache, fallback, trace
+│  │  ├─ models.py              model roles, council list, availability check
+│  │  └─ prompts/               extract · premise · report · repair · judge · coach (.md)
+│  ├─ kb/                       pages.py (page text, normaliser) · store.py (SQLite) · embed.py · ingest.py · retrieve.py
+│  ├─ engine/                   extract · rules · coverage · screen · context · premise · report · council ·
+│  │                            verify · quality · confidence · coach · whatif · pipeline
+│  └─ render/markdown.py        run → Markdown
+├─ frontend/
+│  ├─ index.html · css/styles.css
+│  └─ js/                       api.js · state.js · app.js · components/ (header, enquiry, coach, report,
+│                               matrix, spectral-map, evidence, quality, council, whatif, trace)
+├─ eval/
+│  ├─ cases/                    final_cases.yaml (H01–H06 verbatim) · dev_cases.yaml (D01–D08 + worked answers) · adversarial_cases.yaml
+│  ├─ run_cases.py · summary.py · judge.py
+├─ outputs/                     generated assessments (H01–H06 at the top level)
+├─ scripts/check_groq.py
+└─ tests/                       test_retrieve.py · test_verify.py · test_rules.py
+```
+
+## 18. Troubleshooting
+
+| Symptom | Cause and remedy |
+|---|---|
+| `ImportError: DLL load failed while importing _extra` (PyMuPDF) | Python 3.14 and/or missing Visual C++ runtime. Use Python 3.12 (section 11) and install the VC++ Redistributable x64. Check `python -c "import sys; print(sys.version, sys.executable)"`. |
+| Traceback path shows `...\Python314\...` | The venv is not active, or was created with 3.14. Activate `.venv312` before running. |
+| `uvicorn` is not recognised | Use `python -m uvicorn backend.app.main:app --port 8000`. |
+| Server stops at startup | Startup runs ingest when the index is empty; fix the ingest error first. |
+| Ingest: "Claim quotes not found on their pages" | A source file is missing, renamed or a different version. Check the names in `data/raw/`. |
+| Embedding download fails | Set `EMBED_BACKEND=hashing` (offline embedder), re-run ingest. |
+| Many `429 … waiting` lines | Free-tier per-minute limit; normal (section 15). Endless 30 s waits on one model usually mean its daily limit is used up. |
+| `413 Request too large` | One request exceeds the per-minute limit; lower `MAX_EVIDENCE_TOKENS`. |
+| Trace shows "fallback" | That stage's LLM call failed; the rule-based version was used. The error text is in the Trace tab and in `outputs/*.json` (`trace`). |
+| UI shows "Rule-only mode" | `LLM_MOCK=1` or no `GROQ_API_KEY` in `.env`. |
+| Citation drawer: "quote NOT found" | The model cited a passage that is not on that page; the claim is treated as unsupported and flagged by the quality gate. |
+
+## 19. Limitations and honest caveats
+
+- **No spectra were supplied**, so the assistant cannot predict accuracy or detection limits and is
+  designed not to state any. Every performance target is "client-agreed".
+- **The knowledge base is the supplied material.** New documents are not picked up automatically: they
+  must be registered in `config.py` and `sources.json` and re-ingested; curated cards and rules are
+  written by hand.
+- **S02 is image-based.** Its text comes from our transcription (`s02_notes.md`); figure values are
+  approximate readings of the slides and labelled as such.
+- **Quote alignment** replaces a slightly paraphrased quote with the page's exact sentence; it can only
+  fix wording, not make an unsupported claim supported. Low-similarity quotes stay unverified.
+- **Council agreement** uses two model families (gpt-oss and qwen) on this key, so it is weaker evidence
+  than fully independent models; the UI says so.
+- **Rules are deliberately conservative** and keyword-assisted; an expert should review the fired rules
+  (Methods tab) for each case.
+- **Free-tier latency** makes Council mode slow; Fast mode is the live-demo mode.
+
+## 20. Future work
+
+- **Spectral-data module:** when AFS lab-trial spectra exist, run preprocessing (SNV/MSC) and PLS, show
+  the informative wavelength regions, and test whether a few-band LED / filter sensor (Path C) could reach
+  the client's target, mirroring the AFS FlexiSens and LED-sensor workflow (S02 p.12, S01 p.9, S03).
+- **Expert feedback loop:** turn stored expert corrections into reviewed new rules and evidence cards.
+- **Automatic source onboarding** with an "unreviewed" evidence scope until an expert approves the cards.
+- **Vision-assisted reading** of figures for new slide decks.
+
+---
+
+*Sources used throughout: S01 Multispectral Laboratory (art photonics / MIR Photonics), S02 AFS Process
+Control slides, S03 LED kidney study (Sensors 2017), S04 combined MIR-fluorescence probe (Anal. Chem.
+2021), S05 AFS flyer, S06 laboratory link, and the AFS method comparison table. All are © their respective
+owners and are not redistributed in this repository.*

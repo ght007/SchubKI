@@ -1,0 +1,2256 @@
+{
+ "id": "c6dfdb155f",
+ "created": "2026-10-17T01:27:03",
+ "mode": "fast",
+ "enquiry": "We want to follow ethanol in a beer fermentation using the fingerprint region of an FTIR in the lab next door. We already have a visible-range silica fiber bundle installed from an old colour measurement and would like to connect the FTIR to it. Please confirm this works.",
+ "answers": {},
+ "parent_run_id": null,
+ "requirements": {
+  "summary": "Follow ethanol in beer fermentation using FTIR fingerprint region via existing visible-range silica fiber bundle.",
+  "target_variables": [
+   "ethanol"
+  ],
+  "target_defined": "yes",
+  "matrix": "unknown",
+  "phase": "unknown",
+  "optical_behavior": "unknown",
+  "aqueous": "unknown",
+  "fluorescent_target": "unknown",
+  "heterogeneous": "unknown",
+  "temperature": "unknown",
+  "fouling_risk": "unknown",
+  "process_context": "lab_research",
+  "analyzer_remote": "unknown",
+  "link_length_known": "no",
+  "existing_assets": [
+   "visible-range silica fiber bundle installed from an old colour measurement"
+  ],
+  "requested_methods": [
+   "MIR"
+  ],
+  "reference_method": "unknown",
+  "concentration_level": "unknown",
+  "measurement_points": "unknown",
+  "facts": [
+   {
+    "field": "phase",
+    "value": "liquid",
+    "status": "stated",
+    "quote": "beer fermentation"
+   },
+   {
+    "field": "matrix",
+    "value": "beer",
+    "status": "stated",
+    "quote": "beer fermentation"
+   },
+   {
+    "field": "optical_behavior",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "beer fermentation"
+   },
+   {
+    "field": "concentration_level",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "ethanol"
+   },
+   {
+    "field": "aqueous",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "beer fermentation"
+   },
+   {
+    "field": "temperature",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "lab next door"
+   },
+   {
+    "field": "fouling_risk",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "beer fermentation"
+   },
+   {
+    "field": "heterogeneous",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "beer fermentation"
+   },
+   {
+    "field": "analyzer_remote",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "lab next door"
+   },
+   {
+    "field": "link_length_known",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "visible-range silica fiber bundle installed"
+   },
+   {
+    "field": "reference_method",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "FTIR fingerprint region"
+   },
+   {
+    "field": "fluorescent_target",
+    "value": "unknown",
+    "status": "inferred",
+    "quote": "ethanol"
+   }
+  ],
+  "unknowns": [
+   {
+    "item": "link length between FTIR and fiber bundle",
+    "why_it_matters": "Affects signal attenuation and feasibility",
+    "impact": "high"
+   },
+   {
+    "item": "optical behavior of beer (turbidity, scattering)",
+    "why_it_matters": "Determines transmission through fiber",
+    "impact": "high"
+   }
+  ],
+  "premises": [
+   {
+    "id": "P1",
+    "statement": "Reuse existing visible-range silica fiber bundle for FTIR",
+    "kind": "reuse_claim"
+   },
+   {
+    "id": "P2",
+    "statement": "FTIR fingerprint region can follow ethanol",
+    "kind": "method_claim"
+   },
+   {
+    "id": "P3",
+    "statement": "Confirm this works",
+    "kind": "certainty_request"
+   }
+  ]
+ },
+ "rule_hits": [
+  {
+   "rule_id": "R_FIBER_SILICA_MIR",
+   "title": "Silica fiber cannot carry MIR",
+   "severity": "block",
+   "text": "Silica fibers transmit only up to about 2.4 um (VIS-NIR silica 350-2400 nm). MIR ATR needs chalcogenide (CIR, about 1.1-6.5 um) or polycrystalline (PIR, about 3-17 um) fiber, so an existing silica link cannot be approved for MIR.",
+   "scores": {},
+   "question": {
+    "text": "Which spectral region must the link carry, and what length, routing, bend radius, temperature and installation conditions apply between probe and analyzer?",
+    "impact": "high",
+    "why": "Decides whether any IR fiber link is feasible; the sources give no MIR link-length figure."
+   },
+   "cap_confidence": "low",
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S02",
+     "page": 6
+    },
+    {
+     "source": "S02",
+     "page": 9
+    }
+   ]
+  },
+  {
+   "rule_id": "R_CALIBRATION_MATRIX",
+   "title": "Calibrations are matrix specific",
+   "severity": "warn",
+   "text": "NIR and other spectra need chemometric calibration models built and validated on the actual matrix. A new API or excipient blend changes the spectra, so an existing calibration must be re-validated and normally rebuilt; reuse is a hypothesis to test, not an assumption.",
+   "scores": {},
+   "question": {
+    "text": "Which components, concentration ranges and physical properties differ between the old and the new formulation, and how many reference-assayed samples of the new blend can be prepared?",
+    "impact": "high",
+    "why": "Determines whether the old model can be checked at all and how much new calibration work is needed."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [
+    "Test the existing calibration on new-formulation samples with reference values before any reuse.",
+    "Build and validate a new calibration on held-out batches."
+   ],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 10
+    },
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S03",
+     "page": 14
+    }
+   ]
+  },
+  {
+   "rule_id": "R_ADD_METHOD_NOT_A_FIX",
+   "title": "Adding a method does not keep a calibration valid",
+   "severity": "warn",
+   "text": "Adding a second method (for example Raman) does not make an existing single-method calibration valid. Data from different methods are not equivalent; a fused model needs synchronised data, fusion algorithms and its own calibration and validation.",
+   "scores": {},
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 8
+    },
+    {
+     "source": "S01",
+     "page": 9
+    },
+    {
+     "source": "S01",
+     "page": 15
+    }
+   ]
+  },
+  {
+   "rule_id": "R_CERTAINTY_DEMAND",
+   "title": "Request for a final configuration on missing facts",
+   "severity": "warn",
+   "text": "An exact configuration cannot be justified before the target, sample optics, conditions and acceptance criteria are known; method selection depends on many factors and is decided by comparison on real samples.",
+   "scores": {},
+   "question": null,
+   "cap_confidence": "low",
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S02",
+     "page": 3
+    }
+   ]
+  },
+  {
+   "rule_id": "R_RAMAN_FLUO_BACKGROUND",
+   "title": "Raman fluorescence background risk",
+   "severity": "info",
+   "text": "Raman signals are weak and, for many organic or biological samples, fluorescence can overlay them. Check background and signal quality on real samples; state excitation wavelength and Raman shift separately.",
+   "scores": {},
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 11
+    },
+    {
+     "source": "S02",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "rule_id": "R_AQUEOUS",
+   "title": "Water-rich media",
+   "severity": "info",
+   "text": "Water absorbs strongly in the IR; Raman shows low water absorbance and suits aqueous media. MIR is used via ATR (very short path).",
+   "scores": {
+    "RAMAN": 1
+   },
+   "question": null,
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "source": "S01",
+     "page": 5
+    }
+   ]
+  },
+  {
+   "rule_id": "R_BIOPROCESS",
+   "title": "Bioprocess monitoring",
+   "severity": "info",
+   "text": "No single sensor is optimal for every bioprocess analyte: UV/Vis turbidity for biomass trends, Raman for metabolites in aqueous media, NIR for major components (mM), fluorescence for fluorescent cofactors (NADH, tryptophan, riboflavin).",
+   "scores": {
+    "RAMAN": 1,
+    "NIR": 1,
+    "UVVIS": 1,
+    "FLUO": 1
+   },
+   "question": {
+    "text": "Which variables are the targets (e.g. total biomass, viable biomass, specific metabolites) and which reference assay exists for each?",
+    "impact": "high",
+    "why": "Each variable maps to a different optical signal."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 16
+    },
+    {
+     "source": "S01",
+     "page": 17
+    },
+    {
+     "source": "S01",
+     "page": 7
+    }
+   ]
+  },
+  {
+   "rule_id": "R_NO_REFERENCE",
+   "title": "Reference method unknown",
+   "severity": "info",
+   "text": "",
+   "scores": {},
+   "question": {
+    "text": "Which independent reference method, uncertainty and sampling time will provide the reference values?",
+    "impact": "high",
+    "why": "Calibration and validation need independent reference values."
+   },
+   "cap_confidence": null,
+   "status_hint": null,
+   "plan": [],
+   "sources": [
+    {
+     "source": "S01",
+     "page": 5
+    },
+    {
+     "source": "S01",
+     "page": 10
+    }
+   ]
+  }
+ ],
+ "coverage": [
+  {
+   "method_id": "NIR",
+   "method_range_um": [
+    0.78,
+    2.5
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.78,
+      1.2
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.78,
+      2.4
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      1.1,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.0,
+      2.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.78,
+      2.5
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "MIR",
+   "method_range_um": [
+    2.5,
+    25.0
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": [
+      2.5,
+      6.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": [
+      3.0,
+      17.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": [
+      2.5,
+      18.0
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      2.5,
+      5.5
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      2.5,
+      4.5
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": "Client's silica fiber reaches about 2.4 um; Mid-IR spectroscopy (ATR fiber probe) starts at 2.5 um, so the existing silica link cannot carry this method [S02 p.6]."
+  },
+  {
+   "method_id": "RAMAN",
+   "method_range_um": [
+    0.4,
+    1.1
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.4,
+      1.1
+     ],
+     "covers": "full"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "UVVIS",
+   "method_range_um": [
+    0.19,
+    0.74
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.19,
+      0.74
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.74
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  },
+  {
+   "method_id": "FLUO",
+   "method_range_um": [
+    0.25,
+    0.8
+   ],
+   "fibers": [
+    {
+     "fiber_id": "UV_SILICA",
+     "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.18,
+      1.2
+     ],
+     "overlap_um": [
+      0.25,
+      0.8
+     ],
+     "covers": "full"
+    },
+    {
+     "fiber_id": "VISNIR_SILICA",
+     "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+     "range_um": [
+      0.35,
+      2.4
+     ],
+     "overlap_um": [
+      0.35,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "CIR",
+     "name": "Chalcogenide As-S IR fiber (CIR)",
+     "range_um": [
+      1.1,
+      6.5
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "PIR",
+     "name": "Polycrystalline silver-halide IR fiber (PIR)",
+     "range_um": [
+      3.0,
+      17.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "HWG",
+     "name": "Hollow glass waveguide",
+     "range_um": [
+      2.0,
+      18.0
+     ],
+     "overlap_um": null,
+     "covers": "none"
+    },
+    {
+     "fiber_id": "INF3",
+     "name": "Indium fluoride fiber",
+     "range_um": [
+      0.3,
+      5.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    },
+    {
+     "fiber_id": "ZBLAN",
+     "name": "Zirconium fluoride fiber",
+     "range_um": [
+      0.3,
+      4.5
+     ],
+     "overlap_um": [
+      0.3,
+      0.8
+     ],
+     "covers": "partial"
+    }
+   ],
+   "asset_check": null
+  }
+ ],
+ "matrix": [
+  {
+   "method_id": "RAMAN",
+   "name": "Raman spectroscopy",
+   "score": 2,
+   "contributions": [
+    {
+     "rule_id": "R_AQUEOUS",
+     "delta": 1,
+     "reason": "Water-rich media [S01 p.16, S01 p.5]"
+    },
+    {
+     "rule_id": "R_BIOPROCESS",
+     "delta": 1,
+     "reason": "Bioprocess monitoring [S01 p.16, S01 p.17]"
+    }
+   ],
+   "verdict": "lead",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "NIR",
+   "name": "NIR spectroscopy",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_BIOPROCESS",
+     "delta": 1,
+     "reason": "Bioprocess monitoring [S01 p.16, S01 p.17]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "UVVIS",
+   "name": "UV/Vis spectroscopy",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_BIOPROCESS",
+     "delta": 1,
+     "reason": "Bioprocess monitoring [S01 p.16, S01 p.17]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "FLUO",
+   "name": "Fluorescence spectroscopy",
+   "score": 1,
+   "contributions": [
+    {
+     "rule_id": "R_BIOPROCESS",
+     "delta": 1,
+     "reason": "Bioprocess monitoring [S01 p.16, S01 p.17]"
+    }
+   ],
+   "verdict": "candidate",
+   "requested_by_client": false
+  },
+  {
+   "method_id": "MIR",
+   "name": "MIR spectroscopy (ATR)",
+   "score": 0,
+   "contributions": [],
+   "verdict": "weak",
+   "requested_by_client": true
+  }
+ ],
+ "evidence": [
+  {
+   "ref": "E1",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "NIR penetrates up to several millimetres even into dense samples and works with ordinary glass optics, making it suited to online and remote fiber measurements. Quote: \"NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics\"",
+   "quote": "NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary glass for optics",
+   "scope": "general_method",
+   "score": 0.0122
+  },
+  {
+   "ref": "E2",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Strong MIR absorption limits transmission measurements to very thin samples, which is why ATR probes are used. Quote: \"strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)\"",
+   "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens up the possibility of using attenuated total reflectance (ATR)",
+   "scope": "general_method",
+   "score": 0.0479
+  },
+  {
+   "ref": "E3",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Raman needs special probes; Raman and MIR spectra carry complementary information. Quote: \"the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.\"",
+   "quote": "the spectra of vibrational transitions in Raman and mid-IR spectroscopy carry complementary qualitative and quantitative information about the sample's composition.",
+   "scope": "general_method",
+   "score": 0.0497
+  },
+  {
+   "ref": "E4",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "UV spectroscopy is very sensitive but strong spectral overlap makes chemometrics necessary for mixtures. Quote: \"the strong overlap of spectral signals in UV spectra complicates the analysis of real samples and makes the use of chemometric algorithms a necessary component\"",
+   "quote": "the strong overlap of spectral signals in UV spectra complicates the analysis of real samples and makes the use of chemometric algorithms a necessary component",
+   "scope": "general_method",
+   "score": 0.012
+  },
+  {
+   "ref": "E5",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Fluorimetry relies on secondary emission of certain substances; most chemicals do not fluoresce, so it is mainly used in medicine, biology and biotechnology. Quote: \"However, most chemicals do not exhibit this property.\"",
+   "quote": "However, most chemicals do not exhibit this property.",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E6",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "NIR, UV and fluorescence give broad overlapping signals; MIR gives well-defined peaks; extracting information needs chemometric models (calibration or classification) that are built and validated. Quote: \"Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals\"",
+   "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals",
+   "scope": "general_method",
+   "score": 0.0422
+  },
+  {
+   "ref": "E7",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Chemometric software covers preprocessing, construction, validation and application of calibration or classification models. Quote: \"preliminary data preparation (preprocessing), construction, validation, and application of predictive models, specifically calibration or classification models.\"",
+   "quote": "preliminary data preparation (preprocessing), construction, validation, and application of predictive models, specifically calibration or classification models.",
+   "scope": "general_method",
+   "score": 0.0164
+  },
+  {
+   "ref": "E8",
+   "kind": "claim",
+   "source": "S01",
+   "page": 5,
+   "text": "Selecting a spectral method for a specific problem is complex and depends on many factors. Quote: \"selecting a spectral method for a specific analytical problem is a complex task requiring specialized knowledge in chemistry, physics, and mathematics.\"",
+   "quote": "selecting a spectral method for a specific analytical problem is a complex task requiring specialized knowledge in chemistry, physics, and mathematics.",
+   "scope": "general_method",
+   "score": 0.0
+  },
+  {
+   "ref": "E9",
+   "kind": "claim",
+   "source": "S02",
+   "page": 7,
+   "text": "Robust 100-300 m low-OH silica cables are shown for remote Vis-NIR industrial process control; this does not extend to MIR. Quote: \"Robust 100-300m cables made with Silica fibers of low OH-content (<0.1ppm OH) enable remote industrial process-control.\"",
+   "quote": "Robust 100-300m cables made with Silica fibers of low OH-content (<0.1ppm OH) enable remote industrial process-control.",
+   "scope": "component_data",
+   "score": 0.1018
+  },
+  {
+   "ref": "E10",
+   "kind": "chunk",
+   "source": "S02",
+   "page": 7,
+   "text": "\"Spectral Vis-NIR-Cables & for Industrial Process Control\". \"Robust 100-300m cables made with Silica fibers of low OH-content (<0.1ppm OH) enable remote industrial process-control.\" \"Alu- & Cu-alloy coated fibers: High temperature resistance; Increased durability, high strength, hermetically sealed; Enables soldering with connectors, bundles, plus to the hermetic inlets; Free of Polymer jacket fluorescence for Raman and Fluo- Spectroscopy.\" Figure: optical loss of silica fiber versus wavelength from 0.7 to 2.0 \u00b5m, with loss rising steeply towards 2.0 \u00b5m. [PDF text] www.artphotonics.com Spectral Vis-NIR-Cables & for Industrial Process Control Alu- & Cu-alloy coated fibers - High temperature resistance - Increased durability, high strength, hermetically sealed - Enables soldering with connectors, bundles, plus to the hermetic inlets - Free of Polymer jacket fluorescence for Raman and Fluo- Spectroscopy Robust 100-300m cables made with Silica fibers of low OH-content (<0.1ppm OH) enable remote industrial process-control",
+   "quote": null,
+   "scope": "company slides",
+   "score": 0.0888
+  },
+  {
+   "ref": "E11",
+   "kind": "chunk",
+   "source": "S01",
+   "page": 3,
+   "text": "3 This paper describes in detail the concept of an innovative multispectral universal laboratory developed by \u201cMir Photonics\u201d LLC, \u2014 a collection of optical spectral equipment specifically selected to address a wide variety of scientific, educational, and industrial tasks. The laboratory is focused on modern analytical research, including online analysis using fiber optic cables and probes. The equipment includes spectrometers for analysis using key optical methods\u2014ultraviolet (UV) and visible absorption, as well as near- and mid-infrared (IR) spectra, fluorescence, and Raman scattering. Measurement of a wide range of gaseous, liquid, and solid samples is organized using a variety of interfaces and enables sample analysis using transmission, diffuse reflectance, or emission measurements. The relevant measurement and data analysis methods are provided, including software and illustrative explanations. The facility can combine two or more spectral methods when necessary to solve particularly complex analytical problems, such as process analytical control and medical diagnostics. The description includes typical examples of laboratory use, including the development of operational analytical methods using chemometric software. 2. Purpose of the Laboratory The laboratory is designed to perform all",
+   "quote": null,
+   "scope": "overview",
+   "score": 0.0801
+  },
+  {
+   "ref": "E12",
+   "kind": "chunk",
+   "source": "S02",
+   "page": 18,
+   "text": "\"Spectral IoT Sensors vs Muliplexed Spectral Fiber Analyzer\". Figure: spectral bands with typical analytes: 0.85-1.1 \u00b5m \"Fat, Protein, Moisture,...\"; 1.3-1.7, 1.5-2.0 and 1.7-2.2 \u00b5m \"Moisture, Polymers, API, Ethanol,..\"; 3.0-3.7 and 3.7-4.5 \u00b5m \"Hydrocarbons, CO2,...\"; 6.0-8.0 and 8.0-10.5 \u00b5m \"Ethanol, Glucose, Glutamine, org. Acids, Ammonium,...\". \"Centralized installation with analyzer/multiplexer and long fibers for measuring points\" - \"Advantage - High accuracy due to the higher performance of full spectra process analyzer.\" \"Sensors installed in measuring points and send results via wires, Ethernet, Wi-Fi, etc.\" - \"Advantage - Lower cost for installation.\" \"Innovative Fabry-Perot tunable filters from InfraTec, LED, Filters, IR-LED from NanoPlus, spectral chips from MantiSpectra, etc. enable to develop compact spectral fiber sensors of customized design with data send to iCloud as in IoT - to enable remote process control in customized applications.\" [PDF text] Spectral IoT Sensors vs Muliplexed Spectral Fiber Analyzer Centralized installation with analyzer/multiplexer and long fibers for measuring points Sensors installed in measuring points and send results via wires, Ethernet, Wi-Fi, etc. Fiber cables Process Analyzer Control System Multiplexer Various process points to monitor Control System Connection",
+   "quote": null,
+   "scope": "company slides",
+   "score": 0.0779
+  },
+  {
+   "ref": "E13",
+   "kind": "claim",
+   "source": "S02",
+   "page": 6,
+   "text": "Fiber transmission ranges (figure): UV-VIS silica 180-1200 nm; VIS-NIR silica 350-2400 nm; chalcogenide CIR 1100-6500 nm; polycrystalline PIR 3-17 um; hollow glass waveguides 2-18 um. Quote: \"Standard and Al/Cu-coated VIS-NIR silica fibers: 350 nm to 2400 nm.\"",
+   "quote": "Standard and Al/Cu-coated VIS-NIR silica fibers: 350 nm to 2400 nm.",
+   "scope": "component_data",
+   "score": 0.0751
+  },
+  {
+   "ref": "E14",
+   "kind": "claim",
+   "source": "S01",
+   "page": 18,
+   "text": "Fluorescence, Raman and MIR ATR can add molecular specificity to NIR in milk analysis. Quote: \"advanced labs often incorporate Fluorescence, Raman, and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural information that NIR might miss.\"",
+   "quote": "advanced labs often incorporate Fluorescence, Raman, and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural information that NIR might miss.",
+   "scope": "general_method",
+   "score": 0.073
+  }
+ ],
+ "retrieval": {
+  "queries": [
+   "ethanol in unknown unknown",
+   "unknown unknown probe geometry Raman spectroscopy NIR spectroscopy UV/Vis spectroscopy",
+   "Silica fiber cannot carry MIR Calibrations are matrix specific Adding a method does not keep a calibration valid Request for a final configuration on missing facts",
+   "We want to follow ethanol in a beer fermentation using the fingerprint region of an FTIR in the lab next door. We already have a visible-range silica fiber bundle installed from an old colour measurement and would like to connect the FTIR to it. Please confirm this works.",
+   "visible-range silica fiber bundle installed from an old colour measurement",
+   "MIR limitations ethanol"
+  ],
+  "bm25": {
+   "ethanol in unknown unknown": [
+    252,
+    182,
+    74,
+    181,
+    262,
+    16,
+    70,
+    69
+   ],
+   "unknown unknown probe geometry Raman spectroscopy NIR spectroscopy UV/Vis spectroscopy": [
+    47,
+    194,
+    222,
+    239,
+    15,
+    46,
+    62,
+    152
+   ],
+   "Silica fiber cannot carry MIR Calibrations are matrix specific Adding a method does not keep a calibration valid Request for a final configuration on missing facts": [
+    190,
+    236,
+    241,
+    189,
+    207,
+    202,
+    240,
+    53
+   ],
+   "We want to follow ethanol in a beer fermentation using the fingerprint region of an FTIR in the lab next door. We already have a visible-range silica fiber bundle installed from an old colour measurement and would like to connect the FTIR to it. Please confirm this works.": [
+    74,
+    23,
+    53,
+    251,
+    27,
+    28,
+    47,
+    52
+   ],
+   "visible-range silica fiber bundle installed from an old colour measurement": [
+    63,
+    73,
+    74,
+    239,
+    75,
+    65,
+    62,
+    219
+   ],
+   "MIR limitations ethanol": [
+    252,
+    185,
+    74,
+    273,
+    69,
+    248,
+    101,
+    263
+   ]
+  },
+  "dense": {
+   "ethanol in unknown unknown": [
+    224,
+    196,
+    252,
+    223,
+    182,
+    20,
+    46,
+    178
+   ],
+   "unknown unknown probe geometry Raman spectroscopy NIR spectroscopy UV/Vis spectroscopy": [
+    14,
+    43,
+    15,
+    47,
+    206,
+    45,
+    183,
+    31
+   ],
+   "Silica fiber cannot carry MIR Calibrations are matrix specific Adding a method does not keep a calibration valid Request for a final configuration on missing facts": [
+    55,
+    61,
+    185,
+    239,
+    241,
+    183,
+    76,
+    240
+   ],
+   "We want to follow ethanol in a beer fermentation using the fingerprint region of an FTIR in the lab next door. We already have a visible-range silica fiber bundle installed from an old colour measurement and would like to connect the FTIR to it. Please confirm this works.": [
+    244,
+    50,
+    70,
+    39,
+    63,
+    66,
+    243,
+    43
+   ],
+   "visible-range silica fiber bundle installed from an old colour measurement": [
+    63,
+    61,
+    239,
+    62,
+    241,
+    254,
+    242,
+    199
+   ],
+   "MIR limitations ethanol": [
+    204,
+    236,
+    185,
+    6,
+    229,
+    211,
+    241,
+    272
+   ]
+  },
+  "fused": [
+   [
+    241,
+    0.1018
+   ],
+   [
+    63,
+    0.0888
+   ],
+   [
+    6,
+    0.0801
+   ],
+   [
+    74,
+    0.0779
+   ],
+   [
+    239,
+    0.0751
+   ],
+   [
+    236,
+    0.073
+   ],
+   [
+    23,
+    0.0704
+   ],
+   [
+    240,
+    0.0692
+   ],
+   [
+    199,
+    0.0653
+   ],
+   [
+    13,
+    0.064
+   ],
+   [
+    62,
+    0.0592
+   ],
+   [
+    47,
+    0.0588
+   ],
+   [
+    183,
+    0.0579
+   ],
+   [
+    46,
+    0.0577
+   ],
+   [
+    69,
+    0.0559
+   ]
+  ],
+  "mmr": [
+   241,
+   63,
+   6,
+   74,
+   239,
+   236,
+   23,
+   240,
+   199,
+   13,
+   47,
+   69,
+   62,
+   46,
+   73,
+   183,
+   16,
+   178,
+   252,
+   186,
+   185,
+   182,
+   55,
+   61,
+   53,
+   272,
+   204,
+   76
+  ],
+  "pinned": [
+   184,
+   185,
+   186,
+   187,
+   188,
+   189,
+   190,
+   191,
+   198,
+   199,
+   200,
+   201,
+   202,
+   203,
+   204,
+   205,
+   206,
+   207,
+   208,
+   217,
+   218,
+   219,
+   220,
+   238,
+   239,
+   240,
+   259,
+   260,
+   261,
+   262,
+   263,
+   264
+  ],
+  "used_tokens": 1376
+ },
+ "spectral": {
+  "methods": [
+   {
+    "id": "NIR",
+    "name": "NIR spectroscopy",
+    "range_um": [
+     0.78,
+     2.5
+    ],
+    "label": "780-2500 nm",
+    "source": "S01 p.10"
+   },
+   {
+    "id": "MIR",
+    "name": "Mid-IR spectroscopy (ATR fiber probe)",
+    "range_um": [
+     2.5,
+     25.0
+    ],
+    "label": "4000-400 cm-1 (2.5-25 um)",
+    "source": "S01 p.9"
+   },
+   {
+    "id": "RAMAN",
+    "name": "Raman spectroscopy",
+    "range_um": [
+     0.4,
+     1.1
+    ],
+    "label": "Raman shift in cm-1; excitation laser in nm, stated separately (for example 785 nm)",
+    "source": "S01 p.11"
+   },
+   {
+    "id": "UVVIS",
+    "name": "UV/Visible spectroscopy",
+    "range_um": [
+     0.19,
+     0.74
+    ],
+    "label": "UV 190-360 nm (high sensitivity region), visible about 400-740 nm",
+    "source": "S01 p.5"
+   },
+   {
+    "id": "FLUO",
+    "name": "Fluorescence spectroscopy (fluorimetry)",
+    "range_um": [
+     0.25,
+     0.8
+    ],
+    "label": "Depends on the fluorescent species; UV/visible excitation, emission at longer wavelengths",
+    "source": "S01 p.12"
+   }
+  ],
+  "fibers": [
+   {
+    "id": "UV_SILICA",
+    "name": "UV-VIS silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.18,
+     1.2
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "VISNIR_SILICA",
+    "name": "VIS-NIR silica fiber (standard or Al/Cu-coated)",
+    "range_um": [
+     0.35,
+     2.4
+    ],
+    "family": "silica"
+   },
+   {
+    "id": "CIR",
+    "name": "Chalcogenide As-S IR fiber (CIR)",
+    "range_um": [
+     1.1,
+     6.5
+    ],
+    "family": "chalcogenide"
+   },
+   {
+    "id": "PIR",
+    "name": "Polycrystalline silver-halide IR fiber (PIR)",
+    "range_um": [
+     3.0,
+     17.0
+    ],
+    "family": "polycrystalline"
+   },
+   {
+    "id": "HWG",
+    "name": "Hollow glass waveguide",
+    "range_um": [
+     2.0,
+     18.0
+    ],
+    "family": "hollow"
+   },
+   {
+    "id": "INF3",
+    "name": "Indium fluoride fiber",
+    "range_um": [
+     0.3,
+     5.5
+    ],
+    "family": "fluoride"
+   },
+   {
+    "id": "ZBLAN",
+    "name": "Zirconium fluoride fiber",
+    "range_um": [
+     0.3,
+     4.5
+    ],
+    "family": "fluoride"
+   }
+  ],
+  "bands": [
+   {
+    "id": "B_130_220",
+    "range_um": [
+     1.3,
+     2.2
+    ],
+    "region": "NIR",
+    "analytes": [
+     "moisture",
+     "water",
+     "polymers",
+     "API",
+     "ethanol"
+    ],
+    "source": "S02",
+    "page": 18,
+    "note": "Slide shows sub-bands 1.3-1.7, 1.5-2.0 and 1.7-2.2 um.",
+    "matched": [
+     "ethanol"
+    ]
+   },
+   {
+    "id": "B_600_1050",
+    "range_um": [
+     6.0,
+     10.5
+    ],
+    "region": "MIR fingerprint",
+    "analytes": [
+     "ethanol",
+     "glucose",
+     "glutamine",
+     "organic acids",
+     "ammonium"
+    ],
+    "source": "S02",
+    "page": 18,
+    "note": "Slide shows sub-bands 6.0-8.0 and 8.0-10.5 um.",
+    "matched": [
+     "ethanol"
+    ]
+   }
+  ],
+  "client_silica": true
+ },
+ "premises": [
+  {
+   "premise_id": "P1",
+   "statement": "Reuse existing visible-range silica fiber bundle for FTIR",
+   "verdict": "contradicted",
+   "explanation": "Silica fibers transmit only up to ~2.4\u202f\u00b5m, while the FTIR fingerprint region is in the mid\u2011IR and requires chalcogenide or polycrystalline fiber, so the existing silica bundle cannot be used.",
+   "citations": [
+    {
+     "source": "S02",
+     "page": 6,
+     "quote": "Standard and Al/Cu-coated VIS-NIR silica fibers: 350 nm to 2400 nm."
+    },
+    {
+     "source": "S02",
+     "page": 9,
+     "quote": "Silica fibers transmit only up to about 2.4 um (VIS-NIR silica 350-2400 nm). MIR ATR needs chalcogenide (CIR, about 1.1-6.5 um) or polycrystalline (PIR, about 3-17 um) fiber, so an existing silica link cannot be approved for MIR."
+    }
+   ]
+  },
+  {
+   "premise_id": "P2",
+   "statement": "FTIR fingerprint region can follow ethanol",
+   "verdict": "partly_supported",
+   "explanation": "Mid\u2011IR bands around 6\u20118\u202f\u00b5m include ethanol signatures, so the fingerprint region can detect ethanol, but a specific chemometric calibration for the beer matrix is required before reliable quantification.",
+   "citations": [
+    {
+     "source": "S02",
+     "page": 18,
+     "quote": "\"6.0-8.0 and 8.0-10.5 \u00b5m \\\"Ethanol, Glucose, Glutamine, org. Acids, Ammonium,...\\\""
+    }
+   ]
+  },
+  {
+   "premise_id": "P3",
+   "statement": "Confirm this works",
+   "verdict": "contradicted",
+   "explanation": "An exact configuration cannot be justified without knowing sample optics, conditions, and acceptance criteria; a confirmation requires experimental testing.",
+   "citations": [
+    {
+     "source": "S01",
+     "page": 5,
+     "quote": "An exact configuration cannot be justified before the target, sample optics, conditions and acceptance criteria are known; method selection depends on many factors and is decided by comparison on real samples."
+    }
+   ]
+  }
+ ],
+ "report": {
+  "decision_status": "outside_supported_scope",
+  "headline": "The existing visible-range silica fiber bundle cannot be used for mid\u2011IR FTIR fingerprint measurements of ethanol in beer; a suitable MIR\u2011compatible fiber must be introduced.",
+  "requirements_stated": [
+   "Follow ethanol in beer fermentation using FTIR fingerprint region",
+   "Use existing visible-range silica fiber bundle"
+  ],
+  "key_unknowns": [
+   "Exact length and routing of the fiber link to the FTIR instrument",
+   "Optical interaction of the beer matrix (turbidity, scattering, path length) with MIR ATR probing"
+  ],
+  "clarification_questions": [
+   {
+    "question": "What is the maximum allowable path length between the FTIR spectrometer and the probe?",
+    "why": "If the required length exceeds the attenuation limits of MIR\u2011compatible fibers, alternative probe placement or fiber type must be selected.",
+    "impact": "high"
+   },
+   {
+    "question": "Will the measurement be performed in transmission, ATR, or reflectance geometry?",
+    "why": "MIR ATR is typical for liquids; the geometry determines probe design and calibration approach.",
+    "impact": "high"
+   },
+   {
+    "question": "What acceptance criteria (e.g., accuracy, precision) are required for ethanol quantification?",
+    "why": "Defines the rigor of the calibration model and influences the need for complementary methods.",
+    "impact": "medium"
+   },
+   {
+    "question": "Is there an existing chemometric model for ethanol in beer, or must one be developed from scratch?",
+    "why": "A model built on a different matrix may not transfer; building a new model adds time and sample requirements.",
+    "impact": "medium"
+   },
+   {
+    "question": "Are there space or safety constraints that limit the use of chalcogenide or polycrystalline fibers near the fermenter?",
+    "why": "These fibers have different handling requirements than silica and may affect installation feasibility.",
+    "impact": "low"
+   }
+  ],
+  "recommendations": [
+   {
+    "method": "MIR (ATR) with chalcogenide or polycrystalline fiber probe",
+    "method_ids": [
+     "MIR"
+    ],
+    "role": "primary",
+    "rationale": [
+     {
+      "text": "MIR ATR provides well\u2011defined ethanol absorption peaks in the fingerprint region, enabling quantitative monitoring when paired with a matrix\u2011specific chemometric model.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 5,
+        "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals"
+       }
+      ]
+     },
+     {
+      "text": "Silica fiber cannot transmit the required MIR wavelengths; a dedicated MIR\u2011compatible fiber must be installed.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S02",
+        "page": 6,
+        "quote": "Standard and Al/Cu-coated VIS-NIR silica fibers: 350 nm to 2400 nm."
+       }
+      ]
+     },
+     {
+      "text": "Develop a calibration using beer samples spanning the expected ethanol concentration range, validated against a reference method (e.g., HPLC).",
+      "kind": "proposal",
+      "citations": []
+     }
+    ],
+    "conditions": "Only after a MIR\u2011compatible fiber link is installed and representative beer samples with reference ethanol measurements are available."
+   },
+   {
+    "method": "Raman (back\u2011scatter) with fiber probe",
+    "method_ids": [
+     "RAMAN"
+    ],
+    "role": "conditional",
+    "rationale": [
+     {
+      "text": "Raman is less affected by water absorption and can complement MIR data, but fluorescence background in beer may limit signal quality.",
+      "kind": "sourced",
+      "citations": [
+       {
+        "source": "S01",
+        "page": 11,
+        "quote": "Raman signals are weak and, for many organic or biological samples, fluorescence can overlay them."
+       }
+      ]
+     },
+     {
+      "text": "A fused Raman\u2011MIR model would require synchronized data acquisition and separate calibration, adding complexity.",
+      "kind": "proposal",
+      "citations": []
+     }
+    ],
+    "conditions": "Consider only if MIR fiber deployment is impractical and fluorescence can be mitigated."
+   }
+  ],
+  "measurement_concept": [
+   {
+    "text": "Mid\u2011IR FTIR fingerprint region (\u22486\u20118\u202f\u00b5m) contains characteristic ethanol absorption bands suitable for quantitative monitoring.",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "A chemometric calibration specific to the beer matrix is required to translate MIR absorbance to ethanol concentration.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals"
+     }
+    ]
+   }
+  ],
+  "spectral_range": [
+   {
+    "text": "MIR fingerprint region for ethanol lies between ~6\u202f\u00b5m and ~8\u202f\u00b5m (\u22481250\u202fcm\u207b\u00b9).",
+    "kind": "assumption",
+    "citations": []
+   },
+   {
+    "text": "Silica fibers transmit only up to ~2.4\u202f\u00b5m (VIS\u2011NIR range), insufficient for the MIR fingerprint.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 6,
+      "quote": "Standard and Al/Cu-coated VIS-NIR silica fibers: 350 nm to 2400 nm."
+     }
+    ]
+   }
+  ],
+  "risks": [
+   {
+    "text": "Using silica fiber for MIR will result in severe attenuation, preventing any usable signal.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 6,
+      "quote": "Standard and Al/Cu-coated VIS-NIR silica fibers: 350 nm to 2400 nm."
+     }
+    ]
+   },
+   {
+    "text": "Beer is a highly scattering, turbid aqueous medium; MIR transmission requires very short path lengths (ATR) to avoid total absorption by water.",
+    "kind": "sourced",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens the possibility of using attenuated total reflectance (ATR)"
+     }
+    ]
+   },
+   {
+    "text": "A calibration built on a different matrix (e.g., pure ethanol solutions) may not transfer to beer due to overlapping water bands and matrix effects.",
+    "kind": "assumption",
+    "citations": []
+   }
+  ],
+  "feasibility_plan": {
+   "samples": [
+    "Beer samples at 0%, 2%, 4%, 6% v/v ethanol (typical fermentation range)",
+    "Water\u2011ethanol standards for baseline MIR response"
+   ],
+   "reference": [
+    "High\u2011performance liquid chromatography (HPLC) ethanol assay",
+    "Gas chromatography (GC) as secondary reference"
+   ],
+   "comparison": [
+    "MIR\u2011ATR spectra (with chalcogenide fiber) vs reference ethanol values",
+    "Optional Raman spectra (same samples) for complementary analysis"
+   ],
+   "decision_basis": [
+    "Calibration model meets client\u2011agreed accuracy/precision across the fermentation range",
+    "Signal\u2011to\u2011noise ratio sufficient for real\u2011time monitoring",
+    "Fiber installation feasible within lab safety and space constraints"
+   ],
+   "steps": [
+    "Procure a MIR\u2011compatible fiber (CIR or PIR) covering 6\u20118\u202f\u00b5m.",
+    "Integrate the fiber with the FTIR ATR probe and verify transmission with a water\u2011ethanol standard.",
+    "Collect spectra of the calibration set and build a chemometric model (e.g., PLS).",
+    "Validate the model against independent HPLC/GC measurements.",
+    "Assess robustness across temperature and turbidity variations typical of fermentation.",
+    "Document performance and decide on deployment."
+   ]
+  },
+  "pathway": {
+   "next_step": "Conduct a multi\u2011method lab trial using a MIR\u2011compatible fiber probe and develop a matrix\u2011specific chemometric model.",
+   "likely_path": "B",
+   "why": "The client needs a customized MIR solution for R&D; a lab\u2011scale trial will determine feasibility before any sensor\u2011IoT deployment."
+  },
+  "assumptions": [
+   "The FTIR instrument has an ATR accessory compatible with fiber\u2011optic probes.",
+   "The client can procure a chalcogenide (CIR) or polycrystalline (PIR) fiber suitable for the 6\u20118\u202f\u00b5m range."
+  ]
+ },
+ "verification": {
+  "claims": [
+   {
+    "location": "recommendations[0].rationale[0]",
+    "text": "MIR ATR provides well\u2011defined ethanol absorption peaks in the fingerprint region, enabling quantitative monitoring when paired with a matrix\u2011specific chemometric model.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals"
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[1]",
+    "text": "Silica fiber cannot transmit the required MIR wavelengths; a dedicated MIR\u2011compatible fiber must be installed.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 6,
+      "quote": "Standard and Al/Cu-coated VIS-NIR silica fibers: 350 nm to 2400 nm."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[0].rationale[2]",
+    "text": "Develop a calibration using beer samples spanning the expected ethanol concentration range, validated against a reference method (e.g., HPLC).",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "recommendations[1].rationale[0]",
+    "text": "Raman is less affected by water absorption and can complement MIR data, but fluorescence background in beer may limit signal quality.",
+    "kind": "sourced",
+    "status": "unverified",
+    "detail": "S01 p.11: quote not on page (53)",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 11,
+      "quote": "Raman signals are weak and, for many organic or biological samples, fluorescence can overlay them."
+     }
+    ]
+   },
+   {
+    "location": "recommendations[1].rationale[1]",
+    "text": "A fused Raman\u2011MIR model would require synchronized data acquisition and separate calibration, adding complexity.",
+    "kind": "proposal",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[0]",
+    "text": "Mid\u2011IR FTIR fingerprint region (\u22486\u20118\u202f\u00b5m) contains characteristic ethanol absorption bands suitable for quantitative monitoring.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "measurement_concept[1]",
+    "text": "A chemometric calibration specific to the beer matrix is required to translate MIR absorbance to ethanol concentration.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals"
+     }
+    ]
+   },
+   {
+    "location": "spectral_range[0]",
+    "text": "MIR fingerprint region for ethanol lies between ~6\u202f\u00b5m and ~8\u202f\u00b5m (\u22481250\u202fcm\u207b\u00b9).",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   },
+   {
+    "location": "spectral_range[1]",
+    "text": "Silica fibers transmit only up to ~2.4\u202f\u00b5m (VIS\u2011NIR range), insufficient for the MIR fingerprint.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 6,
+      "quote": "Standard and Al/Cu-coated VIS-NIR silica fibers: 350 nm to 2400 nm."
+     }
+    ]
+   },
+   {
+    "location": "risks[0]",
+    "text": "Using silica fiber for MIR will result in severe attenuation, preventing any usable signal.",
+    "kind": "sourced",
+    "status": "verified",
+    "detail": "",
+    "citations": [
+     {
+      "source": "S02",
+      "page": 6,
+      "quote": "Standard and Al/Cu-coated VIS-NIR silica fibers: 350 nm to 2400 nm."
+     }
+    ]
+   },
+   {
+    "location": "risks[1]",
+    "text": "Beer is a highly scattering, turbid aqueous medium; MIR transmission requires very short path lengths (ATR) to avoid total absorption by water.",
+    "kind": "sourced",
+    "status": "fuzzy",
+    "detail": "S01 p.5: near-verbatim (99)",
+    "citations": [
+     {
+      "source": "S01",
+      "page": 5,
+      "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 \u00b5m), but it opens the possibility of using attenuated total reflectance (ATR)"
+     }
+    ]
+   },
+   {
+    "location": "risks[2]",
+    "text": "A calibration built on a different matrix (e.g., pure ethanol solutions) may not transfer to beer due to overlapping water bands and matrix effects.",
+    "kind": "assumption",
+    "status": "verified",
+    "detail": "not a sourced claim",
+    "citations": []
+   }
+  ],
+  "numbers": [
+   {
+    "location": "measurement_concept[0]",
+    "number": "8\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "spectral_range[0]",
+    "number": "6\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "spectral_range[0]",
+    "number": "8\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "spectral_range[0]",
+    "number": "1250\u202fcm\u207b\u00b9",
+    "status": "unsupported",
+    "detail": "not found in the enquiry, the evidence or the cited pages"
+   },
+   {
+    "location": "spectral_range[1]",
+    "number": "2.4\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.samples[0]",
+    "number": "0%",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.samples[0]",
+    "number": "2%",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.samples[0]",
+    "number": "4%",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.samples[0]",
+    "number": "6%",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "feasibility_plan.steps[0]",
+    "number": "8\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   },
+   {
+    "location": "assumptions[1]",
+    "number": "8\u202f\u00b5m",
+    "status": "supported",
+    "detail": ""
+   }
+  ],
+  "client_facts": [],
+  "n_sourced": 7,
+  "n_verified": 6,
+  "n_unsupported_numbers": 1,
+  "n_bad_client_facts": 0
+ },
+ "quality": {
+  "items": [
+   {
+    "id": "S1",
+    "category": "structure",
+    "name": "All required sections present",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S2",
+    "category": "structure",
+    "name": "3-6 questions, highest impact first",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S3",
+    "category": "structure",
+    "name": "Plan has samples, reference, comparison, decision basis",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "S4",
+    "category": "structure",
+    "name": "Decision status consistent with rule findings",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G1",
+    "category": "grounding",
+    "name": "Sourced claims verified on the cited page",
+    "status": "warn",
+    "detail": "6/7 verified; problems at recommendations[1].rationale[0]"
+   },
+   {
+    "id": "G2",
+    "category": "grounding",
+    "name": "No unsupported numbers",
+    "status": "fail",
+    "detail": "1250\u202fcm\u207b\u00b9 at spectral_range[0]"
+   },
+   {
+    "id": "G3",
+    "category": "grounding",
+    "name": "No invented client facts",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G4",
+    "category": "grounding",
+    "name": "Evidence used within its scope",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "G5",
+    "category": "grounding",
+    "name": "Each recommendation has a sourced reason",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H1",
+    "category": "honesty",
+    "name": "No guarantee or readiness wording",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H2",
+    "category": "honesty",
+    "name": "Units: Raman shift in cm-1, excitation in nm",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H3",
+    "category": "honesty",
+    "name": "Fiber choice consistent with spectral coverage",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "H4",
+    "category": "honesty",
+    "name": "Contradicted premises are stated plainly in the headline",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U1",
+    "category": "usefulness",
+    "name": "Client-requested weak methods are addressed (why / why not)",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U2",
+    "category": "usefulness",
+    "name": "Feasibility plan is concrete",
+    "status": "pass",
+    "detail": ""
+   },
+   {
+    "id": "U3",
+    "category": "usefulness",
+    "name": "Questions cover the high-impact unknowns",
+    "status": "warn",
+    "detail": "1/4 high-impact rule questions covered"
+   }
+  ],
+  "passed": 13,
+  "total": 16,
+  "repaired": true,
+  "repair_notes": [
+   "G1 fixed"
+  ]
+ },
+ "confidence": {
+  "level": "insufficient",
+  "signals": [
+   {
+    "name": "Information",
+    "level": "insufficient",
+    "value": 0.1,
+    "detail": "1/10 decision-relevant facts known; target defined: yes"
+   },
+   {
+    "name": "Evidence",
+    "level": "high",
+    "value": 1.0,
+    "detail": "Direct application in AFS sources: R_BIOPROCESS"
+   },
+   {
+    "name": "Scope fit",
+    "level": "high",
+    "value": 1.0,
+    "detail": "Requested use matches the scope of the cited evidence"
+   },
+   {
+    "name": "Client premises",
+    "level": "low",
+    "value": 0.3333333333333333,
+    "detail": "2 contradicted, 0 unverifiable, 1 supported"
+   },
+   {
+    "name": "Verification",
+    "level": "medium",
+    "value": 0.86,
+    "detail": "6/7 sourced claims verified; 1 unsupported numbers"
+   }
+  ],
+  "caps": [
+   "R_FIBER_SILICA_MIR: cap low",
+   "R_CERTAINTY_DEMAND: cap low"
+  ],
+  "per_method": [
+   {
+    "method_id": "RAMAN",
+    "level": "insufficient",
+    "detail": "lead, screening score 2"
+   },
+   {
+    "method_id": "NIR",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   },
+   {
+    "method_id": "UVVIS",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   },
+   {
+    "method_id": "FLUO",
+    "level": "insufficient",
+    "detail": "candidate, screening score 1"
+   },
+   {
+    "method_id": "MIR",
+    "level": "insufficient",
+    "detail": "weak, screening score 0"
+   }
+  ],
+  "raise_with": [
+   "What is the sample (liquid, powder, melt, tissue...) and its main components?",
+   "Is the sample clear, turbid or opaque, and does this change during the process?",
+   "What concentration range must be covered, and what is the smallest change that matters?"
+  ]
+ },
+ "council": null,
+ "coach": {
+  "completeness": 1,
+  "total": 10,
+  "fields": [
+   {
+    "name": "matrix",
+    "label": "Sample matrix and phase",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What is the sample (liquid, powder, melt, tissue...) and its main components?"
+   },
+   {
+    "name": "optics",
+    "label": "Optical behaviour (clear / turbid / opaque)",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Is the sample clear, turbid or opaque, and does this change during the process?"
+   },
+   {
+    "name": "range",
+    "label": "Concentration range",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What concentration range must be covered, and what is the smallest change that matters?"
+   },
+   {
+    "name": "reference",
+    "label": "Reference method",
+    "status": "unknown",
+    "impact": "high",
+    "question": "Which independent reference method (and its uncertainty) can provide calibration values?"
+   },
+   {
+    "name": "conditions",
+    "label": "Process conditions at the probe",
+    "status": "unknown",
+    "impact": "high",
+    "question": "What temperature, pressure, flow, fouling and cleaning conditions apply at the probe?"
+   },
+   {
+    "name": "accuracy",
+    "label": "Accuracy / acceptance criteria",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Which accuracy, bias or acceptance limits must the measurement meet?"
+   },
+   {
+    "name": "installation",
+    "label": "Installation and fiber link",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "Where can the probe be installed, and how far away will the analyzer be?"
+   },
+   {
+    "name": "timing",
+    "label": "Response time / update rate",
+    "status": "unknown",
+    "impact": "medium",
+    "question": "How quickly must a change be detected (update rate, response time)?"
+   },
+   {
+    "name": "points",
+    "label": "Number of measuring points",
+    "status": "unknown",
+    "impact": "low",
+    "question": "How many measuring points or streams need monitoring?"
+   },
+   {
+    "name": "target",
+    "label": "Target variable / analyte",
+    "status": "stated",
+    "impact": "high",
+    "question": "Which variable or analyte must be measured, and which changes must be distinguished?"
+   }
+  ],
+  "template": "We want to follow ethanol in a beer fermentation using the fingerprint region of an FTIR in the lab next door. We already have a visible-range silica fiber bundle installed from an old colour measurement and would like to connect the FTIR to it. Please confirm this works. \n\n[Sample matrix and phase: What is the sample (liquid, powder, melt, tissue...) and its main components?]\n[Optical behaviour (clear / turbid / opaque): Is the sample clear, turbid or opaque, and does this change during the process?]\n[Concentration range: What concentration range must be covered, and what is the smallest change that matters?]\n[Reference method: Which independent reference method (and its uncertainty) can provide calibration values?]\n[Process conditions at the probe: What temperature, pressure, flow, fouling and cleaning conditions apply at the probe?]\n[Accuracy / acceptance criteria: Which accuracy, bias or acceptance limits must the measurement meet?]\n[Installation and fiber link: Where can the probe be installed, and how far away will the analyzer be?]\n[Response time / update rate: How quickly must a change be detected (update rate, response time)?]\n[Number of measuring points: How many measuring points or streams need monitoring?]"
+ },
+ "diff": [],
+ "trace": [
+  {
+   "stage": "extract",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 3989,
+   "completion_tokens": 1042,
+   "latency_ms": 4795,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "premise",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 2982,
+   "completion_tokens": 816,
+   "latency_ms": 1984,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "report",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 4944,
+   "completion_tokens": 2199,
+   "latency_ms": 26423,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b",
+   "prompt_tokens": 5570,
+   "completion_tokens": 2383,
+   "latency_ms": 57261,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  },
+  {
+   "stage": "coach",
+   "model": "openai/gpt-oss-20b",
+   "prompt_tokens": 557,
+   "completion_tokens": 294,
+   "latency_ms": 444,
+   "cached": false,
+   "ok": true,
+   "error": ""
+  }
+ ],
+ "timings_ms": {
+  "extract": 4796,
+  "rules": 90,
+  "retrieve": 2379,
+  "premise": 1986,
+  "report": 26423,
+  "verify": 58479,
+  "coach": 446,
+  "total": 94651
+ },
+ "error": ""
+}
