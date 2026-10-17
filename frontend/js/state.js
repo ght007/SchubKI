@@ -8,11 +8,12 @@ const state = {
   details: [],          // [{stage, detail}] council / repair progress lines
   busy: false,
   error: "",
-  tab: "extract",
+  tab: "reading",
   followStage: true,    // follow the live step until the user selects another view
   mode: "fast",
   modelChoice: "auto", // UI preference only; backend model routing is unchanged
   draftEnquiry: null, // null means use the loaded run's enquiry
+  selectedExample: "",
   examples: [],
   health: null,
   evidence: null,       // {source, page, quote, verified}

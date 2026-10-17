@@ -81,8 +81,8 @@ cited (and clearly labelled) assessment.
 
 ```
                           ┌─────────────────────────── Browser (frontend/, no build step) ───────────────────────────┐
-                          │ enquiry · numbered dots on a spectrum pipeline line · seven stage views                 │
-                          │ What-if / Council / Trace                                                                │
+                          │ enquiry · numbered dots on a spectrum pipeline line · five tabs                         │
+                          │ Process (rules, models) · Result Assessment (grounded sources) · Confidence · Coach      │
                           │ source drawer (PDF page with highlighted quote)                                          │
                           └──────────────────────────────────────┬───────────────────────────────────────────────────┘
                                                                  │ HTTP + SSE (stage, stage_result, result)
@@ -114,8 +114,9 @@ command. A separate vector service would add setup risk and no benefit at this s
 
 ## 4. The pipeline, stage by stage
 
-The seven browser steps group the modules below: Read, Rules, Evidence, Premises, Assess, Verify, and
-Coach. Each step emits `stage` progress events and a `stage_result` containing its own output when done.
+The five browser tabs group the modules below: Reading, Process (rules, retrieval, premise checks),
+Result Assessment, Confidence and Verification, and Coach. Each underlying stage emits `stage` progress
+events and a `stage_result` containing its own output when done.
 The numbered dots in the top navigation bar follow the active step automatically. They stay hollow
 until their step completes, then fill with its visual-spectrum color; the connecting line keeps a color
 gradient. Selecting a step lets you inspect its result while later steps continue. The active and
@@ -178,7 +179,7 @@ readiness claim, and the clinical-scope rule turns such requests into `outside_s
 6. **Pinned evidence:** cards on pages cited by blocking or warning rules are always included.
 7. **Token budget** (`MAX_EVIDENCE_TOKENS`, default 1800–2500) keeps prompts within the free tier.
 
-The Trace tab shows the queries and the budget used for each run.
+The Process tab shows the queries and the budget used for each run.
 
 ## 7. Grounding: verifier, quality gate, confidence
 
@@ -243,7 +244,7 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
   accuracy, process conditions, installation, measuring points, response time) are marked stated /
   inferred / unknown and ranked by impact. It also writes an **improved enquiry template** to send to the
   customer, with `[blanks]` for missing facts. It never fills a blank; a template without blanks is rejected.
-- **What-if:** type the customer's answers (in the coach or the What-if tab) and re-run. The answers are
+- **What-if:** type the customer's answers in Coach and re-run. The answers are
   added as stated facts, the whole pipeline runs again, and a before/after diff shows what changed
   (status, confidence, lead methods, ranking, completeness, AFS path, quality).
 
@@ -252,21 +253,23 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
 Open `http://localhost:8000`.
 
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
-- **Top pipeline navigation:** One gradient line connects seven numbered dots: Read → Rules → Evidence →
-  Premises → Assess → Verify → Coach. Dots stay hollow until their step completes, then fill with that
+- **Top pipeline navigation:** One gradient line connects five numbered dots: Reading → Process →
+  Result Assessment → Confidence and Verification → Coach. Dots stay hollow until their tab's work
+  completes, then fill with that
   step's spectrum color. The gradient line stays continuous through the brighter, gradient-backed selected step.
   The running step and the step being viewed have separate visual states. Select
   any step to inspect its output; **Follow current step** resumes automatic navigation.
-- **Read:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
-  Fast / Council mode, and an LLM model selector. The model choice is saved in the browser; backend
+- **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
+  Fast / Council mode with an explanation of the selected mode, and an LLM model selector. The model choice is saved in the browser; backend
   routing still uses the server configuration.
-- **Other stage views:** Rules shows the extracted requirements, fired
-  rules, method screening, fiber coverage, and the spectral map. Evidence shows retrieval queries and
-  selected passages. Premises shows verdicts on the client's claims. Assess shows the report and Markdown
-  export. Verify shows citation, number, client-fact, and quality checks. Coach shows follow-up questions,
-  the improved enquiry template, and computed confidence.
-- **Explore views:** What-if compares a run after new answers; Council shows drafts, gates, judging, and
-  agreement; Trace shows LLM calls and timings. Completed runs can be reopened with `#run=<id>`.
+- **Process:** stage overview with actual model calls, rules, method screening, retrieval, premise checks,
+  council drafts, and timings.
+- **Result Assessment:** report and Markdown export. Sourced statements are highlighted; selecting a
+  citation opens its supporting quote highlighted in the knowledge base page and original PDF.
+- **Confidence and Verification:** computed confidence, citation checks, number and client-fact checks,
+  and the quality gate.
+- **Coach:** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
+  Completed runs can be reopened with `#run=<id>`.
 - **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
   verbatim, the page text with the passage marked, and the original PDF page with the passage highlighted.
 
@@ -433,7 +436,7 @@ afs-assistant/
 ├─ frontend/
 │  ├─ index.html · css/styles.css
 │  └─ js/                       api.js · state.js · app.js · pipeline-steps.js (shared step model)
-│      └─ components/           pipeline.js (seven stage views) · header · enquiry · coach · report ·
+│      └─ components/           pipeline.js (five tab views) · header · enquiry · coach · report ·
 │                               matrix · spectral-map · evidence · quality · council · whatif · trace
 ├─ eval/
 │  ├─ cases/                    final_cases.yaml (H01–H06 verbatim) · dev_cases.yaml (D01–D08 + worked answers) · adversarial_cases.yaml
@@ -455,7 +458,7 @@ afs-assistant/
 | Embedding download fails | Set `EMBED_BACKEND=hashing` (offline embedder), re-run ingest. |
 | Many `429 … waiting` lines | Free-tier per-minute limit; normal (section 15). Endless 30 s waits on one model usually mean its daily limit is used up. |
 | `413 Request too large` | One request exceeds the per-minute limit; lower `MAX_EVIDENCE_TOKENS`. |
-| Trace shows "fallback" | That stage's LLM call failed; the rule-based version was used. The error text is in the Trace tab and in `outputs/*.json` (`trace`). |
+| Process shows "fallback" | That stage's LLM call failed; the rule-based version was used. The error text is in Process and in `outputs/*.json` (`trace`). |
 | UI shows "Rule-only mode" | `LLM_MOCK=1` or no `GROQ_API_KEY` in `.env`. |
 | Citation drawer: "quote NOT found" | The model cited a passage that is not on that page; the claim is treated as unsupported and flagged by the quality gate. |
 
@@ -473,7 +476,7 @@ afs-assistant/
 - **Council agreement** uses two model families (gpt-oss and qwen) on this key, so it is weaker evidence
   than fully independent models; the UI says so.
 - **Rules are deliberately conservative** and keyword-assisted; an expert should review the fired rules
-  (Rules step) for each case.
+  (Process tab) for each case.
 - **Free-tier latency** makes Council mode slow; Fast mode is the live-demo mode.
 
 ## 20. Future work

@@ -1,21 +1,21 @@
 // Boot, live pipeline state, and navigation between its steps.
 import { esc, getJSON, stream } from "./api.js";
 import * as store from "./state.js";
-import { STEPS, UTILITIES, activeStep, canonicalStage, isStep, latestStageEvent, normalizeTab, stepStatus } from "./pipeline-steps.js";
+import { STEPS, activeStep, canonicalStage, latestStageEvent, normalizeTab, stepStatus } from "./pipeline-steps.js";
 import { renderStatus, renderFiber } from "./components/header.js";
 import { renderEnquiry } from "./components/enquiry.js";
-import { hasStageData, renderPipelineStep } from "./components/pipeline.js";
+import { hasStageData, renderPipelineStep, renderProcess } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
-import { renderCouncil } from "./components/council.js";
-import { renderWhatIf } from "./components/whatif.js";
-import { renderTrace } from "./components/trace.js";
 
 const $ = (id) => document.getElementById(id);
 
 const actions = {
   setMode(mode) { store.remember("mode", mode); store.set({ mode }); },
   setModelChoice(modelChoice) { store.remember("modelChoice", modelChoice); store.set({ modelChoice }); },
-  setDraftEnquiry(draftEnquiry) { store.get().draftEnquiry = draftEnquiry; }, // keep typing without a re-render
+  setDraftEnquiry(draftEnquiry) {
+    Object.assign(store.get(), { draftEnquiry, selectedExample: "" }); // keep typing without a re-render
+  },
+  setExample(selectedExample, draftEnquiry) { Object.assign(store.get(), { selectedExample, draftEnquiry }); },
   selectTab(id) {
     const tab = normalizeTab(id);
     store.remember("tab", tab);
@@ -33,7 +33,7 @@ const actions = {
   },
   async assessCouncil() {
     const r = store.get().busy ? null : store.get().run;
-    if (r) { store.set({ mode: "council", answers: {} }); await run("/api/assess", { enquiry: r.enquiry, answers: r.answers, mode: "council" }); }
+    if (r) { store.remember("mode", "council"); store.set({ mode: "council", answers: {} }); await run("/api/assess", { enquiry: r.enquiry, answers: r.answers, mode: "council" }); }
   },
   async whatif() {
     const s = store.get();
@@ -53,7 +53,7 @@ async function run(url, body, isWhatIf = false) {
     timings_ms: {},
   };
   store.set({ busy: true, error: "", stages: [], details: [], previous,
-    run: null, liveRun, tab: "extract", followStage: true });
+    run: null, liveRun, tab: "reading", followStage: true });
   let receivedResult = false;
   try {
     await stream(url, body, (e) => {
@@ -71,7 +71,7 @@ async function run(url, body, isWhatIf = false) {
         store.set({ error: `The run hit an error: ${e.detail}` });
       } else if (e.type === "result") {
         receivedResult = true;
-        const tab = s.followStage && !e.run.error ? (isWhatIf ? "whatif" : "report") : s.tab;
+        const tab = s.followStage && !e.run.error ? (isWhatIf ? "coach" : "assessment") : s.tab;
         store.set({ run: e.run, liveRun: e.run, tab, answers: {} });
         if (e.run.id) history.replaceState(null, "", `#run=${e.run.id}`);
       }
@@ -89,40 +89,13 @@ async function run(url, body, isWhatIf = false) {
   }
 }
 
-function renderTools(s) {
-  const focused = document.activeElement?.dataset.tab;
-  $("tools").innerHTML = `<span class="small muted">Explore</span>${UTILITIES.map((item) =>
-    `<button type="button" id="tab-${item.id}" data-tab="${item.id}" aria-controls="view"
-      aria-pressed="${s.tab === item.id}" class="${s.tab === item.id ? "selected" : ""}">${item.label}</button>`).join("")}`;
-  $("tools").querySelectorAll("[data-tab]").forEach((button) =>
-    (button.onclick = () => actions.selectTab(button.dataset.tab)));
-  if (focused) $("tools").querySelector(`[data-tab="${focused}"]`)?.focus({ preventScroll: true });
-  $("view").setAttribute("role", isStep(s.tab) ? "tabpanel" : "region");
-  $("view").setAttribute("aria-labelledby", `tab-${s.tab}`);
-}
-
 function renderView(s) {
   const el = $("view");
   const run = s.busy ? s.liveRun : s.run;
-  if (s.tab === "extract") {
+  if (s.tab === "reading") {
     renderEnquiry(el, s, actions);
     return;
   }
-  if (!isStep(s.tab)) {
-    if (!run?.id || s.busy) {
-      const current = s.busy ? activeStep(s) : null;
-      el.innerHTML = `<div class="stage-placeholder">This view is available when the current assessment finishes.
-        ${current ? `<p>Currently running: ${esc(STEPS.find((item) => item.id === current).label)}</p>` : ""}
-        ${s.busy && !s.followStage && current ? `<button type="button" class="btn" id="followStep">Follow current step</button>` : ""}</div>`;
-      el.querySelector("#followStep")?.addEventListener("click", actions.followCurrent);
-      return;
-    }
-    if (s.tab === "whatif") renderWhatIf(el, { ...s, run }, actions);
-    else if (s.tab === "council") renderCouncil(el, run, actions);
-    else renderTrace(el, run);
-    return;
-  }
-
   const step = STEPS.find((item) => item.id === s.tab);
   const status = stepStatus(s, step.id);
   const event = latestStageEvent(s, step.id);
@@ -130,18 +103,23 @@ function renderView(s) {
   const details = s.details.filter((item) => canonicalStage(item.stage) === step.id);
   el.innerHTML = `<div class="stage-header">
     <div><h2>${step.label}</h2><p class="small muted">${step.description}</p>
-      ${event?.detail ? `<p class="stage-note">${esc(event.detail)}${event.ms != null ? ` · ${event.ms} ms` : ""}</p>` : ""}
+      ${event?.detail ? `<p class="stage-note">${esc(event.detail.replaceAll("_", " "))}${event.ms != null ? ` · ${event.ms} ms` : ""}</p>` : ""}
       ${details.length ? `<p class="stage-note">${esc(details.at(-1).detail)}</p>` : ""}
       ${s.busy && current && current !== step.id ? `<p class="stage-note">Currently running: ${esc(STEPS.find((item) => item.id === current).label)}</p>` : ""}</div>
     ${s.busy && !s.followStage && current ? `<button type="button" class="btn" id="followStep">Follow current step</button>` : ""}
   </div><div id="stage-content"></div>`;
   el.querySelector("#followStep")?.addEventListener("click", actions.followCurrent);
   const content = el.querySelector("#stage-content");
-  if (hasStageData(run, step.id)) {
-    renderPipelineStep(content, step.id, run, { ...s, run }, actions);
+  if (s.tab === "process") {
+    renderProcess(content, run, s, actions);
+    return;
+  }
+  const stage = { assessment: "report", verification: "verify", coach: "coach" }[s.tab];
+  if (hasStageData(run, stage)) {
+    renderPipelineStep(content, stage, run, { ...s, run }, actions);
   } else if (!run && !s.busy && !s.error) {
     content.innerHTML = `<div class="empty"><h2>Start with a customer enquiry</h2>
-      <p>Open Read to type an enquiry or load a scenario. Each step above opens its own result as the pipeline runs.</p></div>`;
+      <p>Open Reading to type an enquiry or load a scenario. Each tab above shows its results as the pipeline runs.</p></div>`;
   } else {
     const message = status === "active" ? "This step is running. Its output will appear here when it finishes." :
       status === "error" ? "The run stopped before this step produced an output." :
@@ -156,7 +134,7 @@ let lastEvidence = null;
 function render(s) {
   renderStatus($("status"), s);
   renderFiber($("fiber"), s, actions.selectTab);
-  renderTools(s);
+  $("view").setAttribute("aria-labelledby", `tab-${s.tab}`);
   renderView(s);
   document.querySelector(".shell").classList.toggle("with-drawer", !!s.evidence);
   if (s.evidence !== lastEvidence) {
@@ -177,7 +155,7 @@ store.subscribe(render);
 
 (async function boot() {
   const linkedRun = location.hash.match(/run=([\w-]+)/);
-  store.set({ tab: normalizeTab(store.recall("tab", linkedRun ? "report" : "extract")),
+  store.set({ tab: normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading")),
     mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto") });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }

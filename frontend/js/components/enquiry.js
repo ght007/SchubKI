@@ -19,7 +19,7 @@ export function renderEnquiry(el, s, actions) {
       <select id="example">
         <option value="">Choose a scenario…</option>
         ${Object.entries(groups).map(([group, items]) => `<optgroup label="${esc(group)}">${items.map((example) =>
-          `<option value="${esc(example.id)}">${esc(example.id)}: ${esc(example.title)}</option>`).join("")}</optgroup>`).join("")}
+          `<option value="${esc(example.id)}" ${s.selectedExample === example.id ? "selected" : ""}>${esc(example.id)}: ${esc(example.title)}</option>`).join("")}</optgroup>`).join("")}
       </select>
     </div>
 
@@ -30,6 +30,9 @@ export function renderEnquiry(el, s, actions) {
           <button type="button" data-mode="fast" aria-pressed="${s.mode === "fast"}" title="One model, about 10-20 s">Fast</button>
           <button type="button" data-mode="council" aria-pressed="${s.mode === "council"}" title="Several models draft and judge each other; slower">Council</button>
         </div>
+        <p class="small muted mode-explanation" aria-live="polite">${s.mode === "fast"
+          ? "Fast uses one LLM to draft the assessment when connected. Rules and verification still run."
+          : "Council uses multiple LLMs to draft and cross-check assessments when connected. It takes longer."}</p>
       </div>
       <div class="enquiry-option">
         <label class="enquiry-option-label" for="model-choice">LLM model</label>
@@ -45,12 +48,15 @@ export function renderEnquiry(el, s, actions) {
   </section>`;
 
   const textarea = el.querySelector("#enq");
-  textarea.oninput = () => actions.setDraftEnquiry(textarea.value);
+  textarea.oninput = () => {
+    actions.setDraftEnquiry(textarea.value);
+    el.querySelector("#example").value = "";
+  };
   el.querySelector("#example").onchange = (event) => {
     const example = s.examples.find((item) => item.id === event.target.value);
     if (example) {
       textarea.value = example.enquiry;
-      actions.setDraftEnquiry(example.enquiry);
+      actions.setExample(example.id, example.enquiry);
       textarea.focus();
     }
   };

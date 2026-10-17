@@ -1,4 +1,4 @@
-// Verification and quality are produced together; confidence belongs to the coach stage.
+// Verification and quality arrive first; confidence is added when coaching finishes.
 import { esc } from "../api.js";
 
 const list = (value) => Array.isArray(value) ? value : [];
@@ -55,7 +55,6 @@ export function renderVerification(el, run = {}) {
   el.innerHTML = verificationMarkup(run);
 }
 
-// Keep the combined utility view for callers outside the navigable pipeline.
 export function renderQuality(el, run = {}) {
   el.innerHTML = confidenceMarkup(run.confidence) + verificationMarkup(run);
 }

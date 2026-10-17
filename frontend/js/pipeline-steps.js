@@ -1,51 +1,51 @@
-// One ordered model drives the segmented spectrum navigation and live status.
+// Five browser tabs group the underlying pipeline stages without hiding their progress.
 export const STEPS = [
-  { id: "extract", short: "Read", label: "Read the enquiry", color: "#6d28d9", ink: "#fff", description: "Enter the customer's enquiry and choose how to assess it." },
-  { id: "rules", short: "Rules", label: "Rules and screening", color: "#2563eb", ink: "#fff", description: "AFS rules, method scores, fiber coverage, and spectral ranges." },
-  { id: "retrieve", short: "Evidence", label: "Retrieve evidence", color: "#0e7490", ink: "#fff", description: "The passages selected to support or challenge the assessment." },
-  { id: "premise", short: "Premises", label: "Check premises", color: "#15803d", ink: "#fff", description: "The customer's own claims checked against the available evidence." },
-  { id: "report", short: "Assess", label: "Write the assessment", color: "#eab308", ink: "#1f2937", description: "Recommendations, measurement concept, risks, and first experiment." },
-  { id: "verify", short: "Verify", label: "Verify and review quality", color: "#c2410c", ink: "#fff", description: "Citation, number, and client fact checks, plus the quality gate." },
-  { id: "coach", short: "Coach", label: "Coach and confidence", color: "#b91c1c", ink: "#fff", description: "Missing facts, follow-up questions, and computed confidence." },
-];
-
-export const UTILITIES = [
-  { id: "whatif", label: "What-if" },
-  { id: "council", label: "Council" },
-  { id: "trace", label: "Trace" },
+  { id: "reading", short: "Reading", label: "Reading", color: "#6d28d9", description: "Enter the customer's enquiry and choose how to assess it.", stages: ["extract"] },
+  { id: "process", short: "Process", label: "Process", color: "#2563eb", description: "See which models and rules contributed to each stage.", stages: ["rules", "retrieve", "premise"] },
+  { id: "assessment", short: "Result Assessment", label: "Result Assessment", color: "#15803d", description: "Review recommendations and open the highlighted evidence behind sourced claims.", stages: ["report"] },
+  { id: "verification", short: "Confidence & Verification", label: "Confidence and Verification", color: "#c2410c", description: "Review confidence signals, source checks, and quality metrics.", stages: ["verify"] },
+  { id: "coach", short: "Coach", label: "Coach", color: "#b91c1c", description: "Fill the important gaps and re-run with customer answers.", stages: ["coach"] },
 ];
 
 const STEP_IDS = new Set(STEPS.map((step) => step.id));
-const LEGACY_TABS = { assessment: "report", methods: "rules", spectral: "rules", quality: "verify" };
+const LEGACY_TABS = {
+  extract: "reading", rules: "process", retrieve: "process", premise: "process",
+  report: "assessment", verify: "verification", quality: "verification",
+  whatif: "coach", council: "process", trace: "process",
+  methods: "process", spectral: "process",
+};
 
 export function isStep(id) { return STEP_IDS.has(id); }
-export function normalizeTab(id) {
-  const value = LEGACY_TABS[id] || id;
-  return isStep(value) || UTILITIES.some((item) => item.id === value) ? value : "extract";
+export function normalizeTab(id) { return LEGACY_TABS[id] || (isStep(id) ? id : "reading"); }
+export function canonicalStage(id) { return id === "council" ? "assessment" : LEGACY_TABS[id] || id; }
+
+function sourceStages(id) { return STEPS.find((step) => step.id === id)?.stages || []; }
+function rawStage(id) { return id === "council" ? "report" : id; }
+function stageEvent(s, id) {
+  return [...(s.stages || [])].reverse().find((event) => rawStage(event.stage) === id &&
+    (event.status === "start" || event.status === "done"));
 }
-export function canonicalStage(id) { return id === "council" ? "report" : id; }
+function stageDone(s, id) {
+  const event = stageEvent(s, id);
+  const run = s.busy ? s.liveRun : s.run;
+  return event?.status === "done" || Object.hasOwn(run?.timings_ms || {}, id) ||
+    (id === "report" && Object.hasOwn(run?.timings_ms || {}, "council"));
+}
 
 export function latestStageEvent(s, id) {
-  return [...(s.stages || [])].reverse().find((event) => canonicalStage(event.stage) === id &&
+  return [...(s.stages || [])].reverse().find((event) => sourceStages(id).includes(rawStage(event.stage)) &&
     (event.status === "start" || event.status === "done"));
 }
 
-function hasTiming(run, id) {
-  const timings = run?.timings_ms || {};
-  return Object.hasOwn(timings, id) || (id === "report" && Object.hasOwn(timings, "council"));
-}
-
 export function stepStatus(s, id) {
-  const event = latestStageEvent(s, id);
-  if (event?.status === "done") return "done";
-  if (event?.status === "start") return s.busy ? "active" : "error";
-
-  const run = s.busy ? s.liveRun : s.run;
-  if (hasTiming(run, id)) return "done";
-  if (!s.busy && (s.error || run?.error)) {
-    const index = STEPS.findIndex((step) => step.id === id);
-    const lastDone = Math.max(-1, ...STEPS.map((step, i) => hasTiming(run, step.id) ? i : -1));
-    if (index === lastDone + 1) return "error";
+  const stages = sourceStages(id);
+  if (!stages.length) return "pending";
+  if (stages.every((stage) => stageDone(s, stage))) return "done";
+  const started = stages.some((stage) => !!stageEvent(s, stage) || stageDone(s, stage));
+  if (s.busy && started) return "active";
+  if (!s.busy && (s.error || s.run?.error) && (s.stages.length || s.run)) {
+    const firstIncomplete = STEPS.find((step) => !step.stages.every((stage) => stageDone(s, stage)));
+    if (firstIncomplete?.id === id) return "error";
   }
   return "pending";
 }

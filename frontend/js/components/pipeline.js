@@ -1,11 +1,13 @@
-// Pipeline result views. The Read step contains the enquiry form in enquiry.js.
+// Pipeline result views. The Reading tab contains the enquiry form in enquiry.js.
 import { esc } from "../api.js";
 import { renderMatrix } from "./matrix.js";
 import { renderSpectral } from "./spectral-map.js";
 import { renderReport } from "./report.js";
 import { renderCouncil } from "./council.js";
-import { renderVerification, renderConfidence } from "./quality.js";
+import { renderQuality } from "./quality.js";
 import { renderCoach } from "./coach.js";
+import { renderTrace } from "./trace.js";
+import { renderWhatIf } from "./whatif.js";
 
 const list = (value) => Array.isArray(value) ? value : [];
 const own = (object, key) => !!object && Object.prototype.hasOwnProperty.call(object, key);
@@ -83,13 +85,6 @@ function renderRules(el, run) {
   } else {
     mapEl.innerHTML = `<div class="stage-placeholder">Spectral coverage was not mapped for this run.</div>`;
   }
-  if (run.requirements) {
-    const details = document.createElement("details");
-    details.className = "section";
-    details.innerHTML = `<summary>Extracted requirements used for screening</summary><div></div>`;
-    el.appendChild(details);
-    renderExtract(details.querySelector("div"), run);
-  }
 }
 
 function renderRetrieve(el, run) {
@@ -127,27 +122,101 @@ function renderPremise(el, run) {
 
 function renderAssessment(el, run, state, actions) {
   const reportEl = document.createElement("div");
-  el.replaceChildren(reportEl);
+  el.innerHTML = `<section class="section evidence-intro"><h2>Grounded evidence</h2>
+    <p>Source-backed statements are highlighted throughout the assessment. Select a citation beside a statement to see its supporting quote highlighted in the knowledge base page and original PDF.</p>
+    <p class="small muted">Citation dots show quote matching: green found on the cited page, amber nearly verbatim, red needs review. Quote matching alone does not prove that the source supports the whole claim.</p>
+  </section>`;
+  el.appendChild(reportEl);
   renderReport(reportEl, run);
   // The export endpoint is available after the run is saved, not while the draft streams.
   if (state?.busy || !run.id) reportEl.querySelector(".toolbar")?.remove();
-  if (list(run.council?.drafts).length) {
-    const details = document.createElement("details");
-    details.className = "section";
-    details.innerHTML = `<summary>How the council selected this assessment</summary><div></div>`;
-    el.appendChild(details);
-    renderCouncil(details.querySelector("div"), run, actions);
-  }
-}
-
-function renderVerify(el, run) {
-  renderVerification(el, run);
 }
 
 function renderCoachStep(el, run, state, actions) {
-  el.innerHTML = `<section class="section" data-coach></section><div data-confidence></div>`;
+  el.innerHTML = `<section class="section" data-coach></section><details class="section" data-whatif ${run.parent_run_id ? "open" : ""}>
+    <summary>What if the customer supplies answers?</summary><div></div></details>`;
   renderCoach(el.querySelector("[data-coach]"), { ...state, answers: state?.answers || {}, run }, actions);
-  renderConfidence(el.querySelector("[data-confidence]"), run);
+  renderWhatIf(el.querySelector("[data-whatif] > div"), { ...state, run }, actions);
+}
+
+const PROCESS_STAGES = [
+  ["extract", "Read the enquiry", "LLM extracts facts; rule fallback if unavailable"],
+  ["rules", "Apply AFS rules", "Deterministic rules, screening, and fiber coverage"],
+  ["retrieve", "Retrieve knowledge base evidence", "Full-text and dense search; deterministic ranking"],
+  ["premise", "Check customer premises", "LLM compares claims with sources; rule fallback if unavailable"],
+  ["report", "Write the assessment", "Single LLM or Council drafts and judging"],
+  ["verify", "Verify and check quality", "Deterministic checks; optional LLM repair"],
+  ["coach", "Coach and compute confidence", "LLM drafts follow-up text; confidence is computed"],
+];
+
+function processStageState(state, run, stage) {
+  const event = [...state.stages].reverse().find((item) => (item.stage === stage ||
+    (stage === "report" && item.stage === "council")) && ["start", "done"].includes(item.status));
+  if (event?.status === "done" || own(run?.timings_ms, stage) || (stage === "report" && own(run?.timings_ms, "council"))) return "done";
+  if (event?.status === "start") return state.busy ? "active" : "error";
+  return "pending";
+}
+
+function processActor(run, stage, fallback) {
+  const calls = list(run?.trace).filter((item) => item.stage === stage ||
+    (stage === "report" && item.stage.startsWith("council_")) ||
+    (stage === "verify" && item.stage === "repair"));
+  if (!calls.length) return fallback;
+  return [...new Set(calls.map((item) => `${item.model}${item.ok ? "" : " (fallback)"}`))].map(esc).join(", ");
+}
+
+export function renderProcess(el, run, state, actions) {
+  el.innerHTML = `<section class="section"><h2>Process overview</h2>
+    <p class="small muted">The stages below show which work used an LLM, which work used rules, and what has finished. Actual model calls appear after the run completes.</p>
+    <ol class="process-list">${PROCESS_STAGES.map(([stage, label, actor]) => {
+      const status = processStageState(state, run, stage);
+      const time = run?.timings_ms?.[stage] ?? (stage === "report" ? run?.timings_ms?.council : null);
+      return `<li class="process-item ${status}"><span class="process-marker" aria-hidden="true"></span><div>
+        <div class="process-title"><b>${esc(label)}</b><span class="res ${status === "done" ? "pass" : status === "error" ? "fail" : "warn"}">${status === "done" ? "Finished" : status === "active" ? "Running" : status === "error" ? "Stopped" : "Waiting"}</span></div>
+        <p class="small muted">${processActor(run, stage, actor)}${time != null ? ` · ${esc(time)} ms` : ""}</p>
+      </div></li>`;
+    }).join("")}</ol>
+  </section>`;
+  if (!run) return;
+  if (run.requirements) {
+    const requirements = document.createElement("details");
+    requirements.className = "section";
+    requirements.innerHTML = `<summary>Requirements read from the enquiry</summary><div></div>`;
+    el.appendChild(requirements);
+    renderExtract(requirements.querySelector("div"), run);
+  }
+
+  if (hasStageData(run, "rules")) {
+    const rules = document.createElement("div");
+    el.appendChild(rules);
+    renderRules(rules, run);
+  }
+  if (hasStageData(run, "retrieve")) {
+    const retrieval = document.createElement("details");
+    retrieval.className = "section";
+    retrieval.innerHTML = `<summary>Evidence retrieval</summary><div></div>`;
+    el.appendChild(retrieval);
+    renderRetrieve(retrieval.querySelector("div"), run);
+  }
+  if (hasStageData(run, "premise")) {
+    const premises = document.createElement("details");
+    premises.className = "section";
+    premises.innerHTML = `<summary>Customer premise checks</summary><div></div>`;
+    el.appendChild(premises);
+    renderPremise(premises.querySelector("div"), run);
+  }
+  if (run.id) {
+    const trace = document.createElement("details");
+    trace.className = "section";
+    trace.innerHTML = `<summary>Model calls and timing</summary><div></div>`;
+    el.appendChild(trace);
+    renderTrace(trace.querySelector("div"), run);
+    const council = document.createElement("details");
+    council.className = "section";
+    council.innerHTML = `<summary>Council drafts and judging</summary><div></div>`;
+    el.appendChild(council);
+    renderCouncil(council.querySelector("div"), run, actions);
+  }
 }
 
 export function renderPipelineStep(el, stepId, run, state = {}, actions = {}) {
@@ -165,7 +234,7 @@ export function renderPipelineStep(el, stepId, run, state = {}, actions = {}) {
     case "retrieve": renderRetrieve(el, run); break;
     case "premise": renderPremise(el, run); break;
     case "report": renderAssessment(el, run, state, actions); break;
-    case "verify": renderVerify(el, run); break;
+    case "verify": renderQuality(el, run); break;
     case "coach": renderCoachStep(el, run, state, actions); break;
   }
 }

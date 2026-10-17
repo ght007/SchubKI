@@ -42,8 +42,9 @@ export function renderFiber(el, s, onSelect) {
   const firstPending = STEPS.findIndex((step) => stepStatus(s, step.id) !== "done");
   const completed = firstPending === -1 ? STEPS.length : firstPending;
   const progress = completed ? (completed - 1) / (STEPS.length - 1) * 100 : 0;
-  const spectrum = `linear-gradient(90deg, ${STEPS.map((step, index) =>
-    `${step.color} ${(index / (STEPS.length - 1) * 100).toFixed(2)}%`).join(", ")})`;
+  const stops = STEPS.map((step, index) => `${step.color} ${(index / (STEPS.length - 1) * 100).toFixed(2)}%`);
+  stops.splice(3, 0, "#eab308 62.50%");
+  const spectrum = `linear-gradient(90deg, ${stops.join(", ")})`;
   el.innerHTML = `<div class="fiber-rail" style="--spectrum:${spectrum};--progress:${progress.toFixed(2)}%">
     <div class="fiber-track" aria-hidden="true"></div>
     <div class="fiber-lit" aria-hidden="true"></div>
