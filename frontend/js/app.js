@@ -1,7 +1,7 @@
 // Boot, live pipeline state, and navigation between its steps.
 import { esc, getJSON, postJSON, stream } from "./api.js";
 import * as store from "./state.js";
-import { STEPS, activeStep, canOpenStep, normalizeTab, stepStatus } from "./pipeline-steps.js";
+import { STEPS, LOADING_PAGE, canOpenStep, normalizeTab, stepStatus } from "./pipeline-steps.js";
 import { renderStatus, renderFiber } from "./components/header.js";
 import { renderPageHeader } from "./components/page-header.js";
 import { renderEnquiry } from "./components/enquiry.js";
@@ -36,11 +36,7 @@ const actions = {
     const tab = normalizeTab(id);
     if (!canOpenStep(store.get(), tab)) return;
     store.remember("tab", tab);
-    store.set({ tab, followStage: false });
-  },
-  followCurrent() {
-    const current = activeStep(store.get());
-    if (current) store.set({ tab: current, followStage: true });
+    store.set({ tab });
   },
   setAnswer(key, value) { store.get().answers[key] = value; },           // no re-render while typing
   async understand(enquiry) {
@@ -108,6 +104,7 @@ async function run(url, body) {
   ++readingRequest;
   resetPrecheck();
   const previous = store.get().run;
+  const completionTab = url === "/api/whatif" ? "coach" : "assessment";
   const liveRun = {
     enquiry: body.enquiry || previous?.enquiry || "",
     answers: { ...(url === "/api/whatif" ? previous?.answers : {}), ...body.answers },
@@ -117,7 +114,8 @@ async function run(url, body) {
     timings_ms: {},
   };
   store.set({ busy: true, error: "", stages: [], details: [], previous,
-    run: null, liveRun, tab: "process", followStage: true, understand: null, reading: false, evidence: null });
+    run: null, liveRun, understand: null, reading: false, evidence: null });
+  window.scrollTo(0, 0);
   let receivedResult = false;
   try {
     await stream(url, body, (e) => {
@@ -135,8 +133,11 @@ async function run(url, body) {
       } else if (e.type === "result") {
         receivedResult = true;
         const answers = Object.fromEntries(Object.entries(e.run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key)));
+        const tab = e.run.error ? "reading" : completionTab;
+        store.remember("tab", tab);
         setDetected(e.run.requirements?.preferred_paths || []);
-        store.set({ run: e.run, liveRun: e.run, tab: "process", answers, paths: e.run.preferred_paths || [], rejected: [] });
+        store.set({ run: e.run, liveRun: e.run, tab,
+          answers, paths: e.run.preferred_paths || [], rejected: [] });
         if (e.run.id) history.replaceState(null, "", `#run=${e.run.id}`);
       }
     });
@@ -146,24 +147,26 @@ async function run(url, body) {
     if (!receivedResult) {
       const s = store.get();
       store.set({ run: { ...s.liveRun, error: s.error || "Run ended before a result was returned." },
-        liveRun: null, busy: false });
+        liveRun: null, busy: false, tab: "reading" });
     } else {
       store.set({ liveRun: null, busy: false });
     }
+    if (store.get().run?.error) document.querySelector("#view .err")?.scrollIntoView({ block: "center" });
+    else window.scrollTo(0, 0);
   }
 }
 
 function renderView(s) {
   const el = $("view");
   const run = s.busy ? s.liveRun : s.run;
-  const step = STEPS.find((item) => item.id === s.tab);
+  const step = s.busy ? LOADING_PAGE : STEPS.find((item) => item.id === s.tab);
   el.innerHTML = `<div id="stage-content" class="page-content"></div>`;
   const content = el.querySelector("#stage-content");
-  if (s.tab === "reading") {
+  if (s.busy) {
+    renderProcess(content, run, s, actions);
+  } else if (s.tab === "reading") {
     renderEnquiry(content, s, actions);
     if (s.understand && !s.busy && !s.reading) renderConfirm(content.querySelector("#reading-confirm"), s, actions);
-  } else if (s.tab === "process") {
-    renderProcess(content, run, s, actions);
   } else {
     const stage = { assessment: "report", verification: "verify", coach: "coach" }[s.tab];
     if (hasStageData(run, stage)) {
@@ -181,14 +184,16 @@ function renderView(s) {
         `<div class="err">${esc(s.error || run.error)}</div>` : ""}</div>`;
     }
   }
-  renderPageHeader(el, content, s, step, run, actions.followCurrent);
+  renderPageHeader(el, content, s, step, run);
 }
 
 let lastEvidence = null;
 function render(s) {
   renderStatus($("status"), s, actions);
   renderFiber($("fiber"), s, actions.selectTab);
-  $("view").setAttribute("aria-labelledby", `tab-${s.tab}`);
+  $("view").setAttribute("role", s.busy ? "region" : "tabpanel");
+  $("view").setAttribute("aria-busy", String(s.busy || s.reading));
+  $("view").setAttribute("aria-labelledby", s.busy ? "page-title-loading" : `tab-${s.tab}`);
   renderView(s);
   document.querySelector(".shell").classList.toggle("with-drawer", !!s.evidence);
   if (s.evidence !== lastEvidence) {
@@ -210,7 +215,7 @@ store.subscribe(render);
 (async function boot() {
   const linkedRun = location.hash.match(/run=([\w-]+)/);
   const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"));
-  store.set({ tab: linkedRun ? "process" : canOpenStep(store.get(), preferredTab) ? preferredTab : "reading",
+  store.set({ tab: canOpenStep(store.get(), preferredTab) ? preferredTab : "reading",
     mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto"),
     view: store.recall("view", "general"), confirm: store.recall("confirm", "on") === "on" });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
@@ -222,7 +227,7 @@ store.subscribe(render);
       setDetected(run.requirements?.preferred_paths || []);
       store.set({ run, paths: run.preferred_paths || [],
         answers: Object.fromEntries(Object.entries(run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key))),
-        tab: canOpenStep({ ...store.get(), run }, preferredTab) ? preferredTab : "process" });
+        tab: canOpenStep({ ...store.get(), run }, preferredTab) ? preferredTab : "reading" });
     } catch (_) { /* old link */ }
   }
 })();

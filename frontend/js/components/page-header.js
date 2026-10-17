@@ -38,7 +38,7 @@ function stageTime(s, run, id) {
   return event?.ms;
 }
 
-export function renderPageHeader(view, content, s, step, run, followCurrent) {
+export function renderPageHeader(view, content, s, step, run) {
   const status = stepStatus(s, step.id);
   const current = activeStep(s);
   const stageTimes = step.stages.map((id) => stageTime(s, run, id)).filter((ms) => Number.isFinite(ms));
@@ -46,7 +46,8 @@ export function renderPageHeader(view, content, s, step, run, followCurrent) {
   const total = run?.timings_ms?.total;
   const event = latestStageEvent(s, step.id);
   const detail = [...s.details].reverse().find((item) =>
-    step.stages.includes(item.stage === "council" ? "report" : item.stage));
+    step.stages.includes(item.stage === "council" ? "report" : item.stage) &&
+    (step.id !== "loading" || item.stage === event?.stage));
   const detailParts = [event?.detail?.replaceAll("_", " "), detail?.detail,
     s.busy && current && current !== step.id ? `Current stage: ${STEPS.find((item) => item.id === current)?.label || current}` : ""]
     .filter(Boolean);
@@ -55,12 +56,11 @@ export function renderPageHeader(view, content, s, step, run, followCurrent) {
   header.className = "page-header";
   header.style.setProperty("--page-accent", step.color);
   header.innerHTML = `<div class="page-header-main">
-    <div class="page-header-copy"><h1>${esc(step.label)}</h1><p>${esc(step.description)}</p></div>
+    <div class="page-header-copy"><h1 id="page-title-${step.id}">${esc(step.label)}</h1><p>${esc(step.description)}</p></div>
     <div class="page-runtime" aria-label="Runtime statistics">
       <span class="page-stat">${stageTimes.length ? `${status === "active" ? "Runtime so far" : "Page runtime"}: <b>${formatTime(runtime)}</b>` :
-        (s.busy || s.reading) && current === step.id ? "Running…" : "Runtime: awaiting assessment"}</span>
+        s.busy || (s.reading && current === step.id) ? "Running…" : "Runtime: awaiting assessment"}</span>
       ${Number.isFinite(total) ? `<span class="page-stat">Full run: <b>${formatTime(total)}</b></span>` : ""}
-      ${s.busy && !s.followStage && current ? `<button type="button" class="btn" id="followStep">Follow current step</button>` : ""}
     </div>
   </div>
   ${detailParts.length ? `<p class="page-detail">${detailParts.map(esc).join(" · ")}</p>` : ""}
@@ -69,7 +69,6 @@ export function renderPageHeader(view, content, s, step, run, followCurrent) {
     <div class="page-toc-links">${links.map(([label, id]) => `<a href="#${id}">${esc(label)}</a>`).join("")}</div>
   </nav>`;
   view.prepend(header);
-  header.querySelector("#followStep")?.addEventListener("click", followCurrent);
   header.querySelectorAll(".page-toc a").forEach((link) => link.addEventListener("click", (event) => {
     event.preventDefault(); // keep #run=<id> deep links when jumping within a page
     const target = document.getElementById(link.hash.slice(1));

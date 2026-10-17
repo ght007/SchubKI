@@ -175,12 +175,9 @@ export function renderProcess(el, run, state, actions) {
     <h2>Working on your assessment</h2>
     <p><b>${esc(active?.[1] || "Starting the pipeline")}</b></p>
     <p>${esc(activity || [...state.stages].reverse().find((event) => event.status === "start")?.label || "Preparing the first stage…")}</p>
-  </section>` : run?.id && !run.error ? `<section class="section process-finished">
-    <h2>Processing finished</h2><p>The trace and council record are available below. The remaining tabs are now open.</p>
-    <button type="button" class="btn primary" id="openAssessment">Open Result Assessment</button>
   </section>` : run?.error ? `<section class="section stage-placeholder"><h2>Processing stopped</h2><p>${esc(run.error)}</p></section>` : ""}
-  <section class="section"><h2>Process overview</h2>
-    <p class="small muted">Follow each model or rule task as it runs. Completed model calls appear in the trace below as soon as their stage finishes.</p>
+  <section class="section"><h2>Calculation stages</h2>
+    <p class="small muted">${state.busy ? "Follow each model or rule task as it runs. Completed model calls appear in the trace below as soon as their stage finishes." : "Recorded model and rule tasks, with their timings and outputs."}</p>
     <ol class="process-list">${PROCESS_STAGES.map(([stage, label, actor]) => {
       const status = processStageState(state, run, stage);
       const time = run?.timings_ms?.[stage] ?? (stage === "report" ? run?.timings_ms?.council : null);
@@ -190,9 +187,8 @@ export function renderProcess(el, run, state, actions) {
       </div></li>`;
     }).join("")}</ol>
   </section>`;
-  el.querySelector("#openAssessment")?.addEventListener("click", () => actions.selectTab("assessment"));
   if (!run) return;
-  if (run.requirements) {
+  if (!state.busy && run.requirements) {
     const requirements = document.createElement("details");
     requirements.className = "section";
     requirements.innerHTML = `<summary>Requirements read from the enquiry</summary><div></div>`;
@@ -200,19 +196,19 @@ export function renderProcess(el, run, state, actions) {
     renderExtract(requirements.querySelector("div"), run);
   }
 
-  if (hasStageData(run, "rules")) {
+  if (!state.busy && hasStageData(run, "rules")) {
     const rules = document.createElement("div");
     el.appendChild(rules);
     renderRules(rules, run);
   }
-  if (hasStageData(run, "retrieve")) {
+  if (!state.busy && hasStageData(run, "retrieve")) {
     const retrieval = document.createElement("details");
     retrieval.className = "section";
     retrieval.innerHTML = `<summary>Evidence retrieval</summary><div></div>`;
     el.appendChild(retrieval);
     renderRetrieve(retrieval.querySelector("div"), run);
   }
-  if (hasStageData(run, "premise")) {
+  if (!state.busy && hasStageData(run, "premise")) {
     const premises = document.createElement("details");
     premises.className = "section";
     premises.innerHTML = `<summary>Customer premise checks</summary><div></div>`;
@@ -222,7 +218,7 @@ export function renderProcess(el, run, state, actions) {
   const trace = document.createElement("details");
   trace.className = "section";
   trace.innerHTML = `<summary>Model calls and timing</summary><div></div>`;
-  trace.open = state.busy;
+  trace.open = state.busy && state.view === "expert";
   el.appendChild(trace);
   renderTrace(trace.querySelector("div"), run);
   if (run.mode === "council" || run.id) {
@@ -255,7 +251,15 @@ export function renderPipelineStep(el, stepId, run, state = {}, actions = {}) {
     case "retrieve": renderRetrieve(el, run); break;
     case "premise": renderPremise(el, run); break;
     case "report": renderAssessment(el, run, state, actions); break;
-    case "verify": renderQuality(el, run); break;
+    case "verify": {
+      renderQuality(el, run);
+      const record = document.createElement("details");
+      record.className = "section";
+      record.innerHTML = `<summary>Calculation details, model trace, and council</summary><div></div>`;
+      el.appendChild(record);
+      renderProcess(record.querySelector("div"), run, state, actions);
+      break;
+    }
     case "coach": renderCoachStep(el, run, state, actions); break;
   }
 }

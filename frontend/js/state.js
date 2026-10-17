@@ -9,7 +9,6 @@ const state = {
   busy: false,
   error: "",
   tab: "reading",
-  followStage: true,    // follow the live step until the user selects another view
   view: "general",      // "general" (compact, default) | "expert" (full workbench)
   mode: "fast",
   modelChoice: "auto", // UI preference only; backend model routing is unchanged

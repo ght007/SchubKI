@@ -1,6 +1,6 @@
 // Summary badges and the navigable spectrum line with completion dots.
 import { esc } from "../api.js";
-import { STEPS, STATUS_LABELS, activeStep, canOpenStep, isStep, processComplete, stepStatus } from "../pipeline-steps.js";
+import { STEPS, STATUS_LABELS, activeStep, canOpenStep, isStep, pipelineProgress, stepStatus } from "../pipeline-steps.js";
 
 const STATUS = {
   provisional_assessment: ["Provisional assessment", "core"],
@@ -9,7 +9,6 @@ const STATUS = {
 };
 const CONF = { high: "ok", medium: "core", low: "warn", insufficient: "block" };
 let lastSelectedStep = null;
-let lastComplete = false;
 
 function revealStep(nav, button) {
   const bounds = button.getBoundingClientRect();
@@ -56,16 +55,18 @@ export function renderFiber(el, s, onSelect) {
   const focused = el.contains(document.activeElement) ? document.activeElement.dataset.step : null;
   const current = activeStep(s);
   const focusable = isStep(s.tab) ? s.tab : "reading";
-  const complete = processComplete(s);
+  const progress = pipelineProgress(s);
   const stops = STEPS.map((step, index) => `${step.color} ${(index / (STEPS.length - 1) * 100).toFixed(2)}%`);
-  stops.splice(3, 0, "#eab308 62.50%");
+  stops.splice(1, 0, "#2563eb 16.67%");
+  stops.splice(3, 0, "#eab308 55%");
   const spectrum = `linear-gradient(90deg, ${stops.join(", ")})`;
+  el.classList.toggle("running", s.busy);
   if (!el.querySelector(".fiber-rail")) {
     el.innerHTML = `<div class="fiber-rail" style="--spectrum:${spectrum};--progress:0%">
       <div class="fiber-track" aria-hidden="true"></div>
-      <div class="fiber-lit" aria-hidden="true"></div>
+      <div class="fiber-lit" role="progressbar" aria-label="Assessment calculation" aria-valuemin="0" aria-valuemax="100"></div>
       ${STEPS.map((step, index) => `<button type="button" id="tab-${step.id}" role="tab" aria-controls="view"
-        class="fiber-node" style="--step-color:${step.color};--node-index:${index}"
+        class="fiber-node" style="--step-color:${step.color}"
         data-step="${step.id}"><span class="step-count">Step ${index + 1} of ${STEPS.length}</span>
         <span class="step-name">${step.short}</span></button>`).join("")}</div>`;
     el.onclick = (event) => {
@@ -79,21 +80,21 @@ export function renderFiber(el, s, onSelect) {
       const index = STEPS.indexOf(step);
       const status = stepStatus(s, step.id);
       const available = canOpenStep(s, step.id);
+      const selected = !s.busy && s.tab === step.id;
       button.disabled = !available;
-      button.className = `fiber-node ${status} ${s.tab === step.id ? "selected" : ""}`;
-      button.tabIndex = focusable === step.id ? 0 : -1;
-      button.setAttribute("aria-selected", String(s.tab === step.id));
+      button.className = `fiber-node ${status} ${selected ? "selected" : ""}`;
+      button.tabIndex = !s.busy && focusable === step.id ? 0 : -1;
+      button.setAttribute("aria-selected", String(selected));
       button.setAttribute("aria-current", current === step.id ? "step" : "false");
       button.setAttribute("aria-disabled", String(!available));
-      button.setAttribute("aria-label", `Step ${index + 1} of ${STEPS.length}: ${step.label}. ${available ? STATUS_LABELS[status] : "Available after processing"}`);
+      button.setAttribute("aria-label", `Step ${index + 1} of ${STEPS.length}: ${step.label}. ${STATUS_LABELS[status]}${available ? "" : ". Available after processing"}`);
       button.title = available ? "" : "Available after processing";
   });
-  rail.style.setProperty("--progress", complete ? "100%" : "0%");
-  if (complete && !lastComplete) {
-    rail.classList.add("revealing");
-    setTimeout(() => rail.classList.remove("revealing"), 1700);
-  }
-  lastComplete = complete;
+  rail.style.setProperty("--progress", `${progress.toFixed(2)}%`);
+  const progressbar = rail.querySelector("[role=progressbar]");
+  progressbar.setAttribute("aria-hidden", String(!s.busy));
+  progressbar.setAttribute("aria-valuenow", String(Math.round(progress)));
+  progressbar.setAttribute("aria-valuetext", `${Math.round(progress)}%${current ? `; ${STEPS.find((step) => step.id === current).label}` : ""}`);
   el.onkeydown = (ev) => {
     if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(ev.key)) return;
     const available = STEPS.filter((step) => canOpenStep(s, step.id));
@@ -108,6 +109,7 @@ export function renderFiber(el, s, onSelect) {
     revealStep(el, selected);
   };
   if (focused) el.querySelector(`[data-step="${focused}"]`)?.focus({ preventScroll: true });
-  if (s.tab !== lastSelectedStep && isStep(s.tab)) revealStep(el, el.querySelector(`[data-step="${s.tab}"]`));
-  lastSelectedStep = s.tab;
+  const visibleStep = s.busy ? current : s.tab;
+  if (visibleStep !== lastSelectedStep && isStep(visibleStep)) revealStep(el, el.querySelector(`[data-step="${visibleStep}"]`));
+  lastSelectedStep = visibleStep;
 }

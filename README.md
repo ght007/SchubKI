@@ -88,8 +88,8 @@ cited (and clearly labelled) assessment.
 
 ```
                           ┌─────────────────────────── Browser (frontend/, no build step) ───────────────────────────┐
-                          │ enquiry · numbered dots on a spectrum pipeline line · five tabs                         │
-                          │ Process (rules, models) · Result Assessment (grounded sources) · Confidence · Coach      │
+                          │ enquiry · numbered dots on a spectrum pipeline line · four tabs                         │
+                          │ Reading · Result Assessment (grounded sources) · Confidence · Coach                      │
                           │ source drawer (PDF page with highlighted quote)                                          │
                           └──────────────────────────────────────┬───────────────────────────────────────────────────┘
                                                                  │ HTTP + SSE (stage, stage_result, result)
@@ -121,13 +121,14 @@ command. A separate vector service would add setup risk and no benefit at this s
 
 ## 4. The pipeline, stage by stage
 
-The five browser tabs group the modules below: Reading, Process (rules, retrieval, premise checks),
-Result Assessment, Confidence and Verification, and Coach. Each underlying stage emits `stage` progress
+The four browser tabs are Reading, Result Assessment, Confidence and Verification, and Coach.
+A temporary loading screen shows the current model and rule tasks while the navigation line fills.
+Each underlying stage emits `stage` progress
 events and a `stage_result` containing its own output when done.
 The numbered dots in the top navigation bar follow the active step automatically. They stay hollow
 until their step completes, then fill with its visual-spectrum color; the connecting line keeps a color
-gradient. Selecting a step lets you inspect its result while later steps continue. The active and
-selected steps remain visually distinct. The final `result`
+gradient. Navigation is locked during calculation; the final `result` opens Result Assessment
+(or Coach after a what-if re-run) and unlocks the tabs. It
 contains the complete run saved in SQLite.
 
 | # | Stage | Module | LLM? | Output |
@@ -266,8 +267,8 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
 
 Open `http://localhost:8000`.
 
-**Two views** (toggle in the header; the browser remembers the choice). Both keep the same five tabs:
-Reading, Process, Result Assessment, Confidence and Verification, and Coach.
+**Two views** (toggle in the header; the browser remembers the choice). Both keep the same four tabs:
+Reading, Result Assessment, Confidence and Verification, and Coach.
 
 - **General (default)**, for internal non-experts such as sales or management: status and confidence in plain
   words, the answer, *problems found in the request* (always shown), what to test first with a one-line plain
@@ -310,13 +311,13 @@ extraction prompt so they cannot be misread as other facts. Change paths in Read
 to re-assess. Answers for a removed path are excluded unless the customer asked for that path in the enquiry.
 
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
-- **Top pipeline navigation:** One gradient line connects five numbered dots: Reading → Process →
+- **Top pipeline navigation:** One gradient line connects four numbered dots: Reading →
   Result Assessment → Confidence and Verification → Coach. Dots stay hollow until their tab's work
   completes, then fill with that
   step's spectrum color. The gradient line stays continuous through the brighter, gradient-backed selected step.
-  Submitting an enquiry opens Process and keeps it selected while all calculations run. The later tabs
-  stay locked until the complete result arrives; then the spectrum fills across the line and the tabs open.
-  Reading remains available during a run, with **Follow current step** returning to Process.
+  Submitting an enquiry opens a temporary calculation screen. The gradient line advances as stages finish,
+  and navigation stays locked until the complete result arrives. The loading screen then closes and
+  Result Assessment opens automatically (Coach after a what-if re-run).
 - **Page headers:** each tab starts with a dark, color-tinted header containing a short explanation,
   its measured runtime (and the full run time when available), and links to the sections on that page.
   Links open collapsed sections before scrolling and preserve `#run=<id>` deep links.
@@ -324,15 +325,16 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   optional Path A/B/C selection, the instant pre-check, and the reading confirmation with follow-up questions.
   Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
   browser; backend routing still uses the server configuration.
-- **Process:** live stage and model activity, an updating trace, rules, method screening, retrieval,
-  premise checks, council drafts and judging, and timings. The full trace and council record remain here
-  after processing finishes.
+- **Temporary loading screen:** the current model task, stage completion, an updating model trace,
+  council activity, and timings. It appears during calculation only; detailed outputs are kept in the
+  completed calculation record.
 - **Result Assessment:** compact summary in General, full report in Expert, with glossary tooltips, path
   verdicts, and sourced plans for a requested path that is premature or conflicting. Sourced statements are
   highlighted; selecting a citation opens its supporting quote highlighted in the knowledge base page and
   original PDF. Both views export the complete Markdown run, including appendices A–M.
 - **Confidence and Verification:** computed confidence, citation checks, number and client-fact checks,
-  and the quality gate.
+  and the quality gate. The complete calculation record, model trace, and council results are available
+  in a collapsed details section.
 - **Coach:** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
   Completed runs can be reopened with `#run=<id>`.
 - **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
@@ -507,7 +509,7 @@ afs-assistant/
 ├─ frontend/
 │  ├─ index.html · css/styles.css
 │  └─ js/                       api.js · state.js · app.js · glossary.js · pipeline-steps.js (shared step model)
-│      └─ components/           pipeline.js (five tab views) · page-header · header · enquiry · confirm ·
+│      └─ components/           pipeline.js (tab views and temporary loading screen) · page-header · header · enquiry · confirm ·
 │                               pathq · precheck · coach · summary · report · matrix · spectral-map ·
 │                               evidence · quality · council · whatif · trace
 ├─ eval/
