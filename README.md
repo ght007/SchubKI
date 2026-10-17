@@ -259,6 +259,9 @@ Open `http://localhost:8000`.
   step's spectrum color. The gradient line stays continuous through the brighter, gradient-backed selected step.
   The running step and the step being viewed have separate visual states. Select
   any step to inspect its output; **Follow current step** resumes automatic navigation.
+- **Page headers:** each tab starts with a dark, color-tinted header containing a short explanation,
+  its measured runtime (and the full run time when available), and links to the sections on that page.
+  Links open collapsed sections before scrolling and preserve `#run=<id>` deep links.
 - **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
   Fast / Council mode with an explanation of the selected mode, and an LLM model selector. The model choice is saved in the browser; backend
   routing still uses the server configuration.

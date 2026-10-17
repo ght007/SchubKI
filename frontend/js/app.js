@@ -1,8 +1,9 @@
 // Boot, live pipeline state, and navigation between its steps.
 import { esc, getJSON, stream } from "./api.js";
 import * as store from "./state.js";
-import { STEPS, activeStep, canonicalStage, latestStageEvent, normalizeTab, stepStatus } from "./pipeline-steps.js";
+import { STEPS, activeStep, canonicalStage, normalizeTab, stepStatus } from "./pipeline-steps.js";
 import { renderStatus, renderFiber } from "./components/header.js";
+import { renderPageHeader } from "./components/page-header.js";
 import { renderEnquiry } from "./components/enquiry.js";
 import { hasStageData, renderPipelineStep, renderProcess } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
@@ -92,42 +93,31 @@ async function run(url, body, isWhatIf = false) {
 function renderView(s) {
   const el = $("view");
   const run = s.busy ? s.liveRun : s.run;
-  if (s.tab === "reading") {
-    renderEnquiry(el, s, actions);
-    return;
-  }
   const step = STEPS.find((item) => item.id === s.tab);
-  const status = stepStatus(s, step.id);
-  const event = latestStageEvent(s, step.id);
-  const current = s.busy ? activeStep(s) : null;
-  const details = s.details.filter((item) => canonicalStage(item.stage) === step.id);
-  el.innerHTML = `<div class="stage-header">
-    <div><h2>${step.label}</h2><p class="small muted">${step.description}</p>
-      ${event?.detail ? `<p class="stage-note">${esc(event.detail.replaceAll("_", " "))}${event.ms != null ? ` · ${event.ms} ms` : ""}</p>` : ""}
-      ${details.length ? `<p class="stage-note">${esc(details.at(-1).detail)}</p>` : ""}
-      ${s.busy && current && current !== step.id ? `<p class="stage-note">Currently running: ${esc(STEPS.find((item) => item.id === current).label)}</p>` : ""}</div>
-    ${s.busy && !s.followStage && current ? `<button type="button" class="btn" id="followStep">Follow current step</button>` : ""}
-  </div><div id="stage-content"></div>`;
-  el.querySelector("#followStep")?.addEventListener("click", actions.followCurrent);
+  el.innerHTML = `<div id="stage-content" class="page-content"></div>`;
   const content = el.querySelector("#stage-content");
-  if (s.tab === "process") {
+  if (s.tab === "reading") {
+    renderEnquiry(content, s, actions);
+  } else if (s.tab === "process") {
     renderProcess(content, run, s, actions);
-    return;
-  }
-  const stage = { assessment: "report", verification: "verify", coach: "coach" }[s.tab];
-  if (hasStageData(run, stage)) {
-    renderPipelineStep(content, stage, run, { ...s, run }, actions);
-  } else if (!run && !s.busy && !s.error) {
-    content.innerHTML = `<div class="empty"><h2>Start with a customer enquiry</h2>
-      <p>Open Reading to type an enquiry or load a scenario. Each tab above shows its results as the pipeline runs.</p></div>`;
   } else {
-    const message = status === "active" ? "This step is running. Its output will appear here when it finishes." :
-      status === "error" ? "The run stopped before this step produced an output." :
-      status === "done" ? "This step finished. Waiting for its output to arrive." :
-      "This step has not run yet.";
-    content.innerHTML = `<div class="stage-placeholder">${message}${status === "error" && (s.error || run?.error) ?
-      `<div class="err">${esc(s.error || run.error)}</div>` : ""}</div>`;
+    const stage = { assessment: "report", verification: "verify", coach: "coach" }[s.tab];
+    if (hasStageData(run, stage)) {
+      renderPipelineStep(content, stage, run, { ...s, run }, actions);
+    } else if (!run && !s.busy && !s.error) {
+      content.innerHTML = `<div class="empty"><h2>Start with a customer enquiry</h2>
+        <p>Open Reading to type an enquiry or load a scenario. Each tab above shows its results as the pipeline runs.</p></div>`;
+    } else {
+      const status = stepStatus(s, step.id);
+      const message = status === "active" ? "This step is running. Its output will appear here when it finishes." :
+        status === "error" ? "The run stopped before this step produced an output." :
+        status === "done" ? "This step finished. Waiting for its output to arrive." :
+        "This step has not run yet.";
+      content.innerHTML = `<div class="stage-placeholder">${message}${status === "error" && (s.error || run?.error) ?
+        `<div class="err">${esc(s.error || run.error)}</div>` : ""}</div>`;
+    }
   }
+  renderPageHeader(el, content, s, step, run, actions.followCurrent);
 }
 
 let lastEvidence = null;
