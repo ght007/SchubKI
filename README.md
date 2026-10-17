@@ -18,6 +18,13 @@ expert:
 The assistant does not replace the expert. It structures the first customer discussion and makes every
 step easy to check.
 
+It also offers:
+- **Two views**: a compact *General* view for internal non-experts (default) and the full *Expert* workbench.
+- **A pre-check with a glossary** (English and German): before any tokens are spent, recognised terms, vague
+  words and early warnings (e.g. silica fiber for MIR) are shown; the expert's answers travel as a separate block.
+- **A traceable AFS pathway**: a sourced, deterministic suggestion of Path A / B / C; the expert and the customer
+  can ask for paths, each gets a fit verdict, and premature paths get an "If you proceed anyway" plan.
+
 ---
 
 ## Contents
@@ -71,7 +78,7 @@ cited (and clearly labelled) assessment.
 | Criterion (weight) | What the assistant does |
 |---|---|
 | **Technical quality (30%)** | Rules encode the physics (fiber transmission, sample optics → probe geometry, method preconditions). Method screening is computed, then explained. Council mode lets several models cross-check. |
-| **Use of AFS knowledge (20%)** | 95 curated evidence cards with verbatim quotes from S01–S05, 30 sourced rules, the S01 Table 1 (xlsx), S02 fiber chart and band slide, and a full transcription of the image-only S02 slides. Every sourced sentence carries `[Sxx p.N]` and its quote. |
+| **Use of AFS knowledge (20%)** | 95 curated evidence cards with verbatim quotes from S01–S05, 35 sourced rules, the S01 Table 1 (xlsx), S02 fiber chart and band slide, and a full transcription of the image-only S02 slides. Every sourced sentence carries `[Sxx p.N]` and its quote. |
 | **Feasibility-study plan (15%)** | Every report has representative samples, independent reference measurements, what is compared (methods, geometries, single vs combined models) and a client-agreed decision basis, plus the AFS pathway step. |
 | **Clarification & uncertainty (15%)** | Premise check first; decision status (`provisional_assessment` / `insufficient_information` / `outside_supported_scope`); questions ranked by impact; computed confidence with caps; enquiry coach and what-if re-runs. |
 | **Explainability (10%)** | Every statement is typed (client fact / sourced / assumption / proposal). Click a citation to see the highlighted passage on the original PDF page. Matrix, rules, retrieval and every LLM call are visible. |
@@ -113,11 +120,13 @@ Each stage streams a progress event to the browser (the "fiber" line at the top 
 
 | # | Stage | Module | LLM? | Output |
 |---|---|---|---|---|
+| 0 | **Pre-check** (before the run) | `engine/precheck.py` | no | Recognised glossary terms, vague words with questions, early blocking warnings, missing facts |
 | 1 | **Extract** | `engine/extract.py` | fast model | `Requirements`: stated / inferred / unknown fields, facts with the enquiry's words, unknowns with impact, **client premises** (method claims, reuse claims, evidence claims, certainty requests) |
 | 2 | **Rules** | `engine/rules.py` | no | Fired rules from `rules.yaml`: severity (block / warn / info), score contributions, questions, confidence caps, status hints, plan elements, sources |
 | 2 | **Coverage** | `engine/coverage.py` | no | Method range ↔ fiber transmission ↔ analyte band overlap; flags incompatible client assets (e.g. silica link for MIR) |
 | 2 | **Screen** | `engine/screen.py` | no | Method matrix: score, verdict (lead / candidate / weak / not supported), every contribution with its rule and source |
-| 3 | **Retrieve** | `kb/retrieve.py` | no | Evidence pack (≈10–14 passages) within a token budget |
+| 2 | **Paths** | `engine/paths.py` | no | Suggested AFS path from sourced path hints; fit of requested paths (fits / premature / conflicts / open); "proceed anyway" plans |
+| 3 | **Retrieve** | `kb/retrieve.py` | no | Evidence pack (≈10–14 passages) within a token budget; chunks carry their best-matching sentence |
 | 4 | **Premise check** | `engine/premise.py` | fast model | Each client premise: supported / partly supported / contradicted / unverifiable, with citations |
 | 5 | **Report** | `engine/report.py` | main model | Structured `Report` (status, headline, requirements, questions, recommendations, concept, spectral range, risks, plan, pathway) |
 | 5 | *or* **Council** | `engine/council.py` | all council models | Several drafts → gates → blind cross-judging → winner + merged sections + agreement |
@@ -137,12 +146,17 @@ were never used to tune anything.
 | File | Content | Built from |
 |---|---|---|
 | `claims.jsonl` | **95 evidence cards**: `{id, claim, source, page, quote, scope, topics, methods}`. The quote is copied verbatim from the page. | S01 (p.3–19), S02 (slides 3–20), S03, S04, S05 |
-| `rules.yaml` | **30 general rules**, each with source pages. Examples: silica fiber cannot carry MIR; calibrations are matrix-specific; adding a method does not keep a calibration valid; fluorescence needs a fluorescent target; optical density is not viable biomass; clinical use exceeds in-vitro evidence; undefined target → insufficient information; geometry by sample optics; application leads (dairy, pharma blends, water in petroleum, hot-melt API, bioprocess, moisture). | S01, S02, S03, S04 |
+| `rules.yaml` | **35 general rules**, each with source pages. Examples: silica fiber cannot carry MIR; calibrations are matrix-specific; adding a method does not keep a calibration valid; fluorescence needs a fluorescent target; optical density is not viable biomass; clinical use exceeds in-vitro evidence; undefined target → insufficient information; geometry by sample optics; application leads (dairy, pharma blends, water in petroleum, hot-melt API, bioprocess, moisture). | S01, S02, S03, S04 |
 | `methods.json` | Method profiles (nominal range, geometries, compatible fibers, strengths, limitations, preconditions, each sourced) + all 19 rows of S01 Table 1 + combination notes | `AFS_method_comparison_table.xlsx`, S01 |
 | `fibers.json` | UV-VIS silica 0.18–1.2 µm, VIS-NIR silica 0.35–2.4 µm, CIR 1.1–6.5 µm, PIR 3–17 µm, hollow waveguides 2–18 µm, fluoride fibers | S02 p.6–10 |
 | `bands.json` | Analyte bands (0.85–1.1 µm fat/protein/moisture … 6–10.5 µm glucose, organic acids …), water in oil, gas bands, lipid/amide bands, S01 Fig. 7 bioprocess map | S02 p.13, 17, 18; S04 p.3; S01 p.17 |
 | `sources.json` | Source registry with **evidence scope** (overview, company slides, in-vitro proof of concept, lab demonstration, business) | all |
+| `glossary.yaml` | 65 domain terms with ~300 aliases (English and German) and 9 vague words; each term has a plain-language definition and its source page (general terms are marked as such) | S01–S04 |
 | `s02_notes.md` | Transcription of all 20 S02 slides (S02 is image-only, so PDF text extraction returns almost nothing). Marked as "transcribed" wherever it is shown. | S02, read visually |
+
+**Rules also carry AFS pathway hints** (`paths:` effect supports / premature / conflicts for Path A, B or C),
+e.g. many low-cost measuring points → supports C (S02 p.18); research lab → supports B (S02 p.20); several
+variables in one stream → C conflicts (S02 p.18); undefined target → A and C premature.
 
 **Integrity guarantee:** `python -m backend.app.kb.ingest` refuses to build the index if any card's quote
 is not found on its cited page (after normalising ligatures, quotes and line-break hyphens).
@@ -240,13 +254,57 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
 
 Open `http://localhost:8000`.
 
+**Two views** (toggle in the header; the browser remembers the choice):
+- **General (default)**, for internal non-experts such as sales or management: status and confidence in plain
+  words, the answer, *problems found in the request* (always shown), what to test first with a one-line plain
+  explanation of each method (sources behind "Show sources"), the top three questions, the first experiment,
+  and the next step with AFS including path verdicts. Domain terms have tooltips.
+- **Expert**: the full workbench described below.
+
+**Before you run it (pre-check)**: while the enquiry is typed, an instant keyword check (no AI) shows recognised
+terms (German aliases resolved, e.g. *Feuchte → moisture*, *Glasfaser → silica fiber*), vague words, early
+warnings from blocking rules, and missing key facts. It is informational; the questions are asked on the next step.
+
+**"Is this what you mean?" (step 1 of every UI run, on by default)**: *Check and assess* first reads the enquiry
+with the extraction model (the run's own first stage) and shows a card with:
+- **We understood**: the structured readings that drive the rules (what to measure, sample form, optics, methods
+  asked for, equipment they have, path they ask for, ...). Each has ✓ / ✗; a ✗ resets that reading to *unknown* for
+  the run (e.g. "it is **not clear** yet" misread as *optics: clear*), so no rule fires on it. Glossary translations
+  (*Restfeuchte → moisture*) and the customer claims that will be tested are listed too.
+- **AFS path**: chosen paths and paths found in the enquiry, with full names.
+- **Open questions, one list without repeats**: vague words, missing key facts, and the questions of every chosen
+  or found path. A path question that covers a missing fact replaces it (Path A "reference values?" replaces the
+  general reference question). Answers the text already gives are **pre-filled and tagged "from your text"**.
+- **Yes, assess** (with the answers given) · **Skip questions and assess** · **Back**; *Show this step before
+  every run* can be unticked (remembered) for live demos, then *Assess enquiry* runs straight away.
+
+The customer's text is never rewritten: corrections travel as `rejected` fields, answers as a separate block.
+Because path answers and ✗ corrections are kept out of the extraction prompt, confirming **reuses the cached
+reading**; only free-text answers to missing facts trigger a fresh extraction (fast model). Eval scripts call the
+API directly and never see this step.
+
+**Preferred AFS path (multi-select, shown with full names)**: A *Chemometric model for process automation*,
+B *Multi-spectral system for your R&D lab*, C *Low-cost spectral sensor(s)*; none chosen = Auto. Paths the
+customer seems to ask for are marked *in the enquiry* by the pre-check. Each path has three one-click questions
+(for example *Has a lab trial already shown which wavelengths matter?*), asked on the confirmation card.
+**Everything is optional**: unanswered questions are not sent and the run simply proceeds without them. Some
+answers carry a sourced effect on that path's verdict (e.g. C + "No" → *premature*, S01 p.9; B + "In production"
+→ *conflicts*, S02 p.20); the rest is context for the report. Path answers travel as
+`Path X - <question>: <answer>`, are kept after the run, and are kept out of the keyword heuristics and the
+extraction prompt so they cannot be misread as other facts. Change the paths and press *Re-run* in the What-if tab to re-assess.
+
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
 - **Fiber line:** pipeline progress (Read → Rules → Evidence → Premises → Assess → Verify → Coach).
-- **Left:** enquiry box with a scenario loader (H, D and adversarial cases), Fast / Council mode, stage
-  log; enquiry coach below.
+- **Left:** enquiry box, path picker, Fast / Council mode, stage log; enquiry coach below. The scenario
+  loader (H, D, and adversarial cases if `SHOW_DEV_CASES=1`) is shown in the **Expert** view only; General is for
+  typing a real enquiry.
 - **Tabs**
-  - *Assessment*: headline, premise check, requirements, questions, recommendations (typed statements,
-    citation chips), concept, spectral range, risks, feasibility experiment, AFS pathway; Markdown download.
+  - *Assessment* (glossary tooltips on domain terms; pathway card with suggested path, verdict per requested
+    path and "If you proceed anyway" plans): headline, premise check, requirements, questions, recommendations (typed statements,
+    citation chips), concept, spectral range, risks, feasibility experiment, AFS pathway; Markdown download
+    (the **complete** run: the assessment, then appendices A–M with path analysis, extracted requirements, rules,
+    method screening, spectral coverage, evidence, verification, quality checks, confidence, coach, council,
+    what-if changes, retrieval queries and the model trace; the same file from either view).
   - *Methods & evidence*: screening matrix with every contribution, fired rules, retrieved passages.
   - *Spectral map*: log wavelength axis 0.18–20 µm with analyte bands, method ranges and fiber
     transmission; an incompatible client fiber is drawn in red with the silica limit line.
@@ -325,7 +383,7 @@ complete, cited and verified, and say they are rule-based.
 | `python -m eval.run_cases --set final` | H01–H06 in Fast mode → `outputs/H0x.md` + `.json` |
 | `python -m eval.run_cases --set final --mode council --pause 20` | H01–H06 in Council mode (submission quality; slow on the free tier) |
 | `python -m eval.run_cases --set dev` | D01–D08 → `outputs/dev/` |
-| `python -m eval.run_cases --set adversarial` | A01–A07 (our own trap cases: wrong fiber, non-fluorescent target, model-tissue paper as proof, vague request, many cheap points, demand for a detection limit, prompt injection) with automatic expectation checks |
+| `python -m eval.run_cases --set adversarial` | Development only (hidden in the UI unless `SHOW_DEV_CASES=1`). A01–A07 (our own trap cases: wrong fiber, non-fluorescent target, model-tissue paper as proof, vague request, many cheap points, demand for a detection limit, prompt injection) with automatic expectation checks |
 | `python -m eval.run_cases --set dev --ids D04 D06` | Selected cases only |
 | `python -m eval.summary` | Regression table across all runs |
 | `python -m eval.judge --dir outputs/dev` | LLM scoring against the six jury criteria (D01/D02 also compared with the organisers' worked answers). Development aid only. |
@@ -355,6 +413,7 @@ All settings are read from `.env` (`backend/app/config.py`).
 | `MAX_EVIDENCE_TOKENS` | `2500` | evidence budget per prompt; 1800 recommended on the free tier |
 | `EMBED_MODEL` | `BAAI/bge-small-en-v1.5` | fastembed model |
 | `EMBED_BACKEND` | empty | `hashing` = skip the model download, use the offline embedder |
+| `SHOW_DEV_CASES` | `0` | `1` = show our own adversarial cases A01–A07 in the UI scenario loader |
 | `DB_PATH`, `RAW_DIR`, `KB_DIR` | `data/cache/afs.db`, `data/raw`, `data/kb` | paths |
 
 ## 15. Groq free tier: what to expect
@@ -378,12 +437,16 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 
 | Method & path | Purpose |
 |---|---|
-| `POST /api/assess` | Run the pipeline; Server-Sent Events stream (`stage`, `detail`, `error`, `result`). Body: `{enquiry, answers?, mode: fast|council}` |
+| `POST /api/understand` | Step 1 ("Is this what you mean?"): readings, glossary translations, paths, warnings, one merged question list with pre-fills. Body: `{enquiry, answers?, preferred_paths?}` |
+| `POST /api/assess` | Run the pipeline; Server-Sent Events stream (`stage`, `detail`, `error`, `result`). Body: `{enquiry, answers?, mode: fast|council, preferred_paths?: ["A","B","C"], rejected?: ["optical_behavior", ...]}` |
 | `POST /api/assess/sync` | Same, returns the run JSON (scripts, curl) |
 | `POST /api/whatif` | Re-run a saved run with answers; SSE. Body: `{run_id, answers, mode?}` |
 | `GET /api/coach/{run_id}` | Coach result of a run |
+| `POST /api/precheck` | Instant keyword pre-check (no LLM). Body: `{enquiry, answers?}` |
+| `GET /api/glossary` | Glossary entries for tooltips |
+| `GET /api/paths` | Full AFS path names and the optional questions per path |
 | `GET /api/runs` · `GET /api/runs/{id}` | Saved runs |
-| `GET /api/runs/{id}/export.md` | Markdown export |
+| `GET /api/runs/{id}/export.md` | Full Markdown export (assessment + appendices A–M) |
 | `GET /api/runs/{id}/trace` | LLM calls, timings, retrieval details |
 | `GET /api/source` | Source registry with pages loaded |
 | `GET /api/source/{doc}/{page}?q=` | Page text, metadata, whether `q` is on the page |
@@ -414,12 +477,12 @@ afs-assistant/
 │  │  ├─ models.py              model roles, council list, availability check
 │  │  └─ prompts/               extract · premise · report · repair · judge · coach (.md)
 │  ├─ kb/                       pages.py (page text, normaliser) · store.py (SQLite) · embed.py · ingest.py · retrieve.py
-│  ├─ engine/                   extract · rules · coverage · screen · context · premise · report · council ·
+│  ├─ engine/                   extract · rules · coverage · screen · paths · glossary · precheck · context · premise · report · council ·
 │  │                            verify · quality · confidence · coach · whatif · pipeline
 │  └─ render/markdown.py        run → Markdown
 ├─ frontend/
 │  ├─ index.html · css/styles.css
-│  └─ js/                       api.js · state.js · app.js · components/ (header, enquiry, coach, report,
+│  └─ js/                       api.js · state.js · app.js · glossary.js · components/ (header, enquiry, precheck, coach, summary, report,
 │                               matrix, spectral-map, evidence, quality, council, whatif, trace)
 ├─ eval/
 │  ├─ cases/                    final_cases.yaml (H01–H06 verbatim) · dev_cases.yaml (D01–D08 + worked answers) · adversarial_cases.yaml
@@ -518,6 +581,8 @@ insufficient. "What would raise confidence" = the top three unknown, high-impact
 | Council judge score | Mean of six 1–5 rubric scores, averaged over the judges; no self-judging. |
 | Council winner | Drafts without grounding / honesty gate failures first, then highest judge score. |
 | Council agreement | Lower of: share of drafts with the most common lead method(s), share with the most common status. |
+| Suggested path | The path with the most *supports* hints from fired rules, if no rule hints against it; a tie or a status rule (insufficient information / outside scope) → *undecided*. It overrides the model's guess so the pathway stays traceable. |
+| Requested path verdict | premature > conflicts > fits > open (no rule decides it; the lab trial does), with the rule's reason and sources. Premature or conflicting paths get a sourced "If you proceed anyway" plan. |
 | Spectral map | Nominal method ranges (`methods.json`), fiber ranges (S02 p.6). Overlap full / partial / none. Client silica link flagged when the assets mention silica and the method starts above 2.4 µm. |
 
 ### Where the data lives
@@ -540,7 +605,7 @@ review by an AFS expert.
    `fibers.json` and `bands.json` from the S02 figures, S04 and S01 Fig. 7.
 3. 95 evidence cards (`claims.jsonl`): claim, source, page, **verbatim quote**, scope tag.
 4. Every quote checked against its page by code; ingest and a test refuse to run if one fails.
-5. 30 general rules (`rules.yaml`) with conditions, effects and sources; none refers to a scenario.
+5. 35 general rules (`rules.yaml`) with conditions, effects and sources; none refers to a scenario.
 6. Ingest: 65 pages → ~180-word overlapping windows + 95 cards = 275 records → FTS5 + embeddings.
 
 ### How it grows

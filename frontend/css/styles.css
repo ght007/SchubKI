@@ -301,3 +301,81 @@ mark { background: #fde68a; color: #1f2937; border-radius: 2px; padding: 0 .1rem
 
 .err { color: var(--block); background: var(--block-soft); border-radius: var(--radius-s); padding: .5rem .7rem; margin-top: .6rem; font-size: .88rem; }
 .toolbar { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; margin-bottom: .8rem; }
+
+/* ---------------------------------------------------------------- general view */
+.view-toggle { margin-left: .4rem; }
+.sum { max-width: 900px; }
+.sum-status { display: flex; flex-direction: column; gap: .2rem; padding: .7rem 1rem; border-radius: var(--radius-m);
+  background: var(--core-soft); border: 1px solid color-mix(in srgb, var(--core) 30%, transparent); margin-bottom: .8rem; }
+.sum-status.insufficient_information { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+.sum-status.outside_supported_scope { background: var(--block-soft); border-color: color-mix(in srgb, var(--block) 35%, transparent); }
+.sum-issues { border-left: 4px solid var(--block); }
+.sum-issues h2 { color: var(--block); }
+.sum-rec { padding: .6rem 0; border-top: 1px solid var(--line-soft); }
+.sum-rec:first-of-type { border-top: 0; }
+.sum-rec p { margin: .3rem 0; max-width: 75ch; }
+details.srcs summary { cursor: pointer; color: var(--core); font-size: .85rem; }
+details.srcs { margin-top: .2rem; }
+.tabs[hidden] { display: none; }
+.also { display: inline-block; font-size: .72rem; border-radius: 999px; padding: 0 .45rem; margin-left: .3rem;
+  background: var(--core-soft); color: var(--core); }
+
+/* ---------------------------------------------------------------- pre-check + glossary */
+.precheck { border-left: 4px solid var(--core); }
+.pc-warn { background: var(--block-soft); color: var(--block); border-radius: var(--radius-s); padding: .5rem .7rem; margin-bottom: .6rem; font-size: .88rem; }
+.pc-warn p { margin: .2rem 0; }
+.pc-block { margin-top: .6rem; }
+.pc-q { padding: .35rem 0; border-top: 1px solid var(--line-soft); }
+.pc-q input { width: 100%; margin-top: .3rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .3rem; }
+.chip { white-space: nowrap; font-size: .78rem; border-radius: 999px; padding: .05rem .55rem; background: var(--line-soft); color: var(--ink); cursor: help; }
+.chip.method, .chip.geometry, .chip.technique { background: var(--core-soft); color: var(--core); }
+.chip.fiber, .chip.probe { background: #ede9fe; color: #5b21b6; }
+.chip.analyte, .chip.sample { background: var(--ok-soft); color: var(--ok); }
+.chip.vague { background: var(--warn-soft); color: var(--warn); }
+abbr.gl { text-decoration: underline dotted var(--faint); text-underline-offset: 3px; cursor: help; }
+
+/* ---------------------------------------------------------------- paths */
+/* AFS path picker (full names) and its optional questions */
+.pathpick { display: flex; flex-direction: column; gap: .3rem; }
+.pathopt { display: flex; align-items: center; gap: .55rem; text-align: left; border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink); border-radius: var(--radius-s); padding: .35rem .55rem; cursor: pointer; font: inherit; font-size: .88rem; }
+.pathopt:hover { border-color: var(--core); }
+.pathopt .pl { flex: none; display: inline-grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 50%;
+  background: var(--line-soft); font-weight: 600; font-size: .78rem; }
+.pathopt .tag { margin-left: auto; font-size: .72rem; color: var(--core); }
+.pathopt[aria-pressed="true"] { border-color: var(--core); background: var(--core-soft); }
+.pathopt[aria-pressed="true"] .pl { background: var(--core); color: var(--surface); }
+.pathq { margin-top: .5rem; padding: .55rem .65rem; border: 1px dashed var(--line); border-radius: var(--radius-s); }
+.pathq .pq { padding: .35rem 0; border-top: 1px solid var(--line-soft); }
+.pathq .pq:first-of-type { border-top: 0; }
+.pathq input { width: 100%; margin-top: .4rem; }
+.opts { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .25rem; }
+.opt { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: .1rem .65rem;
+  font: inherit; font-size: .8rem; cursor: pointer; }
+.opt[aria-pressed="true"] { background: var(--core); border-color: var(--core); color: var(--surface); }
+.fit { display: inline-block; margin-top: .35rem; margin-right: .3rem; font-size: .72rem; border-radius: 999px; padding: 0 .45rem; background: var(--line-soft); color: var(--graphite); }
+.fit.suggested, .fit.fits { background: var(--ok-soft); color: var(--ok); }
+.fit.premature { background: var(--warn-soft); color: var(--warn); }
+.fit.conflicts { background: var(--block-soft); color: var(--block); }
+details.proceed { margin-top: .5rem; border: 1px dashed var(--line); border-radius: var(--radius-s); padding: .45rem .7rem; }
+details.proceed summary { cursor: pointer; }
+
+/* "Is this what you mean?" card (step 1 of a run) */
+.confirm { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--core); border-radius: var(--radius-m);
+  padding: 1.1rem 1.3rem; }
+.confirm h3 { font-size: .95rem; margin: 0 0 .4rem; }
+.cf-block { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--line-soft); }
+.cf-summary { margin: 0 0 .5rem; }
+.readings li { display: flex; align-items: center; gap: .6rem; padding: .3rem 0; border-top: 1px solid var(--line-soft); }
+.readings li:first-child { border-top: 0; }
+.readings .lbl { flex: 0 0 13rem; font-size: .85rem; color: var(--graphite); }
+.readings .val { flex: 1; font-size: .9rem; }
+.readings li.wrong .val { text-decoration: line-through; color: var(--faint); }
+.seg.mini button { padding: .05rem .5rem; font-size: .8rem; }
+.readings li.wrong [data-bad][aria-pressed="true"] { background: var(--warn-soft); color: var(--warn); }
+.tag { display: inline-block; font-size: .72rem; border-radius: 999px; padding: 0 .45rem; background: var(--core-soft); color: var(--core); }
+.tag.fromtext { background: var(--ok-soft); color: var(--ok); }
+.confirm .pc-q input { width: 100%; margin-top: .3rem; }
+.cf-actions { margin-top: 1.1rem; padding-top: .8rem; border-top: 1px solid var(--line-soft); flex-wrap: wrap; gap: .6rem; }
+@media (max-width: 700px) { .readings .lbl { flex-basis: 8rem; } }

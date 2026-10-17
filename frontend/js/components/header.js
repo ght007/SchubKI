@@ -8,23 +8,38 @@ const STATUS = {
 };
 const CONF = { high: "ok", medium: "core", low: "warn", insufficient: "block" };
 
-export function renderStatus(el, s) {
+function viewToggle(s) {
+  return `<div class="seg view-toggle" role="group" aria-label="View">
+    <button data-view="general" aria-pressed="${s.view === "general"}" title="Compact summary for non-experts">General</button>
+    <button data-view="expert" aria-pressed="${s.view === "expert"}" title="Full workbench: matrix, evidence, checks, trace">Expert</button></div>`;
+}
+
+export function renderStatus(el, s, actions) {
   const r = s.run;
+  const wire = () => el.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => actions.setView(b.dataset.view)));
   if (!r || !r.report) {
     const h = s.health;
-    el.innerHTML = h ? `<span class="pill ${h.mock || !h.has_key ? "warn" : "ok"}"><span class="dot"></span>${
+    el.innerHTML = (h ? `<span class="pill ${h.mock || !h.has_key ? "warn" : "ok"}"><span class="dot"></span>${
       h.mock ? "Rule-only mode (no LLM)" : h.has_key ? "Groq connected" : "No Groq key: rule-only"}</span>
-      <span class="pill">${h.kb_records} indexed passages</span>` : "";
+      ${s.view === "expert" ? `<span class="pill">${h.kb_records} indexed passages</span>` : ""}` : "") + viewToggle(s);
+    wire();
     return;
   }
   const [label, cls] = STATUS[r.report.decision_status];
   const v = r.verification, q = r.quality, c = r.confidence;
-  el.innerHTML = `
+  if (s.view === "general") {
+    el.innerHTML = `<span class="pill ${cls}"><span class="dot"></span><b>${label}</b></span>
+      ${c ? `<span class="pill ${CONF[c.level]}">Confidence <b>${esc(c.level)}</b></span>` : ""}${viewToggle(s)}`;
+    wire();
+    return;
+  }
+  el.innerHTML = viewToggle(s) + `
     <span class="pill ${cls}"><span class="dot"></span><b>${label}</b></span>
     ${c ? `<span class="pill ${CONF[c.level]}" title="Computed from observable signals, not self-reported">Confidence <b>${esc(c.level)}</b></span>` : ""}
     ${q ? `<span class="pill ${q.passed === q.total ? "ok" : q.items.some((i) => i.status === "fail") ? "block" : "warn"}">Quality <b>${q.passed}/${q.total}</b></span>` : ""}
     ${v ? `<span class="pill ${v.n_verified === v.n_sourced ? "ok" : "warn"}">${v.n_verified}/${v.n_sourced} claims verified</span>
            <span class="pill ${v.n_unsupported_numbers ? "block" : "ok"}">${v.n_unsupported_numbers} unsupported numbers</span>` : ""}`;
+  wire();
 }
 
 const NODES = [

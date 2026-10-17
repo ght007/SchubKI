@@ -1,5 +1,6 @@
 // Report sections with typed, clickable claims.
 import { esc } from "../api.js";
+import { annotate } from "../glossary.js";
 
 const KIND = { client_fact: "client fact", sourced: "sourced", assumption: "assumption", proposal: "proposal" };
 const PATHS = {
@@ -22,7 +23,7 @@ export function citeChip(c, status) {
 
 function stmt(s, loc, checks) {
   const st = checks[loc];
-  return `<div class="stmt ${s.kind}">${esc(s.text)}${(s.citations || []).map((c) => citeChip(c, st)).join("")}<span class="kind">${KIND[s.kind] || s.kind}</span></div>`;
+  return `<div class="stmt ${s.kind}">${annotate(s.text)}${(s.citations || []).map((c) => citeChip(c, st)).join("")}<span class="kind">${KIND[s.kind] || s.kind}</span></div>`;
 }
 
 export function renderReport(el, run) {
@@ -33,7 +34,7 @@ export function renderReport(el, run) {
     <div class="toolbar">
       <a class="btn" href="/api/runs/${run.id}/export.md" download>Download Markdown</a>
     </div>
-    <div class="headline ${r.decision_status}">${esc(r.headline)}</div>
+    <div class="headline ${r.decision_status}">${annotate(r.headline)}</div>
 
     ${run.premises?.length ? `<section class="section"><h2>Premise check <small>the client's own claims, tested first</small></h2>
       ${run.premises.map((p) => `<div class="premise"><div class="verdict ${p.verdict}">${esc(p.verdict.replace("_", " "))}</div>
@@ -76,7 +77,25 @@ export function renderReport(el, run) {
 
     <section class="section"><h2>AFS pathway</h2>
       <p>${esc(r.pathway.next_step)}${r.pathway.why ? ` <span class="muted">${esc(r.pathway.why)}</span>` : ""}</p>
-      <div class="paths">${Object.entries(PATHS).map(([k, [t, d]]) => `<div class="path ${r.pathway.likely_path === k ? "on" : ""}"><b>${t}</b>${d}</div>`).join("")}</div>
+      <div class="paths">${Object.entries(PATHS).map(([k, [t, d]]) => {
+        const req = (run.paths?.requested || []).find((f) => f.path === k);
+        return `<div class="path ${r.pathway.likely_path === k ? "on" : ""}"><b>${t}</b>${d}
+          ${r.pathway.likely_path === k ? `<span class="fit suggested">suggested</span>` : ""}
+          ${req ? `<span class="fit ${req.verdict}">${req.requested_by === "enquiry" ? "asked by customer" : req.requested_by === "both" ? "asked by customer and expert" : "chosen by expert"}: ${req.verdict}</span>` : ""}</div>`;
+      }).join("")}</div>
       ${r.pathway.likely_path === "undecided" ? `<p class="small muted" style="margin-top:.5rem">Path not chosen yet: it is decided after the lab trial.</p>` : ""}
+      ${renderPathDetails(run)}
     </section>`;
+}
+
+export function renderPathDetails(run) {
+  const a = run.paths;
+  if (!a) return "";
+  const src = (list) => (list || []).map((s) => `${s.source} p.${s.page}`).join(", ");
+  return `
+    ${a.reasons?.length ? `<p class="small" style="margin-top:.6rem"><b>Why this path:</b> ${esc(a.reasons.join(" "))}${a.sources?.length ? ` <span class="muted">[${esc(src(a.sources))}]</span>` : ""}</p>` : ""}
+    ${(a.requested || []).map((f) => `<p class="small"><b>Path ${f.path}, ${esc(f.verdict)}:</b> ${esc(f.reason)} <span class="muted">[${esc(src(f.sources))}]</span></p>`).join("")}
+    ${(a.proceed_anyway || []).map((p) => `<details class="proceed"><summary><b>If you proceed anyway with Path ${p.path}</b></summary>
+      <p class="small">${esc(p.caveat)}</p><ol class="steps">${p.steps.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>
+      <p class="small muted">Sources: ${esc(src(p.sources))}</p></details>`).join("")}`;
 }

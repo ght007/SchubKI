@@ -8,11 +8,17 @@ const state = {
   busy: false,
   error: "",
   tab: "assessment",
+  view: "general",      // "general" (compact, default) | "expert" (full workbench)
   mode: "fast",
   examples: [],
   health: null,
   evidence: null,       // {source, page, quote, verified}
   answers: {},          // pending what-if answers
+  paths: [],            // AFS paths chosen by the expert (multi-select A/B/C; empty = Auto)
+  understand: null,     // "Is this what you mean?" card data (step 1 of a run), null when closed
+  rejected: [],         // requirement fields marked as misread on that card
+  reading: false,       // step 1 in progress
+  confirm: true,        // show the card before every run (remembered)
 };
 
 const subs = new Set();
@@ -26,6 +32,6 @@ export function set(patch) {
 
 export function subscribe(fn) { subs.add(fn); return () => subs.delete(fn); }
 
-const memo = { tab: "afs.tab", mode: "afs.mode" };
+const memo = { tab: "afs.tab", mode: "afs.mode", view: "afs.view", confirm: "afs.confirm" };
 export function remember(key, value) { try { localStorage.setItem(memo[key], value); } catch (_) { /* private mode */ } }
 export function recall(key, fallback) { try { return localStorage.getItem(memo[key]) || fallback; } catch (_) { return fallback; } }

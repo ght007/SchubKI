@@ -34,6 +34,16 @@ def startup() -> None:
     log.info("LLM mock=%s key=%s models=%s", settings.llm_mock, bool(settings.groq_api_key), status)
 
 
+@app.middleware("http")
+async def no_cache_frontend(request, call_next):
+    """Never let the browser cache the page or its JavaScript/CSS: after a code update,
+    a normal reload must show the new version (ES modules are otherwise cached aggressively)."""
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
+
+
 app.mount("/static", StaticFiles(directory=settings.frontend_dir), name="static")
 
 

@@ -10,7 +10,7 @@ those materials before it is shown.
 
 ```
  enquiry ──► 1 Extract ─────────► Requirements: stated / inferred / unknown / client premises      (LLM, keyword fallback)
-             2 Rules + coverage ─► 30 sourced rules, fiber↔band↔method overlap, method matrix     (deterministic)
+             2 Rules + coverage ─► 35 sourced rules, fiber↔band↔method overlap, method matrix     (deterministic)
              3 Retrieve ─────────► BM25 + dense → RRF → MMR, pinned claims, token budget          (deterministic)
              4 Premise check ────► supported / partly / contradicted / unverifiable + citations   (LLM, rule fallback)
              5 Report ───────────► Fast: one model · Council: drafts → gates → blind judges       (LLM, rule-only fallback)

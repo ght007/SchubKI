@@ -11,7 +11,7 @@ from typing import Any
 import yaml
 
 from ..config import settings
-from ..schemas import Requirements, RuleHit, RuleQuestion, SourceRef
+from ..schemas import PathHint, Requirements, RuleHit, RuleQuestion, SourceRef
 
 _UNKNOWN = (None, "", "unknown", [])
 
@@ -24,9 +24,11 @@ def load_rules() -> list[dict]:
 def build_context(req: Requirements, enquiry: str, answers: dict[str, str] | None = None) -> dict[str, Any]:
     ctx: dict[str, Any] = req.model_dump()
     ctx["premise_kinds"] = sorted({p.kind for p in req.premises})
-    answer_text = " ".join(f"{k}: {v}" for k, v in (answers or {}).items())
-    ctx["text"] = " ".join([enquiry, answer_text, req.summary, " ".join(req.target_variables), req.matrix,
-                            " ".join(req.existing_assets)]).lower()
+    from .paths import general_answers
+    answer_text = " ".join(f"{k}: {v}" for k, v in general_answers(answers).items())
+    from .glossary import expand
+    ctx["text"] = expand(" ".join([enquiry, answer_text, req.summary, " ".join(req.target_variables), req.matrix,
+                                   " ".join(req.existing_assets)])).lower()
     return ctx
 
 
@@ -53,6 +55,8 @@ def _test(cond: dict, ctx: dict) -> bool:
     if "text_any" in cond:
         text = _as_text(value)
         return any(k.lower() in text for k in cond["text_any"])
+    if "min_items" in cond:
+        return isinstance(value, list) and len(value) >= cond["min_items"]
     if "known" in cond:
         is_known = value not in _UNKNOWN
         return is_known == cond["known"]
@@ -75,6 +79,7 @@ def evaluate(req: Requirements, enquiry: str, answers: dict[str, str] | None = N
             cap_confidence=rule.get("cap_confidence"),
             status_hint=rule.get("status_hint"),
             plan=rule.get("plan") or [],
+            paths=[PathHint(**p) for p in rule.get("paths", [])],
             sources=[SourceRef(**s) for s in rule.get("sources", [])],
         ))
     order = {"block": 0, "warn": 1, "info": 2}

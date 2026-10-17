@@ -1,0 +1,362 @@
+# Glossary: domain terms, aliases (English and German), and vague words.
+#
+# Used for: the pre-check before a run (recognised terms, vague words, early warnings),
+# search expansion (aliases -> canonical term), band matching on the spectral map,
+# extraction hints, and plain-language tooltips in the report.
+#
+# Fields: term (canonical), aliases, category, definition (plain language), source {source, page}
+# (null = general term, not taken from the AFS material), ask (vague words only).
+# Categories: method, technique, geometry, fiber, probe, data, sample, analyte, application, process, evidence, vague.
+
+terms:
+# ------------------------------------------------------------------ methods
+- term: NIR spectroscopy
+  aliases: [NIR, near-infrared, near infrared, NIRS, FT-NIR, Nahinfrarot, NIR-Spektroskopie]
+  category: method
+  definition: "Near-infrared spectroscopy (780-2500 nm): the most common online method with fiber probes; standard glass optics work."
+  source: {source: S01, page: 10}
+- term: MIR spectroscopy
+  aliases: [MIR, mid-infrared, mid infrared, mid-IR, FTIR, FT-IR, IR spectroscopy, Mittelinfrarot, MIR-Spektroskopie]
+  category: method
+  definition: "Mid-infrared spectroscopy (4000-400 cm-1): very informative, well-defined absorption peaks; with fibers usually measured by ATR."
+  source: {source: S01, page: 9}
+- term: Raman spectroscopy
+  aliases: [Raman, Raman-Spektroskopie]
+  category: method
+  definition: "Laser light scattered by molecules; reported as a Raman shift in cm-1. Weak signal, can be overlaid by fluorescence; suits water-based samples."
+  source: {source: S01, page: 11}
+- term: fluorescence spectroscopy
+  aliases: [fluorescence, fluorimetry, fluorometry, autofluorescence, Fluoreszenz, Fluoreszenzspektroskopie]
+  category: method
+  definition: "Light emitted by fluorescent substances after excitation; very sensitive but only for substances that fluoresce (most chemicals do not)."
+  source: {source: S01, page: 5}
+- term: UV/Vis spectroscopy
+  aliases: [UV-Vis, UV/VIS, UV, ultraviolet, visible spectroscopy, UV-VIS-Spektroskopie]
+  category: method
+  definition: "Ultraviolet and visible absorption: high sensitivity, but strongly overlapping signals in mixtures (low selectivity)."
+  source: {source: S01, page: 5}
+- term: multispectral analysis
+  aliases: [multi-spectral, multimodal, multi-method, data fusion of methods, multispektral]
+  category: method
+  definition: "Combining two or more spectroscopy methods on the same sample; a gain is a hypothesis to test against the best single method."
+  source: {source: S01, page: 7}
+
+# ------------------------------------------------------------------ techniques and geometry
+- term: ATR
+  aliases: [attenuated total reflection, attenuated total reflectance, ATR probe, ATR-Sonde, abgeschwächte Totalreflexion]
+  category: geometry
+  definition: "Light probes only a few micrometres into a sample touching the crystal, so strongly absorbing or opaque media can be measured; needs tight, clean contact."
+  source: {source: S01, page: 16}
+- term: diffuse reflection
+  aliases: [diffuse reflectance, reflection probe, reflectance probe, DRS, Reflexion, diffuse Reflexion, Reflexionssonde]
+  category: geometry
+  definition: "Light scattered back from powders and opaque media is collected; used for powders and opaque dairy products."
+  source: {source: S01, page: 17}
+- term: transmission
+  aliases: [transmission probe, transmittance, Transmission, Durchlicht]
+  category: geometry
+  definition: "Light passes through a defined layer of a clear or semi-transparent liquid (path usually 1-10 mm)."
+  source: {source: S01, page: 18}
+- term: transflection
+  aliases: [transflexion, trans-flex, transflection probe, Transflexion]
+  category: geometry
+  definition: "Light passes through the sample, is reflected and passes back; sometimes one probe for both low- and high-fat products."
+  source: {source: S01, page: 18}
+- term: penetration depth
+  aliases: [optical path, path length, pathlength, Eindringtiefe, Schichtdicke]
+  category: technique
+  definition: "How deep light enters the sample: millimetres in NIR, only micrometres with MIR ATR."
+  source: {source: S01, page: 5}
+- term: Raman shift
+  aliases: [wavenumber shift, Raman-Verschiebung]
+  category: technique
+  definition: "The difference between laser and scattered light, in cm-1; stated separately from the laser excitation wavelength in nm."
+  source: {source: S01, page: 11}
+
+# ------------------------------------------------------------------ fibers and probes
+- term: silica fiber
+  aliases: [glass fiber, glass fibre, silica fibre, VIS-NIR fiber, VIS-NIR cable, NIR cable, visible fiber, quartz fiber, Glasfaser, Quarzfaser, Lichtwellenleiter]
+  category: fiber
+  definition: "Standard optical fiber; transmits only up to about 2.4 um, so it cannot carry mid-infrared light."
+  source: {source: S02, page: 6}
+- term: chalcogenide fiber
+  aliases: [CIR, CIR fiber, chalcogenide, As-S fiber, Chalkogenidfaser]
+  category: fiber
+  definition: "Mid-infrared fiber transmitting about 1.1-6.5 um; used e.g. in the ATR combi probe."
+  source: {source: S02, page: 6}
+- term: polycrystalline fiber
+  aliases: [PIR, PIR fiber, silver halide fiber, AgHal fiber, polykristalline Faser]
+  category: fiber
+  definition: "Mid-infrared fiber transmitting about 3-17 um, matching the molecular fingerprint region; couples well to FTIR spectrometers."
+  source: {source: S02, page: 8}
+- term: hollow waveguide
+  aliases: [HWG, hollow glass waveguide, Hohlleiter]
+  category: fiber
+  definition: "Infrared light guide (about 2-18 um) with low numerical aperture, so it couples poorly to FTIR spectrometers."
+  source: {source: S02, page: 10}
+- term: fiber probe
+  aliases: [immersion probe, fiber optic probe, probe, Sonde, Tauchsonde, Fasersonde]
+  category: probe
+  definition: "A probe connected by fibers that measures directly in the process or sample, without taking samples."
+  source: {source: S01, page: 5}
+- term: combi probe
+  aliases: [combined probe, multispectral probe, multimodal probe, combi-probe, Kombisonde]
+  category: probe
+  definition: "One probe that records two methods (e.g. MIR ATR and fluorescence) from the same point at the same time."
+  source: {source: S01, page: 8}
+- term: ZrO2 crystal
+  aliases: [zirconium oxide, zirconia, ZrO2, Zirkonoxid]
+  category: probe
+  definition: "ATR crystal material used in AFS probes, including the ATR + fluorescence combi probe."
+  source: {source: S04, page: 2}
+- term: diamond ATR
+  aliases: [diamond probe, diamond cone, Diamant-ATR, Diamantsonde]
+  category: probe
+  definition: "ATR probe with a diamond tip; shown by AFS for API in hot polymer extrusion."
+  source: {source: S02, page: 14}
+- term: multiplexer
+  aliases: [multiplexed analyzer, Multiplexer]
+  category: process
+  definition: "One central analyzer serving several measuring points through long fibers; higher accuracy from full spectra."
+  source: {source: S02, page: 18}
+- term: spectral IoT sensor
+  aliases: [IoT sensor, LED sensor, spectral fiber sensor, SFS, filter sensor, low-cost sensor, cheap sensor, Sensor, LED-Sensor]
+  category: process
+  definition: "A compact sensor at each measuring point using a few wavelengths (LEDs, filters); lower installation cost, designed after lab trials."
+  source: {source: S02, page: 18}
+
+# ------------------------------------------------------------------ data analysis
+- term: chemometrics
+  aliases: [chemometric model, multivariate analysis, Chemometrie]
+  category: data
+  definition: "Mathematical models that turn overlapping spectra into concentrations or classes; built and validated on real samples."
+  source: {source: S01, page: 5}
+- term: calibration
+  aliases: [calibration model, calibrate, Kalibrierung, Kalibration, Kalibriermodell]
+  category: data
+  definition: "A model linking spectra to reference values for one matrix; a new formulation or matrix needs checking and normally a new model."
+  source: {source: S01, page: 10}
+- term: PLS
+  aliases: [partial least squares, PLS regression, PLS-DA]
+  category: data
+  definition: "Standard regression method for building calibration models from spectra, e.g. for fat and protein."
+  source: {source: S01, page: 17}
+- term: SNV and MSC
+  aliases: [SNV, MSC, standard normal variate, multiplicative scatter correction, scatter correction, Streukorrektur]
+  category: data
+  definition: "Pre-processing that removes light-scattering effects (e.g. from milk particles) before calibration."
+  source: {source: S01, page: 17}
+- term: data fusion
+  aliases: [low-level data fusion, Datenfusion]
+  category: data
+  definition: "Merging data from several methods into one model; needs synchronised data and its own validation."
+  source: {source: S01, page: 8}
+- term: reference method
+  aliases: [reference analysis, laboratory reference, lab reference, reference values, Referenzmethode, Referenzanalytik, Laborwerte]
+  category: data
+  definition: "Independent laboratory measurement (e.g. HPLC, Karl Fischer, oven drying) that provides the true values for calibration."
+  source: null
+
+# ------------------------------------------------------------------ sample properties
+- term: turbidity
+  aliases: [turbid, cloudy, hazy, trüb, Trübung]
+  category: sample
+  definition: "Cloudiness of a liquid; correlates with cell density in suspensions and decides between transmission and ATR."
+  source: {source: S01, page: 16}
+- term: opaque
+  aliases: [non-transparent, concentrated, undurchsichtig, opak]
+  category: sample
+  definition: "Light cannot pass through; reflection or ATR is used instead of transmission."
+  source: {source: S01, page: 17}
+- term: clear liquid
+  aliases: [clear, transparent, klar, durchsichtig]
+  category: sample
+  definition: "Light passes through easily; transmission or transflection is preferred."
+  source: {source: S01, page: 18}
+- term: optical density
+  aliases: [OD, absorbance level, optische Dichte]
+  category: sample
+  definition: "How strongly a medium attenuates light; high OD saturates transmission, so ATR is used."
+  source: {source: S01, page: 16}
+- term: heterogeneous sample
+  aliases: [heterogeneous, inhomogeneous, heterogen, inhomogen]
+  category: sample
+  definition: "Composition varies from spot to spot; methods must sample the same point, ideally at the same time."
+  source: {source: S01, page: 8}
+- term: aqueous medium
+  aliases: [aqueous, water-based, wässrig]
+  category: sample
+  definition: "Water absorbs strongly in the infrared; Raman shows low water absorbance."
+  source: {source: S01, page: 16}
+- term: powder
+  aliases: [powder blend, blend, granulate, Pulver, Pulvermischung, Granulat]
+  category: sample
+  definition: "Scattering solid; NIR diffuse reflection and Raman probes are the usual interfaces."
+  source: {source: S01, page: 6}
+- term: polymer melt
+  aliases: [melt, hot melt, Schmelze, Polymerschmelze]
+  category: sample
+  definition: "Hot molten polymer; AFS shows a diamond ATR probe and an NIR reflection probe at an extruder."
+  source: {source: S02, page: 14}
+- term: biological tissue
+  aliases: [tissue, Gewebe]
+  category: sample
+  definition: "Heterogeneous soft sample; MIR ATR sees the surface, NIR and fluorescence look deeper."
+  source: {source: S01, page: 13}
+
+# ------------------------------------------------------------------ analytes
+- term: moisture
+  aliases: [water content, humidity, Feuchte, Feuchtigkeit, Wassergehalt, Restfeuchte]
+  category: analyte
+  definition: "Water in a product; NIR bands around 1.3-2.2 um carry moisture information."
+  source: {source: S02, page: 18}
+- term: water in petroleum
+  aliases: [water in oil, Wasser in Öl, Wasser im Erdöl]
+  category: analyte
+  definition: "AFS shows lab MIR ATR spectra of oil with 0.1-2.0 % water (absorbance rising between about 4000 and 3000 cm-1)."
+  source: {source: S02, page: 13}
+- term: fat
+  aliases: [lipid, lipids, Fett, Fettgehalt]
+  category: analyte
+  definition: "Measured in dairy by NIR (with scatter correction and PLS); band region 0.85-1.1 um among others."
+  source: {source: S01, page: 17}
+- term: protein
+  aliases: [Eiweiß, Eiweiss, Proteingehalt]
+  category: analyte
+  definition: "Measured in dairy by NIR; amide bands in the MIR."
+  source: {source: S01, page: 17}
+- term: glucose
+  aliases: [Glukose, Glucose, sugar, Zucker]
+  category: analyte
+  definition: "Bioprocess metabolite reached by Raman, NIR (mM range) and MIR; not a fluorescent target."
+  source: {source: S01, page: 16}
+- term: lactate
+  aliases: [lactic acid, Laktat, Milchsäure]
+  category: analyte
+  definition: "Bioprocess metabolite reached by Raman, NIR and MIR."
+  source: {source: S01, page: 16}
+- term: biomass
+  aliases: [cell density, cell mass, viable biomass, viable cells, Biomasse, Zelldichte]
+  category: analyte
+  definition: "Turbidity correlates with cell density, but that does not show which cells are viable."
+  source: {source: S01, page: 16}
+- term: NADH
+  aliases: [NAD(P)H, tryptophan, riboflavin]
+  category: analyte
+  definition: "Fluorescent cofactors and amino acids detectable at nM-uM levels by fluorescence."
+  source: {source: S01, page: 16}
+- term: API
+  aliases: [active pharmaceutical ingredient, active ingredient, drug substance, Wirkstoff]
+  category: analyte
+  definition: "The active ingredient in a pharmaceutical blend; its concentration (blend potency) is monitored in-line."
+  source: {source: S01, page: 14}
+- term: hydrocarbons
+  aliases: [hydrocarbon, Kohlenwasserstoffe]
+  category: analyte
+  definition: "Organic C-H compounds; MIR band region about 3.0-3.7 um."
+  source: {source: S02, page: 18}
+
+# ------------------------------------------------------------------ applications and process
+- term: feed frame
+  aliases: [tablet press, rotary tablet press, Tablettenpresse]
+  category: application
+  definition: "Where the powder blend enters a rotary tablet press; NIR and Raman probes measure blend potency there."
+  source: {source: S01, page: 14}
+- term: milk concentrate
+  aliases: [milk, dairy, Milch, Milchkonzentrat, Molkerei]
+  category: application
+  definition: "Opaque dairy product; NIR reflection is the usual in-line method."
+  source: {source: S01, page: 17}
+- term: whey
+  aliases: [permeate, skim milk, Molke, Magermilch]
+  category: application
+  definition: "Clear or semi-transparent dairy stream; NIR transmission is preferred."
+  source: {source: S01, page: 18}
+- term: fermentation
+  aliases: [bioprocess, bioreactor, cell culture, yeast, broth, Fermentation, Gärung, Bioreaktor, Zellkultur, Hefe]
+  category: application
+  definition: "No single sensor fits every bioprocess analyte; UV/Vis, Raman, NIR and fluorescence each cover different variables."
+  source: {source: S01, page: 16}
+- term: petroleum
+  aliases: [crude oil, oil line, fuel, Erdöl, Rohöl, Öl]
+  category: application
+  definition: "AFS application slide: water content in petroleum by MIR ATR."
+  source: {source: S02, page: 13}
+- term: extrusion
+  aliases: [hot melt extrusion, extruder, Extrusion, Extruder]
+  category: application
+  definition: "AFS application slide: NIR reflection and MIR ATR to control API in polymer extrusion in-line."
+  source: {source: S02, page: 14}
+- term: in-line monitoring
+  aliases: [in-line, inline, online, in-process, in situ, PAT, process analytical technology, Inline-Messung, Prozessanalytik]
+  category: process
+  definition: "Measuring directly in the process flow or reactor without taking samples, avoiding delays."
+  source: {source: S01, page: 3}
+- term: multi-method lab trial
+  aliases: [lab trial, feasibility study, Machbarkeitsstudie, Labortest]
+  category: process
+  definition: "AFS step 1: test the customer's process with all key fiber spectroscopy methods before choosing a solution."
+  source: {source: S02, page: 20}
+
+# ------------------------------------------------------------------ evidence words
+- term: proof of concept
+  aliases: [in vitro, pilot study, Machbarkeitsnachweis]
+  category: evidence
+  definition: "Early demonstration on limited samples; a reason to test further, not proof of readiness for routine or clinical use."
+  source: {source: S03, page: 14}
+
+# ------------------------------------------------------------------ vague words (flagged in the pre-check)
+- term: quality
+  aliases: [product quality, off-spec, off specification, out of spec, Qualität, Ausschuss]
+  category: vague
+  ask: "Which measurable variable defines quality or off-spec here (a concentration, moisture, a contaminant, a physical property)?"
+  definition: "Too general to choose a method; spectroscopy measures specific chemical or physical properties."
+  source: null
+- term: contamination
+  aliases: [contaminant, impurity, impurities, Verunreinigung, Kontamination, Fremdstoff]
+  category: vague
+  ask: "Which contaminant is suspected (chemical class, source) and at what level does it matter?"
+  definition: "A method can only be chosen once the contaminant and its level are known."
+  source: null
+- term: best method
+  aliases: [best, optimal method, beste Methode]
+  category: vague
+  ask: "What decides 'best' here: accuracy, speed, cost per measuring point, or robustness?"
+  definition: "'Best' depends on the target, matrix and constraints; it is decided by comparison on real samples."
+  source: {source: S01, page: 5}
+- term: exact configuration
+  aliases: [exact, exact sensor, precise configuration, final configuration, genaue Konfiguration]
+  category: vague
+  ask: "Which facts are fixed already (target, range, conditions, installation), and is a provisional shortlist acceptable for the first step?"
+  definition: "An exact configuration needs the target, optics, conditions and acceptance criteria first."
+  source: null
+- term: immediately
+  aliases: [right away, today, asap, sofort, umgehend]
+  category: vague
+  ask: "Is a provisional recommendation with a first lab trial acceptable as the immediate step?"
+  definition: "A fast first answer is possible; a final one needs the missing facts and a test."
+  source: null
+- term: sensitive
+  aliases: [very sensitive, high sensitivity, empfindlich]
+  category: vague
+  ask: "Which concentration or change must be detected, and does the target actually give a signal for this method?"
+  definition: "Sensitivity helps only if the target gives a specific signal; fluorescence is sensitive but not selective."
+  source: {source: S01, page: 6}
+- term: real time
+  aliases: [real-time, Echtzeit]
+  category: vague
+  ask: "How quickly must a change be detected (seconds, minutes)?"
+  definition: "Response-time needs decide instrument type and sampling rate."
+  source: null
+- term: approval
+  aliases: [approve, approved, confirm, guarantee, freigeben, Freigabe, garantieren]
+  category: vague
+  ask: "What exactly should be approved, and which facts (fiber type, link length, conditions) are already known?"
+  definition: "A concept can only be approved once its physical and process conditions are checked."
+  source: null
+- term: proof
+  aliases: [prove, proven, evidence that, Beweis, Nachweis]
+  category: vague
+  ask: "Which result on your own samples or setup would count as proof for your use?"
+  definition: "A published study is a reason to test, not proof for a new setup or use."
+  source: {source: S03, page: 14}

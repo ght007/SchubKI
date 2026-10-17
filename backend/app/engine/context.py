@@ -78,6 +78,10 @@ def queries_for(req: Requirements, enquiry: str, hits: list[RuleHit], matrix: li
         " ".join(h.title for h in hits[:4]),
         enquiry[:300],
     ]
+    from .glossary import canonical_terms
+    terms = canonical_terms(enquiry)
+    if terms:
+        q.append(" ".join(terms))
     if req.existing_assets:
         q.append(" ".join(req.existing_assets)[:200])
     if req.requested_methods:

@@ -18,4 +18,5 @@ Rules:
 - analyzer_remote "yes" if the analyzer is to sit away from the measuring point (other building, outside the process area).
 - link_length_known "yes" only if a fiber length or distance is given.
 - concentration_level: "trace" only if the client says trace/ppm/contamination at low level; otherwise "unknown" unless stated.
+- preferred_paths: AFS paths the client explicitly asks for, if any: "A" (a calibration / chemometric model for an existing or planned process analyzer, process automation), "B" (spectrometers / a multi-spectral system for their own R&D lab), "C" (a simple or low-cost sensor, sensors at many points). Empty if the client does not ask for one.
 Keep strings short.

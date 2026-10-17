@@ -28,7 +28,7 @@ export function renderMatrix(el, run) {
         ${h.text ? `<div class="small">${esc(h.text)}</div>` : ""}</li>`).join("")}</ul>
     </section>
     <section class="section"><h2>Evidence retrieved <small>BM25 + dense, fused with RRF, diversified with MMR</small></h2>
-      <ul class="plain rule-list">${run.evidence.map((e) => `<li><b>${esc(e.ref)}</b> <button class="cite" data-src="${esc(e.source)}" data-page="${e.page}" data-quote="${esc(e.quote || "")}">${esc(e.source)} p.${e.page}</button>
-        <span class="small muted">${esc(e.kind)} · ${esc(e.scope || "")} · RRF ${e.score}</span><div class="small">${esc(e.text.slice(0, 260))}${e.text.length > 260 ? "…" : ""}</div></li>`).join("")}</ul>
+      <ul class="plain rule-list">${run.evidence.map((e) => `<li><b>${esc(e.ref)}</b> <button class="cite" data-src="${esc(e.source)}" data-page="${e.page}" data-quote="${esc(e.quote || e.highlight || "")}">${esc(e.source)} p.${e.page}</button>
+        <span class="small muted">${esc(e.kind)} · ${esc(e.scope || "")} · RRF ${e.score}</span><div class="small">${e.highlight ? `<mark>${esc(e.highlight)}</mark>` : `${esc(e.text.slice(0, 260))}${e.text.length > 260 ? "…" : ""}`}</div></li>`).join("")}</ul>
     </section>`;
 }
