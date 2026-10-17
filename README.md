@@ -81,7 +81,7 @@ cited (and clearly labelled) assessment.
 
 ```
                           ┌─────────────────────────── Browser (frontend/, no build step) ───────────────────────────┐
-                          │ enquiry · numbered spectrum pipeline navigation · seven stage views                     │
+                          │ enquiry · numbered dots on a spectrum pipeline line · seven stage views                 │
                           │ What-if / Council / Trace                                                                │
                           │ source drawer (PDF page with highlighted quote)                                          │
                           └──────────────────────────────────────┬───────────────────────────────────────────────────┘
@@ -116,9 +116,10 @@ command. A separate vector service would add setup risk and no benefit at this s
 
 The seven browser steps group the modules below: Read, Rules, Evidence, Premises, Assess, Verify, and
 Coach. Each step emits `stage` progress events and a `stage_result` containing its own output when done.
-The numbered segments in the top navigation bar follow the active step automatically and fill with
-their own visual-spectrum color when complete. Selecting a segment lets you inspect that step's result
-while later steps continue. The active and selected steps remain visually distinct. The final `result`
+The numbered dots in the top navigation bar follow the active step automatically. They stay hollow
+until their step completes, then fill with its visual-spectrum color; the connecting line keeps a color
+gradient. Selecting a step lets you inspect its result while later steps continue. The active and
+selected steps remain visually distinct. The final `result`
 contains the complete run saved in SQLite.
 
 | # | Stage | Module | LLM? | Output |
@@ -251,10 +252,10 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
 Open `http://localhost:8000`.
 
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
-- **Top pipeline navigation:** One bar contains seven numbered segments: Read → Rules → Evidence →
-  Premises → Assess → Verify → Coach. Each segment fills with its visual-spectrum color when that step
-  completes. The running step and the step being viewed have separate visual states. Select any segment
-  to inspect its output; **Follow current step** resumes automatic navigation.
+- **Top pipeline navigation:** One gradient line connects seven numbered dots: Read → Rules → Evidence →
+  Premises → Assess → Verify → Coach. Dots stay hollow until their step completes, then fill with that
+  step's spectrum color. The running step and the step being viewed have separate visual states. Select
+  any step to inspect its output; **Follow current step** resumes automatic navigation.
 - **Left:** enquiry box with a scenario loader (H, D and adversarial cases), Fast / Council mode, and
   stage log.
 - **Seven stage views:** Read shows extracted facts, unknowns, and client premises. Rules shows fired

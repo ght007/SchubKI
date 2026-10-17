@@ -1,4 +1,4 @@
-// Summary badges and the navigable spectrum of pipeline steps.
+// Summary badges and the navigable spectrum line with completion dots.
 import { esc } from "../api.js";
 import { STEPS, STATUS_LABELS, activeStep, isStep, stepStatus } from "../pipeline-steps.js";
 
@@ -39,7 +39,15 @@ export function renderFiber(el, s, onSelect) {
   const focused = el.contains(document.activeElement) ? document.activeElement.dataset.step : null;
   const current = s.busy ? activeStep(s) : null;
   const focusable = isStep(s.tab) ? s.tab : "extract";
-  el.innerHTML = STEPS.map((step, index) => {
+  const firstPending = STEPS.findIndex((step) => stepStatus(s, step.id) !== "done");
+  const completed = firstPending === -1 ? STEPS.length : firstPending;
+  const progress = completed ? (completed - 1) / (STEPS.length - 1) * 100 : 0;
+  const spectrum = `linear-gradient(90deg, ${STEPS.map((step, index) =>
+    `${step.color} ${(index / (STEPS.length - 1) * 100).toFixed(2)}%`).join(", ")})`;
+  el.innerHTML = `<div class="fiber-rail" style="--spectrum:${spectrum};--progress:${progress.toFixed(2)}%">
+    <div class="fiber-track" aria-hidden="true"></div>
+    <div class="fiber-lit" aria-hidden="true"></div>
+    ${STEPS.map((step, index) => {
       const status = stepStatus(s, step.id);
       return `<button type="button" id="tab-${step.id}" role="tab" aria-controls="view"
         tabindex="${focusable === step.id ? 0 : -1}" aria-selected="${s.tab === step.id}"
@@ -49,7 +57,7 @@ export function renderFiber(el, s, onSelect) {
         aria-label="Step ${index + 1} of ${STEPS.length}: ${step.label}. ${STATUS_LABELS[status]}">
         <span class="step-count">Step ${index + 1} of ${STEPS.length}</span>
         <span class="step-name">${step.short}</span></button>`;
-    }).join("");
+    }).join("")}</div>`;
   el.querySelectorAll("[data-step]").forEach((button) => (button.onclick = () => onSelect(button.dataset.step)));
   el.onkeydown = (ev) => {
     if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(ev.key)) return;
