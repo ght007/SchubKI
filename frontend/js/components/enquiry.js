@@ -25,7 +25,7 @@ export function renderEnquiry(el, s, actions) {
     </div>
     ${s.stages.length ? `<ul class="stage-log">${s.stages.filter((x) => x.status === "done").map((x) =>
       `<li><b>${esc(x.stage)}</b> ${esc(x.detail || "")} <span class="muted">${x.ms ?? ""} ms</span></li>`).join("")}
-      ${s.details.slice(-3).map((d) => `<li class="muted">${esc(d)}</li>`).join("")}</ul>` : ""}
+      ${s.details.slice(-3).map((d) => `<li class="muted">${esc(d.detail)}</li>`).join("")}</ul>` : ""}
     ${s.error ? `<div class="err">${esc(s.error)}</div>` : ""}`;
 
   el.querySelector("#example").onchange = (ev) => {

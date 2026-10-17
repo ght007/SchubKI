@@ -1,34 +1,37 @@
-// Method screening matrix + fired rules.
+// Deterministic rule findings and method screening. Retrieval has its own stage.
 import { esc } from "../api.js";
 
-export function renderMatrix(el, run) {
-  const max = Math.max(4, ...run.matrix.map((m) => Math.abs(m.score)));
-  const conf = Object.fromEntries((run.confidence?.per_method || []).map((m) => [m.method_id, m.level]));
-  const cov = Object.fromEntries((run.coverage || []).map((c) => [c.method_id, c]));
+const list = (value) => Array.isArray(value) ? value : [];
+
+export function renderMatrix(el, run = {}) {
+  const hits = list(run.rule_hits);
+  const methods = list(run.matrix);
+  const coverage = Object.fromEntries(list(run.coverage).map((item) => [item.method_id, item]));
+  const max = Math.max(4, ...methods.map((item) => Math.abs(Number(item.score) || 0)));
+
   el.innerHTML = `
-    <section class="section"><h2>Method screening <small>every point comes from a sourced rule</small></h2>
-      <table class="matrix"><thead><tr><th>Method</th><th>Score</th><th></th><th>Verdict</th><th>Confidence</th><th>Why</th></tr></thead><tbody>
-      ${run.matrix.map((m) => {
-        const w = (Math.abs(m.score) / max) * 50;
-        const bar = m.score >= 0 ? `<i style="left:50%;width:${w}%;background:var(--core)"></i>` : `<i style="right:50%;width:${w}%;background:var(--block)"></i>`;
-        const fiberOk = (cov[m.method_id]?.fibers || []).filter((f) => f.covers !== "none").map((f) => f.fiber_id).join(", ");
-        return `<tr><td><b>${esc(m.name)}</b>${m.requested_by_client ? `<div class="small muted">requested by client</div>` : ""}
-          <div class="small muted">fibers: ${esc(fiberOk || "none")}</div></td>
-          <td>${m.score > 0 ? "+" : ""}${m.score}</td><td><div class="bar">${bar}</div></td>
-          <td><span class="verdict-chip ${m.verdict}">${esc(m.verdict.replace("_", " "))}</span></td>
-          <td><span class="lvl ${conf[m.method_id] || "low"}">${esc(conf[m.method_id] || "-")}</span></td>
-          <td><ul class="contrib">${m.contributions.map((c) => `<li>${c.delta > 0 ? "+" : ""}${c.delta} ${esc(c.reason)}</li>`).join("") || "<li>no rule fired</li>"}</ul>
-          ${cov[m.method_id]?.asset_check ? `<div class="err" style="margin-top:.3rem">${esc(cov[m.method_id].asset_check)}</div>` : ""}</td></tr>`;
+    <section class="section"><h2>Rules that fired <small>${hits.length} of the AFS knowledge base</small></h2>
+      ${hits.length ? `<ul class="plain rule-list">${hits.map((hit) => `<li>
+        <span class="sev ${esc(hit.severity)}">${esc(hit.severity)}</span><b>${esc(hit.title)}</b>
+        <span class="small muted">${esc(hit.rule_id)} · ${list(hit.sources).map((source) => `${esc(source.source)} p.${esc(source.page)}`).join(", ") || "no source listed"}</span>
+        ${hit.text ? `<div class="small">${esc(hit.text)}</div>` : ""}
+      </li>`).join("")}</ul>` : `<p class="muted">No rules fired for the extracted requirements.</p>`}
+    </section>
+    <section class="section"><h2>Method screening <small>scores from the rules above</small></h2>
+      ${methods.length ? `<div class="table-scroll"><table class="matrix"><thead><tr><th>Method</th><th>Score</th><th></th><th>Verdict</th><th>Why</th></tr></thead><tbody>
+      ${methods.map((method) => {
+        const score = Number(method.score) || 0;
+        const width = Math.min(50, Math.abs(score) / max * 50);
+        const bar = score >= 0 ? `<i style="left:50%;width:${width}%;background:var(--core)"></i>` : `<i style="right:50%;width:${width}%;background:var(--block)"></i>`;
+        const fit = coverage[method.method_id];
+        const fibers = list(fit?.fibers).filter((fiber) => fiber.covers !== "none").map((fiber) => fiber.fiber_id).join(", ");
+        return `<tr><td><b>${esc(method.name)}</b>${method.requested_by_client ? `<div class="small muted">requested by client</div>` : ""}
+          <div class="small muted">fibers: ${esc(fibers || "none")}</div></td>
+          <td>${score > 0 ? "+" : ""}${esc(score)}</td><td><div class="bar">${bar}</div></td>
+          <td><span class="verdict-chip ${esc(method.verdict)}">${esc(String(method.verdict || "candidate").replaceAll("_", " "))}</span></td>
+          <td><ul class="contrib">${list(method.contributions).map((contribution) => `<li>${Number(contribution.delta) > 0 ? "+" : ""}${esc(contribution.delta)} ${esc(contribution.reason)}</li>`).join("") || "<li>no rule fired</li>"}</ul>
+          ${fit?.asset_check ? `<div class="err" style="margin-top:.3rem">${esc(fit.asset_check)}</div>` : ""}</td></tr>`;
       }).join("")}
-      </tbody></table>
-    </section>
-    <section class="section"><h2>Rules that fired <small>${run.rule_hits.length} of the AFS knowledge base</small></h2>
-      <ul class="plain rule-list">${run.rule_hits.map((h) => `<li><span class="sev ${h.severity}">${h.severity}</span><b>${esc(h.title)}</b>
-        <span class="small muted">${esc(h.rule_id)} · ${h.sources.map((s) => `${s.source} p.${s.page}`).join(", ")}</span>
-        ${h.text ? `<div class="small">${esc(h.text)}</div>` : ""}</li>`).join("")}</ul>
-    </section>
-    <section class="section"><h2>Evidence retrieved <small>BM25 + dense, fused with RRF, diversified with MMR</small></h2>
-      <ul class="plain rule-list">${run.evidence.map((e) => `<li><b>${esc(e.ref)}</b> <button class="cite" data-src="${esc(e.source)}" data-page="${e.page}" data-quote="${esc(e.quote || "")}">${esc(e.source)} p.${e.page}</button>
-        <span class="small muted">${esc(e.kind)} · ${esc(e.scope || "")} · RRF ${e.score}</span><div class="small">${esc(e.text.slice(0, 260))}${e.text.length > 260 ? "…" : ""}</div></li>`).join("")}</ul>
+      </tbody></table></div>` : `<p class="muted">No method scores were produced.</p>`}
     </section>`;
 }

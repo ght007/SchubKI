@@ -30,9 +30,9 @@ export function renderReport(el, run) {
   const checks = checksByLocation(run);
   const fp = r.feasibility_plan;
   el.innerHTML = `
-    <div class="toolbar">
+    ${run.id ? `<div class="toolbar">
       <a class="btn" href="/api/runs/${run.id}/export.md" download>Download Markdown</a>
-    </div>
+    </div>` : ""}
     <div class="headline ${r.decision_status}">${esc(r.headline)}</div>
 
     ${run.premises?.length ? `<section class="section"><h2>Premise check <small>the client's own claims, tested first</small></h2>

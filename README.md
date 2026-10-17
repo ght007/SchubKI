@@ -80,10 +80,10 @@ cited (and clearly labelled) assessment.
 
 ```
                           ┌─────────────────────────── Browser (frontend/, no build step) ───────────────────────────┐
-                          │ enquiry · coach · tabs: assessment, methods, spectral map, confidence, what-if, council,   │
-                          │ trace · source drawer (PDF page with highlighted quote)                                  │
+                          │ enquiry · seven navigable stage views · What-if / Council / Trace                         │
+                          │ source drawer (PDF page with highlighted quote)                                          │
                           └──────────────────────────────────────┬───────────────────────────────────────────────────┘
-                                                                 │ HTTP + Server-Sent Events
+                                                                 │ HTTP + SSE (stage, stage_result, result)
 ┌────────────────────────────────────────────────── FastAPI (backend/app) ──────────────────────────────────────────────┐
 │ api/assess.py  api/sources.py  api/runs.py                                                                            │
 │                                                                                                                       │
@@ -102,13 +102,20 @@ cited (and clearly labelled) assessment.
 **Stack:** Python 3.12 · FastAPI · Pydantic · SQLite (FTS5) · fastembed (bge-small-en-v1.5, ONNX, CPU) ·
 PyMuPDF · rapidfuzz · Groq via the `openai` SDK · vanilla JavaScript ES modules (no framework, no build).
 
+`engine/pipeline.py` emits a `stage_result` after each stage with only that stage's output. The browser
+merges those results into the live run. `frontend/js/pipeline-steps.js` supplies one ordered step model
+for the progress line and tabs; `components/pipeline.js` renders the corresponding stage views.
+
 **Why SQLite and not a vector database:** about 275 indexed records. Brute-force cosine similarity in
 numpy takes microseconds, FTS5 gives BM25 for free, and the whole system runs from one file with one
 command. A separate vector service would add setup risk and no benefit at this size.
 
 ## 4. The pipeline, stage by stage
 
-Each stage streams a progress event to the browser (the "fiber" line at the top lights up).
+The seven browser steps group the modules below: Read, Rules, Evidence, Premises, Assess, Verify, and
+Coach. Each step emits `stage` progress events and a `stage_result` containing its own output when done.
+The progress line and tabs follow the active step automatically; selecting a step lets you inspect its
+result while later steps continue. The final `result` contains the complete run saved in SQLite.
 
 | # | Stage | Module | LLM? | Output |
 |---|---|---|---|---|
@@ -240,19 +247,18 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
 Open `http://localhost:8000`.
 
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
-- **Fiber line:** pipeline progress (Read → Rules → Evidence → Premises → Assess → Verify → Coach).
-- **Left:** enquiry box with a scenario loader (H, D and adversarial cases), Fast / Council mode, stage
-  log; enquiry coach below.
-- **Tabs**
-  - *Assessment*: headline, premise check, requirements, questions, recommendations (typed statements,
-    citation chips), concept, spectral range, risks, feasibility experiment, AFS pathway; Markdown download.
-  - *Methods & evidence*: screening matrix with every contribution, fired rules, retrieved passages.
-  - *Spectral map*: log wavelength axis 0.18–20 µm with analyte bands, method ranges and fiber
-    transmission; an incompatible client fiber is drawn in red with the silica limit line.
-  - *Confidence & quality*: signals, caps, the 16 checks, verifier and number tables.
-  - *What-if*: questions with what each would decide, answer fields, before/after diff.
-  - *Council*: drafts, gate failures, judge × draft scores, agreement.
-  - *Trace*: every LLM call (model, tokens, latency, cache, fallback), stage timings, retrieval queries.
+- **Progress line and stage tabs:** Read → Rules → Evidence → Premises → Assess → Verify → Coach. Each
+  shows whether its step is waiting, active, done, or stopped. The view follows the active step until you
+  choose one manually; **Follow current step** resumes automatic navigation.
+- **Left:** enquiry box with a scenario loader (H, D and adversarial cases), Fast / Council mode, and
+  stage log.
+- **Seven stage views:** Read shows extracted facts, unknowns, and client premises. Rules shows fired
+  rules, method screening, fiber coverage, and the spectral map. Evidence shows retrieval queries and
+  selected passages. Premises shows verdicts on the client's claims. Assess shows the report and Markdown
+  export. Verify shows citation, number, client-fact, and quality checks. Coach shows follow-up questions,
+  the improved enquiry template, and computed confidence.
+- **Explore views:** What-if compares a run after new answers; Council shows drafts, gates, judging, and
+  agreement; Trace shows LLM calls and timings. Completed runs can be reopened with `#run=<id>`.
 - **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
   verbatim, the page text with the passage marked, and the original PDF page with the passage highlighted.
 
@@ -377,9 +383,9 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 
 | Method & path | Purpose |
 |---|---|
-| `POST /api/assess` | Run the pipeline; Server-Sent Events stream (`stage`, `detail`, `error`, `result`). Body: `{enquiry, answers?, mode: fast|council}` |
+| `POST /api/assess` | Run the pipeline; SSE stream (`stage`, `stage_result`, `detail`, `error`, `result`). Each `stage_result` contains `stage` and `data` with only that stage's fields; `result` contains the complete saved run. Body: `{enquiry, answers?, mode: fast|council}` |
 | `POST /api/assess/sync` | Same, returns the run JSON (scripts, curl) |
-| `POST /api/whatif` | Re-run a saved run with answers; SSE. Body: `{run_id, answers, mode?}` |
+| `POST /api/whatif` | Re-run a saved run with answers; same SSE events. Body: `{run_id, answers, mode?}` |
 | `GET /api/coach/{run_id}` | Coach result of a run |
 | `GET /api/runs` · `GET /api/runs/{id}` | Saved runs |
 | `GET /api/runs/{id}/export.md` | Markdown export |
@@ -414,12 +420,13 @@ afs-assistant/
 │  │  └─ prompts/               extract · premise · report · repair · judge · coach (.md)
 │  ├─ kb/                       pages.py (page text, normaliser) · store.py (SQLite) · embed.py · ingest.py · retrieve.py
 │  ├─ engine/                   extract · rules · coverage · screen · context · premise · report · council ·
-│  │                            verify · quality · confidence · coach · whatif · pipeline
+│  │                            verify · quality · confidence · coach · whatif · pipeline (stage_result SSE)
 │  └─ render/markdown.py        run → Markdown
 ├─ frontend/
 │  ├─ index.html · css/styles.css
-│  └─ js/                       api.js · state.js · app.js · components/ (header, enquiry, coach, report,
-│                               matrix, spectral-map, evidence, quality, council, whatif, trace)
+│  └─ js/                       api.js · state.js · app.js · pipeline-steps.js (shared step model)
+│      └─ components/           pipeline.js (seven stage views) · header · enquiry · coach · report ·
+│                               matrix · spectral-map · evidence · quality · council · whatif · trace
 ├─ eval/
 │  ├─ cases/                    final_cases.yaml (H01–H06 verbatim) · dev_cases.yaml (D01–D08 + worked answers) · adversarial_cases.yaml
 │  ├─ run_cases.py · summary.py · judge.py

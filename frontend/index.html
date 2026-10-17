@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Single page: header, enquiry/coach, tabs, evidence drawer. -->
+<!-- Single page: header, navigable pipeline, enquiry, stage views, evidence drawer. -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -26,17 +26,17 @@
     <div id="status" class="status" aria-live="polite"></div>
   </header>
 
-  <div id="fiber" class="fiber" aria-label="Pipeline progress"></div>
+  <nav id="fiber" class="fiber" aria-label="Pipeline progress and navigation"></nav>
 
   <main class="shell">
     <aside class="left" id="left">
       <section id="enquiry" class="panel"></section>
-      <section id="coach" class="panel"></section>
     </aside>
 
     <section class="center">
-      <nav class="tabs" id="tabs" role="tablist"></nav>
-      <div id="view" class="view"></div>
+      <nav class="stage-tabs" id="tabs" role="tablist" aria-label="Pipeline steps"></nav>
+      <nav class="utility-tabs" id="tools" aria-label="Additional views"></nav>
+      <div id="view" class="view" role="tabpanel"></div>
     </section>
 
     <aside class="drawer" id="drawer" aria-label="Source viewer"></aside>

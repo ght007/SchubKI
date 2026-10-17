@@ -3,11 +3,13 @@
 const state = {
   run: null,            // current RunResult
   previous: null,       // run before the last what-if
+  liveRun: null,        // fields received from the run currently in progress
   stages: [],           // [{stage, label, status, detail, ms}]
-  details: [],          // council / repair progress lines
+  details: [],          // [{stage, detail}] council / repair progress lines
   busy: false,
   error: "",
-  tab: "assessment",
+  tab: "extract",
+  followStage: true,    // follow the live step until the user selects another view
   mode: "fast",
   examples: [],
   health: null,

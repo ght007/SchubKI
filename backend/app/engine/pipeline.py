@@ -29,6 +29,17 @@ from .context import queries_for
 
 Emit = Callable[[dict], None]
 
+STAGE_FIELDS = {
+    "extract": {"requirements"},
+    "rules": {"rule_hits", "coverage", "matrix", "spectral"},
+    "retrieve": {"evidence", "retrieval"},
+    "premise": {"premises"},
+    "report": {"report", "council"},
+    "council": {"report", "council"},
+    "verify": {"report", "verification", "quality"},
+    "coach": {"coach", "confidence", "diff"},
+}
+
 
 def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
     emit = emit or (lambda e: None)
@@ -44,6 +55,8 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
     def done(name: str, t0: float, detail: str = ""):
         run_.timings_ms[name] = int((time.time() - t0) * 1000)
         emit({"type": "stage", "stage": name, "status": "done", "detail": detail, "ms": run_.timings_ms[name]})
+        emit({"type": "stage_result", "stage": name,
+              "data": run_.model_dump(mode="json", include=STAGE_FIELDS[name])})
 
     try:
         t = stage("extract", "Reading the enquiry")
@@ -81,12 +94,14 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
                                                 on_event=lambda s, d: emit({"type": "detail", "stage": s, "detail": d}))
             if rep is None:
                 rep, llm_report = rule_fallback(), False
+            run_.report = rep
             done("council", t, f"winner {run_.council.winner or '-'}, agreement {run_.council.agreement:.0%}")
         else:
             t = stage("report", "Writing the assessment")
             rep = report_mod.draft(model_for("report"), "report", user_prompt, trace)
             if rep is None:
                 rep, llm_report = rule_fallback(), False
+            run_.report = rep
             done("report", t, rep.decision_status)
 
         t = stage("verify", "Verifying citations, numbers and client facts")
@@ -108,14 +123,13 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
 
         t = stage("coach", "Enquiry coach")
         run_.coach = coach_mod.build(run_.enquiry, req, run_.answers, trace)
-        done("coach", t, f"completeness {run_.coach.completeness}/{run_.coach.total}")
-
         run_.confidence = confidence_mod.compute(req, run_.rule_hits, run_.matrix, run_.premises, ver, run_.coach,
                                                  run_.council, rep)
         if request.parent_run_id:
             parent = store.get_run(request.parent_run_id)
             if parent:
                 run_.diff = whatif_mod.diff(RunResult.model_validate(parent), run_)
+        done("coach", t, f"completeness {run_.coach.completeness}/{run_.coach.total}")
     except Exception as exc:  # never lose a run silently
         run_.error = f"{type(exc).__name__}: {exc}"
         emit({"type": "error", "detail": run_.error})

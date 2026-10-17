@@ -1,26 +1,28 @@
-// Boot, wiring, tab switching.
+// Boot, live pipeline state, and navigation between its steps.
 import { esc, getJSON, stream } from "./api.js";
 import * as store from "./state.js";
+import { STEPS, UTILITIES, STATUS_LABELS, activeStep, canonicalStage, isStep, latestStageEvent, normalizeTab, stepStatus } from "./pipeline-steps.js";
 import { renderStatus, renderFiber } from "./components/header.js";
 import { renderEnquiry } from "./components/enquiry.js";
-import { renderCoach } from "./components/coach.js";
-import { renderReport } from "./components/report.js";
-import { renderMatrix } from "./components/matrix.js";
-import { renderSpectral } from "./components/spectral-map.js";
+import { hasStageData, renderPipelineStep } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
-import { renderQuality } from "./components/quality.js";
 import { renderCouncil } from "./components/council.js";
 import { renderWhatIf } from "./components/whatif.js";
 import { renderTrace } from "./components/trace.js";
 
 const $ = (id) => document.getElementById(id);
-const TABS = [
-  ["assessment", "Assessment"], ["methods", "Methods & evidence"], ["spectral", "Spectral map"],
-  ["quality", "Confidence & quality"], ["whatif", "What-if"], ["council", "Council"], ["trace", "Trace"],
-];
 
 const actions = {
   setMode(mode) { store.remember("mode", mode); store.set({ mode }); },
+  selectTab(id) {
+    const tab = normalizeTab(id);
+    store.remember("tab", tab);
+    store.set({ tab, followStage: false });
+  },
+  followCurrent() {
+    const current = activeStep(store.get());
+    if (current) store.set({ tab: current, followStage: true });
+  },
   setAnswer(key, value) { store.get().answers[key] = value; },           // no re-render while typing
   async assess(enquiry) {
     if (!enquiry.trim()) { store.set({ error: "Type or load an enquiry first." }); return; }
@@ -28,7 +30,7 @@ const actions = {
     await run("/api/assess", { enquiry, mode: store.get().mode });
   },
   async assessCouncil() {
-    const r = store.get().run;
+    const r = store.get().busy ? null : store.get().run;
     if (r) { store.set({ mode: "council", answers: {} }); await run("/api/assess", { enquiry: r.enquiry, answers: r.answers, mode: "council" }); }
   },
   async whatif() {
@@ -41,63 +43,138 @@ const actions = {
 };
 
 async function run(url, body, isWhatIf = false) {
-  store.set({ busy: true, error: "", stages: [], details: [], previous: store.get().run });
+  const previous = store.get().run;
+  const liveRun = {
+    enquiry: body.enquiry || previous?.enquiry || "",
+    answers: body.answers || previous?.answers || {},
+    mode: body.mode || store.get().mode,
+    timings_ms: {},
+  };
+  store.set({ busy: true, error: "", stages: [], details: [], previous,
+    run: null, liveRun, tab: "extract", followStage: true });
+  let receivedResult = false;
   try {
     await stream(url, body, (e) => {
       const s = store.get();
       if (e.type === "stage") {
-        const stages = s.stages.filter((x) => !(x.stage === e.stage && x.status === "start" && e.status === "done"));
-        store.set({ stages: [...stages, e] });
+        store.set({ stages: [...s.stages, e],
+          ...(e.status === "start" && s.followStage ? { tab: canonicalStage(e.stage) } : {}) });
+      } else if (e.type === "stage_result") {
+        const stageDone = [...s.stages].reverse().find((item) => item.stage === e.stage && item.status === "done");
+        store.set({ liveRun: { ...s.liveRun, ...e.data,
+          timings_ms: { ...s.liveRun.timings_ms, [e.stage]: stageDone?.ms ?? 0 } } });
       } else if (e.type === "detail") {
-        store.set({ details: [...s.details, e.detail] });
+        store.set({ details: [...s.details, { stage: e.stage, detail: e.detail }] });
       } else if (e.type === "error") {
         store.set({ error: `The run hit an error: ${e.detail}` });
       } else if (e.type === "result") {
-        const tab = isWhatIf ? "whatif" : s.tab;
-        store.set({ run: e.run, tab, answers: {} });
-        history.replaceState(null, "", `#run=${e.run.id}`);
+        receivedResult = true;
+        const tab = s.followStage && !e.run.error ? (isWhatIf ? "whatif" : "report") : s.tab;
+        store.set({ run: e.run, liveRun: e.run, tab, answers: {} });
+        if (e.run.id) history.replaceState(null, "", `#run=${e.run.id}`);
       }
     });
   } catch (err) {
     store.set({ error: `Could not reach the assistant: ${err.message}` });
   } finally {
-    store.set({ busy: false });
+    if (!receivedResult) {
+      const s = store.get();
+      store.set({ run: { ...s.liveRun, error: s.error || "Run ended before a result was returned." },
+        liveRun: null, busy: false });
+    } else {
+      store.set({ liveRun: null, busy: false });
+    }
   }
 }
 
 function renderTabs(s) {
-  const r = s.run;
-  const counts = r ? { methods: r.rule_hits.length, quality: r.quality ? `${r.quality.passed}/${r.quality.total}` : "" } : {};
-  $("tabs").innerHTML = TABS.map(([k, l]) => `<button role="tab" aria-selected="${s.tab === k}" data-tab="${k}">${l}${counts[k] ? `<span class="count">${counts[k]}</span>` : ""}</button>`).join("");
-  $("tabs").querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { store.remember("tab", b.dataset.tab); store.set({ tab: b.dataset.tab }); }));
+  const focused = document.activeElement?.dataset.tab;
+  const focusable = isStep(s.tab) ? s.tab : "extract";
+  $("tabs").innerHTML = STEPS.map((step, index) => {
+    const status = stepStatus(s, step.id);
+    return `<button type="button" id="tab-${step.id}" role="tab" aria-controls="view"
+      aria-selected="${s.tab === step.id}" tabindex="${focusable === step.id ? 0 : -1}"
+      class="stage-tab ${status} ${s.tab === step.id ? "selected" : ""}" data-tab="${step.id}">
+      <span class="stage-index">Step ${index + 1} of ${STEPS.length}</span>
+      <span>${step.short}</span><span class="stage-state">${STATUS_LABELS[status]}</span></button>`;
+  }).join("");
+  $("tools").innerHTML = `<span class="small muted">Explore</span>${UTILITIES.map((item) =>
+    `<button type="button" id="tab-${item.id}" data-tab="${item.id}" aria-controls="view"
+      aria-pressed="${s.tab === item.id}" class="${s.tab === item.id ? "selected" : ""}">${item.label}</button>`).join("")}`;
+  document.querySelectorAll("[data-tab]").forEach((button) =>
+    (button.onclick = () => actions.selectTab(button.dataset.tab)));
+  $("tabs").onkeydown = (ev) => {
+    if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(ev.key)) return;
+    const index = STEPS.findIndex((step) => step.id === ev.target.dataset.tab);
+    if (index < 0) return;
+    ev.preventDefault();
+    const next = ev.key === "Home" ? 0 : ev.key === "End" ? STEPS.length - 1 :
+      (index + (ev.key === "ArrowRight" ? 1 : -1) + STEPS.length) % STEPS.length;
+    actions.selectTab(STEPS[next].id);
+    const selected = $(`tab-${STEPS[next].id}`);
+    selected.focus();
+    selected.scrollIntoView({ block: "nearest", inline: "nearest" });
+  };
+  if (focused) document.querySelector(`[data-tab="${focused}"]`)?.focus({ preventScroll: true });
+  $("view").setAttribute("aria-labelledby", `tab-${s.tab}`);
 }
 
 function renderView(s) {
   const el = $("view");
-  if (!s.run) {
-    el.innerHTML = `<div class="empty"><h2>Start with a customer enquiry</h2>
-      <p>Load one of the scenarios or paste a new enquiry, then choose <b>Assess enquiry</b>. The assistant will:</p>
-      <ol><li>separate what the customer said from what is unknown,</li><li>test the customer's own premises against the AFS sources,</li>
-      <li>screen the methods with sourced rules and check fiber coverage,</li><li>write a cited assessment and verify every quote on its page,</li>
-      <li>rate its confidence from observable signals and coach the next questions.</li></ol>
-      <p class="small">Fast mode uses one model; Council mode lets several models draft and judge each other blind.</p></div>`;
+  const run = s.busy ? s.liveRun : s.run;
+  if (!isStep(s.tab)) {
+    if (!run?.id || s.busy) {
+      const current = s.busy ? activeStep(s) : null;
+      el.innerHTML = `<div class="stage-placeholder">This view is available when the current assessment finishes.
+        ${current ? `<p>Currently running: ${esc(STEPS.find((item) => item.id === current).label)}</p>` : ""}
+        ${s.busy && !s.followStage && current ? `<button type="button" class="btn" id="followStep">Follow current step</button>` : ""}</div>`;
+      el.querySelector("#followStep")?.addEventListener("click", actions.followCurrent);
+      return;
+    }
+    if (s.tab === "whatif") renderWhatIf(el, { ...s, run }, actions);
+    else if (s.tab === "council") renderCouncil(el, run, actions);
+    else renderTrace(el, run);
     return;
   }
-  if (!s.run.report) { el.innerHTML = `<div class="err">This run produced no report. ${esc(s.run.error || "")}</div>`; return; }
-  const views = {
-    assessment: () => renderReport(el, s.run), methods: () => renderMatrix(el, s.run), spectral: () => renderSpectral(el, s.run),
-    quality: () => renderQuality(el, s.run), whatif: () => renderWhatIf(el, s, actions), council: () => renderCouncil(el, s.run, actions),
-    trace: () => renderTrace(el, s.run),
-  };
-  (views[s.tab] || views.assessment)();
+
+  const step = STEPS.find((item) => item.id === s.tab);
+  const index = STEPS.indexOf(step) + 1;
+  const status = stepStatus(s, step.id);
+  const event = latestStageEvent(s, step.id);
+  const current = s.busy ? activeStep(s) : null;
+  const details = s.details.filter((item) => canonicalStage(item.stage) === step.id);
+  el.innerHTML = `<div class="stage-header">
+    <div><span class="stage-index">Step ${index} of ${STEPS.length}</span>
+      <h2>${step.label}</h2><p class="small muted">${step.description}</p>
+      ${event?.detail ? `<p class="stage-note">${esc(event.detail)}${event.ms != null ? ` · ${event.ms} ms` : ""}</p>` : ""}
+      ${details.length ? `<p class="stage-note">${esc(details.at(-1).detail)}</p>` : ""}
+      ${s.busy && current && current !== step.id ? `<p class="stage-note">Currently running: ${esc(STEPS.find((item) => item.id === current).label)}</p>` : ""}</div>
+    <div class="row"><span class="stage-status ${status}" aria-live="polite">${STATUS_LABELS[status]}</span>
+      ${s.busy && !s.followStage && current ? `<button type="button" class="btn" id="followStep">Follow current step</button>` : ""}</div>
+  </div><div id="stage-content"></div>`;
+  el.querySelector("#followStep")?.addEventListener("click", actions.followCurrent);
+  const content = el.querySelector("#stage-content");
+  if (hasStageData(run, step.id)) {
+    renderPipelineStep(content, step.id, run, { ...s, run }, actions);
+  } else if (!run && !s.busy && !s.error) {
+    content.innerHTML = `<div class="empty"><h2>Start with a customer enquiry</h2>
+      <p>Load a scenario or type an enquiry. Each step above opens its own result as the pipeline runs; choose a step to inspect it, or follow the live step.</p>
+      <p class="small">Fast mode uses one model; Council mode lets several models draft and judge each other.</p></div>`;
+  } else {
+    const message = status === "active" ? "This step is running. Its output will appear here when it finishes." :
+      status === "error" ? "The run stopped before this step produced an output." :
+      status === "done" ? "This step finished. Waiting for its output to arrive." :
+      "This step has not run yet.";
+    content.innerHTML = `<div class="stage-placeholder">${message}${status === "error" && (s.error || run?.error) ?
+      `<div class="err">${esc(s.error || run.error)}</div>` : ""}</div>`;
+  }
 }
 
 let lastEvidence = null;
 function render(s) {
   renderStatus($("status"), s);
-  renderFiber($("fiber"), s);
+  renderFiber($("fiber"), s, actions.selectTab);
   renderEnquiry($("enquiry"), s, actions);
-  renderCoach($("coach"), s, actions);
   renderTabs(s);
   renderView(s);
   document.querySelector(".shell").classList.toggle("with-drawer", !!s.evidence);
@@ -118,9 +195,10 @@ document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && store.
 store.subscribe(render);
 
 (async function boot() {
-  store.set({ tab: store.recall("tab", "assessment"), mode: store.recall("mode", "fast") });
+  const linkedRun = location.hash.match(/run=([\w-]+)/);
+  store.set({ tab: normalizeTab(store.recall("tab", linkedRun ? "report" : "extract")),
+    mode: store.recall("mode", "fast") });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }
-  const m = location.hash.match(/run=([\w-]+)/);
-  if (m) { try { store.set({ run: await getJSON(`/api/runs/${m[1]}`) }); } catch (_) { /* old link */ } }
+  if (linkedRun) { try { store.set({ run: await getJSON(`/api/runs/${linkedRun[1]}`) }); } catch (_) { /* old link */ } }
 })();
