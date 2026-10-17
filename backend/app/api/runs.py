@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from ..config import settings
 from ..kb import embed, store
 from ..llm import models
-from ..render.markdown import render
+from ..render.markdown import render_full
 from ..schemas import RunResult
 
 router = APIRouter(prefix="/api")
@@ -38,9 +38,14 @@ def kb_summary():
 
 @router.get("/examples")
 def examples():
+    """Scenarios for the UI loader. Our own adversarial cases (A01-A07) are development-only:
+    they are hidden unless SHOW_DEV_CASES=1 is set in .env."""
+    import os
+    sets = [("final_cases.yaml", "Final (H)"), ("dev_cases.yaml", "Development (D)")]
+    if os.getenv("SHOW_DEV_CASES", "0") == "1":
+        sets.append(("adversarial_cases.yaml", "Adversarial (A, our own)"))
     out = []
-    for name, group in (("final_cases.yaml", "Final (H)"), ("dev_cases.yaml", "Development (D)"),
-                        ("adversarial_cases.yaml", "Adversarial (A)")):
+    for name, group in sets:
         path = settings.kb_dir.parent.parent / "eval" / "cases" / name
         if path.exists():
             for c in yaml.safe_load(path.read_text(encoding="utf-8"))["cases"]:
@@ -66,7 +71,7 @@ def export_md(run_id: str):
     run = store.get_run(run_id)
     if not run:
         raise HTTPException(404, "Run not found")
-    return PlainTextResponse(render(RunResult.model_validate(run)), media_type="text/markdown",
+    return PlainTextResponse(render_full(RunResult.model_validate(run)), media_type="text/markdown",
                              headers={"Content-Disposition": f'attachment; filename="assessment_{run_id}.md"'})
 
 

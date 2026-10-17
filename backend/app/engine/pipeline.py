@@ -19,6 +19,7 @@ from . import confidence as confidence_mod
 from . import council as council_mod
 from . import coverage as coverage_mod
 from . import extract as extract_mod
+from . import paths as paths_mod
 from . import premise as premise_mod
 from . import quality as quality_mod
 from . import report as report_mod
@@ -32,7 +33,7 @@ Emit = Callable[[dict], None]
 
 STAGE_FIELDS = {
     "extract": {"requirements"},
-    "rules": {"rule_hits", "coverage", "matrix", "spectral"},
+    "rules": {"rule_hits", "coverage", "matrix", "spectral", "paths"},
     "retrieve": {"evidence", "retrieval"},
     "premise": {"premises"},
     "report": {"report", "council"},
@@ -45,7 +46,8 @@ STAGE_FIELDS = {
 def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
     emit = emit or (lambda e: None)
     run_ = RunResult(id=uuid.uuid4().hex[:10], created=time.strftime("%Y-%m-%dT%H:%M:%S"), mode=request.mode,
-                     enquiry=request.enquiry.strip(), answers=request.answers, parent_run_id=request.parent_run_id)
+                     enquiry=request.enquiry.strip(), answers=request.answers, parent_run_id=request.parent_run_id,
+                     preferred_paths=list(request.preferred_paths), rejected=list(request.rejected))
     trace = run_.trace
     t_all = time.time()
 
@@ -73,6 +75,7 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
         t = stage("extract", "Reading the enquiry")
         model_activity("extract", "extracting facts and unknowns")
         req = extract_mod.extract(run_.enquiry, run_.answers, trace)
+        req = extract_mod.apply_rejected(req, run_.rejected)   # readings the user marked as wrong -> unknown
         run_.requirements = req
         done("extract", t, f"{len(req.facts)} facts, {len(req.unknowns)} unknowns, {len(req.premises)} premises")
 
@@ -81,6 +84,7 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
         run_.coverage = coverage_mod.compute(req)
         run_.matrix = screen_mod.screen(req, run_.rule_hits)
         run_.spectral = coverage_mod.spectral_map(req, run_.enquiry)
+        run_.paths = paths_mod.analyse(run_.rule_hits, req, list(request.preferred_paths), run_.answers)
         blocks = sum(1 for h in run_.rule_hits if h.severity == "block")
         done("rules", t, f"{len(run_.rule_hits)} rules fired ({blocks} blocking)")
 
@@ -97,6 +101,7 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
 
         user_prompt = report_mod.build_user_prompt(run_.enquiry, run_.answers, req, run_.rule_hits, run_.matrix,
                                                    run_.coverage, run_.premises, run_.evidence)
+        user_prompt += f"\n\nAFS PATH ANALYSIS (computed from sourced rules; do not contradict it):\n{paths_mod.prompt_block(run_.paths)}"
         rule_fallback = lambda: report_mod.rule_report(run_.enquiry, req, run_.rule_hits, run_.matrix,  # noqa: E731
                                                        run_.coverage, run_.premises)
         llm_report = True
@@ -117,6 +122,12 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
                 rep, llm_report = rule_fallback(), False
             run_.report = rep
             done("report", t, rep.decision_status)
+
+        # the pathway is deterministic and traceable: the computed path wins over the model's guess
+        if run_.paths:
+            if rep.pathway.likely_path != run_.paths.suggested or not rep.pathway.why:
+                rep.pathway.why = " ".join(run_.paths.reasons)
+            rep.pathway.likely_path = run_.paths.suggested
 
         t = stage("verify", "Verifying citations, numbers and client facts")
         ver = verify_mod.verify(rep, run_.enquiry, run_.answers, run_.evidence)

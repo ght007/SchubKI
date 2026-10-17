@@ -19,7 +19,8 @@ def _facts_mention(req: Requirements, *words: str) -> bool:
 
 
 def fields(req: Requirements, answers: dict[str, str]) -> list[CoachField]:
-    ans = " ".join(f"{k} {v}" for k, v in answers.items()).lower()
+    from .paths import general_answers
+    ans = " ".join(f"{k} {v}" for k, v in general_answers(answers).items()).lower()
     a = lambda *w: any(x in ans for x in w)  # noqa: E731
 
     def st(known: bool, inferred: bool = False) -> str:

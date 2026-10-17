@@ -42,7 +42,8 @@ def _fit(rng: tuple[float, float], fiber: dict) -> FiberFit:
 
 
 def has_silica_asset(req: Requirements) -> bool:
-    text = " ".join(req.existing_assets).lower()
+    from .glossary import expand
+    text = expand(" ".join(req.existing_assets)).lower()
     return any(w in text for w in SILICA_WORDS)
 
 
@@ -64,7 +65,8 @@ def compute(req: Requirements) -> list[MethodCoverage]:
 
 def bands_for(req: Requirements, enquiry: str) -> list[dict]:
     """Bands from bands.json whose analytes appear in the targets / enquiry."""
-    text = (" ".join(req.target_variables) + " " + enquiry + " " + req.matrix).lower()
+    from .glossary import expand
+    text = expand(" ".join(req.target_variables) + " " + enquiry + " " + req.matrix).lower()
     hits = []
     for b in kb()["bands"]["bands"]:
         if "range_um" not in b:

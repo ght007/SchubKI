@@ -15,6 +15,8 @@ function confidenceMarkup(confidence) {
     ${caps.length ? `<h3>Caps applied</h3><ul class="plain small">${caps.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>` : ""}
     ${raiseWith.length ? `<h3>What would raise confidence</h3><ul class="plain">${raiseWith.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>
       <p class="small muted">Answer these in the enquiry coach and re-run.</p>` : ""}
+    ${list(confidence.per_method).length ? `<h3>Confidence by method</h3><ul class="plain small">${confidence.per_method.map((method) =>
+      `<li><b>${esc(method.method_id)}</b> <span class="lvl ${esc(method.level)}">${esc(method.level)}</span> ${esc(method.detail)}</li>`).join("")}</ul>` : ""}
   </section>`;
 }
 

@@ -8,11 +8,16 @@ function contents(content, tab) {
   if (tab === "reading") return [
     ["Customer enquiry", "enq"],
     ["Load a scenario", "example"],
+    ["Preferred AFS path", "pathpick"],
     ["Assessment mode", "mode-label"],
     ["LLM model", "model-choice"],
-  ];
+    ["Review the reading", "reading-confirm-title"],
+    ["Follow-up questions", "reading-questions"],
+    ["Path follow-up questions", "path-questions"],
+  ].filter(([, id]) => content.querySelector(`#${id}`));
 
   const headings = [...content.querySelectorAll("h2, h3, summary")].filter((node) => {
+    if (node.tagName === "SUMMARY" && node.parentElement.classList.contains("srcs")) return false;
     if (node.tagName === "H3" && (tab !== "coach" || !node.textContent.includes("Improved enquiry"))) return false;
     return node.tagName === "SUMMARY" || !node.closest("details");
   });
@@ -35,7 +40,7 @@ function stageTime(s, run, id) {
 
 export function renderPageHeader(view, content, s, step, run, followCurrent) {
   const status = stepStatus(s, step.id);
-  const current = s.busy ? activeStep(s) : null;
+  const current = activeStep(s);
   const stageTimes = step.stages.map((id) => stageTime(s, run, id)).filter((ms) => Number.isFinite(ms));
   const runtime = stageTimes.reduce((sum, ms) => sum + ms, 0);
   const total = run?.timings_ms?.total;
@@ -53,7 +58,7 @@ export function renderPageHeader(view, content, s, step, run, followCurrent) {
     <div class="page-header-copy"><h1>${esc(step.label)}</h1><p>${esc(step.description)}</p></div>
     <div class="page-runtime" aria-label="Runtime statistics">
       <span class="page-stat">${stageTimes.length ? `${status === "active" ? "Runtime so far" : "Page runtime"}: <b>${formatTime(runtime)}</b>` :
-        s.busy && current === step.id ? "Running…" : "Runtime: awaiting assessment"}</span>
+        (s.busy || s.reading) && current === step.id ? "Running…" : "Runtime: awaiting assessment"}</span>
       ${Number.isFinite(total) ? `<span class="page-stat">Full run: <b>${formatTime(total)}</b></span>` : ""}
       ${s.busy && !s.followStage && current ? `<button type="button" class="btn" id="followStep">Follow current step</button>` : ""}
     </div>

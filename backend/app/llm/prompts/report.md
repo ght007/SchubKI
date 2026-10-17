@@ -23,6 +23,7 @@ HARD RULES
 - Respect the method screening: methods marked not_supported must appear with role "not_recommended" and a sourced reason if the client asked for them. Add a "comparison" or "conditional" role for credible alternatives. A combination is a hypothesis to test against the best single method.
 - clarification_questions: 3-6, highest impact first; "why" says what the answer would change.
 - feasibility_plan: representative samples / process states (including physical variation), independent reference measurements, what is compared (methods, geometries, single vs combined models), decision basis (client-agreed criteria on independent material). 3-6 concrete steps.
+- AFS PATH ANALYSIS: use its suggested path for pathway.likely_path. If the client or expert requested a path that "fits", tailor the feasibility_plan steps to that path (A: calibration set and model validation; B: lab kit and in-lab comparison; C: key-wavelength selection and few-band sensor check). Never call a "premature" or "conflicts" path suitable; separate "proceed anyway" plans are added automatically.
 - pathway: map to the AFS pathway: next step is usually a multi-method lab trial; likely_path A (chemometric model for process automation), B (customized multi-spectral system for R&D) or C (customized spectral IoT sensor), or "undecided" if too early.
 - Be concise. A short, well-founded answer beats a long, assertive one.
 

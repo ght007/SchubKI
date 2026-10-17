@@ -1,5 +1,5 @@
 // Boot, live pipeline state, and navigation between its steps.
-import { esc, getJSON, stream } from "./api.js";
+import { esc, getJSON, postJSON, stream } from "./api.js";
 import * as store from "./state.js";
 import { STEPS, activeStep, canOpenStep, normalizeTab, stepStatus } from "./pipeline-steps.js";
 import { renderStatus, renderFiber } from "./components/header.js";
@@ -7,16 +7,31 @@ import { renderPageHeader } from "./components/page-header.js";
 import { renderEnquiry } from "./components/enquiry.js";
 import { hasStageData, renderPipelineStep, renderProcess } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
+import { renderConfirm } from "./components/confirm.js";
+import { resetPrecheck } from "./components/precheck.js";
+import { activePathAnswers, loadPathQuestions, setDetected } from "./components/pathq.js";
+import { loadGlossary } from "./glossary.js";
 
 const $ = (id) => document.getElementById(id);
+let readingRequest = 0;
 
 const actions = {
   setMode(mode) { store.remember("mode", mode); store.set({ mode }); },
+  setView(view) { store.remember("view", view); store.set({ view }); },
+  setConfirm(confirm) { store.remember("confirm", confirm ? "on" : "off"); store.set({ confirm }); },
+  togglePath(path) {
+    const s = store.get();
+    if (s.busy || s.reading) return;
+    store.set({ paths: s.paths.includes(path) ? s.paths.filter((item) => item !== path) : [...s.paths, path].sort() });
+    if (s.understand) actions.understand(s.understand.enquiry);
+  },
   setModelChoice(modelChoice) { store.remember("modelChoice", modelChoice); store.set({ modelChoice }); },
   setDraftEnquiry(draftEnquiry) {
-    Object.assign(store.get(), { draftEnquiry, selectedExample: "" }); // keep typing without a re-render
+    Object.assign(store.get(), { draftEnquiry, selectedExample: "", answers: {}, rejected: [] }); // keep typing without a re-render
   },
-  setExample(selectedExample, draftEnquiry) { Object.assign(store.get(), { selectedExample, draftEnquiry }); },
+  setExample(selectedExample, draftEnquiry) {
+    Object.assign(store.get(), { selectedExample, draftEnquiry, answers: {}, rejected: [] });
+  },
   selectTab(id) {
     const tab = normalizeTab(id);
     if (!canOpenStep(store.get(), tab)) return;
@@ -28,34 +43,81 @@ const actions = {
     if (current) store.set({ tab: current, followStage: true });
   },
   setAnswer(key, value) { store.get().answers[key] = value; },           // no re-render while typing
+  async understand(enquiry) {
+    const request = ++readingRequest;
+    store.set({ reading: true, error: "", draftEnquiry: enquiry, tab: "reading" });
+    try {
+      const data = await postJSON("/api/understand", { enquiry, answers: {}, preferred_paths: [...store.get().paths] });
+      if (request !== readingRequest) return;
+      const s = store.get();
+      const answers = { ...s.answers };
+      data.prefilled = [];
+      for (const q of data.questions) {
+        if (q.prefill && !answers[q.key]) { answers[q.key] = q.prefill; data.prefilled.push(q.key); }
+      }
+      data.enquiry = enquiry;
+      setDetected(data.paths.detected);
+      store.set({ understand: data, answers, rejected: s.understand ? s.rejected : [] });
+    } catch (err) {
+      if (request === readingRequest) store.set({ error: `Could not read the enquiry: ${err.message}` });
+    } finally {
+      if (request === readingRequest) store.set({ reading: false });
+    }
+  },
+  closeConfirm() { ++readingRequest; store.set({ understand: null, rejected: [], reading: false }); },
+  async confirmRun(withAnswers) {
+    const s = store.get();
+    const u = s.understand;
+    if (!u || s.busy || s.reading) return;
+    const shown = new Set([...u.paths.chosen, ...u.paths.detected]);
+    const keys = new Set(u.questions.map((q) => q.key));
+    const answers = Object.fromEntries(Object.entries(s.answers).filter(([key, value]) => {
+      if (!value.trim()) return false;
+      const path = key.match(/^Path ([ABC]) - /);
+      return withAnswers ? !path || shown.has(path[1]) : !keys.has(key) && !path;
+    }));
+    await run("/api/assess", { enquiry: u.enquiry, answers, mode: s.mode,
+      preferred_paths: s.paths, rejected: [...s.rejected] });
+  },
   async assess(enquiry) {
     if (!enquiry.trim()) { store.set({ error: "Type or load an enquiry first." }); return; }
-    store.set({ answers: {}, draftEnquiry: enquiry });
-    await run("/api/assess", { enquiry, mode: store.get().mode });
+    const s = store.get();
+    if (s.busy || s.reading) return;
+    Object.assign(s, { draftEnquiry: enquiry });
+    if (s.confirm) { await actions.understand(enquiry.trim()); return; }
+    const answers = activePathAnswers(Object.fromEntries(Object.entries(s.answers).filter(([, value]) => value.trim())));
+    await run("/api/assess", { enquiry, answers, mode: s.mode, preferred_paths: s.paths });
   },
   async assessCouncil() {
     const r = store.get().busy ? null : store.get().run;
-    if (r) { store.remember("mode", "council"); store.set({ mode: "council", answers: {} }); await run("/api/assess", { enquiry: r.enquiry, answers: r.answers, mode: "council" }); }
+    if (r) { store.remember("mode", "council"); store.set({ mode: "council", answers: {} }); await run("/api/assess", {
+      enquiry: r.enquiry, answers: r.answers, mode: "council", preferred_paths: r.preferred_paths || [], rejected: r.rejected || [] }); }
   },
   async whatif() {
     const s = store.get();
     if (!s.run) return;
-    const answers = Object.fromEntries(Object.entries(s.answers).filter(([, v]) => v.trim()));
-    if (!Object.keys(answers).length) { store.set({ error: "Type at least one answer first." }); return; }
-    await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode });
+    const answers = activePathAnswers(Object.fromEntries(Object.entries(s.answers).filter(([key, value]) =>
+      value.trim() && s.run.answers?.[key] !== value)));
+    const pathsChanged = JSON.stringify(s.paths) !== JSON.stringify(s.run.preferred_paths || []);
+    if (!Object.keys(answers).length && !pathsChanged) { store.set({ error: "Type at least one answer, or change the preferred path in Reading, first." }); return; }
+    await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode, preferred_paths: s.paths });
   },
 };
 
 async function run(url, body) {
+  ++readingRequest;
+  resetPrecheck();
   const previous = store.get().run;
   const liveRun = {
     enquiry: body.enquiry || previous?.enquiry || "",
-    answers: body.answers || previous?.answers || {},
+    answers: { ...(url === "/api/whatif" ? previous?.answers : {}), ...body.answers },
     mode: body.mode || store.get().mode,
+    preferred_paths: body.preferred_paths || previous?.preferred_paths || [],
+    rejected: body.rejected || previous?.rejected || [],
     timings_ms: {},
   };
   store.set({ busy: true, error: "", stages: [], details: [], previous,
-    run: null, liveRun, tab: "process", followStage: true });
+    run: null, liveRun, tab: "process", followStage: true, understand: null, reading: false, evidence: null });
   let receivedResult = false;
   try {
     await stream(url, body, (e) => {
@@ -72,7 +134,9 @@ async function run(url, body) {
         store.set({ error: `The run hit an error: ${e.detail}` });
       } else if (e.type === "result") {
         receivedResult = true;
-        store.set({ run: e.run, liveRun: e.run, tab: "process", answers: {} });
+        const answers = Object.fromEntries(Object.entries(e.run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key)));
+        setDetected(e.run.requirements?.preferred_paths || []);
+        store.set({ run: e.run, liveRun: e.run, tab: "process", answers, paths: e.run.preferred_paths || [], rejected: [] });
         if (e.run.id) history.replaceState(null, "", `#run=${e.run.id}`);
       }
     });
@@ -97,6 +161,7 @@ function renderView(s) {
   const content = el.querySelector("#stage-content");
   if (s.tab === "reading") {
     renderEnquiry(content, s, actions);
+    if (s.understand && !s.busy && !s.reading) renderConfirm(content.querySelector("#reading-confirm"), s, actions);
   } else if (s.tab === "process") {
     renderProcess(content, run, s, actions);
   } else {
@@ -121,7 +186,7 @@ function renderView(s) {
 
 let lastEvidence = null;
 function render(s) {
-  renderStatus($("status"), s);
+  renderStatus($("status"), s, actions);
   renderFiber($("fiber"), s, actions.selectTab);
   $("view").setAttribute("aria-labelledby", `tab-${s.tab}`);
   renderView(s);
@@ -146,13 +211,18 @@ store.subscribe(render);
   const linkedRun = location.hash.match(/run=([\w-]+)/);
   const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"));
   store.set({ tab: linkedRun ? "process" : canOpenStep(store.get(), preferredTab) ? preferredTab : "reading",
-    mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto") });
+    mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto"),
+    view: store.recall("view", "general"), confirm: store.recall("confirm", "on") === "on" });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }
+  await Promise.all([loadGlossary(), loadPathQuestions()]);
   if (linkedRun) {
     try {
       const run = await getJSON(`/api/runs/${linkedRun[1]}`);
-      store.set({ run, tab: canOpenStep({ ...store.get(), run }, preferredTab) ? preferredTab : "process" });
+      setDetected(run.requirements?.preferred_paths || []);
+      store.set({ run, paths: run.preferred_paths || [],
+        answers: Object.fromEntries(Object.entries(run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key))),
+        tab: canOpenStep({ ...store.get(), run }, preferredTab) ? preferredTab : "process" });
     } catch (_) { /* old link */ }
   }
 })();

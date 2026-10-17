@@ -46,6 +46,7 @@ export function canOpenStep(s, id) {
 }
 
 export function stepStatus(s, id) {
+  if (id === "reading" && s.reading) return "active";
   if (id === "process") {
     if (s.busy) return "active";
     if (s.run?.error) return "error";
@@ -65,7 +66,7 @@ export function stepStatus(s, id) {
 }
 
 export function activeStep(s) {
-  return s.busy ? "process" : null;
+  return s.busy ? "process" : s.reading ? "reading" : null;
 }
 
 export const STATUS_LABELS = { pending: "Waiting", active: "Now", done: "Done", error: "Stopped" };

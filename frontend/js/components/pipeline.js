@@ -3,6 +3,7 @@ import { esc } from "../api.js";
 import { renderMatrix } from "./matrix.js";
 import { renderSpectral } from "./spectral-map.js";
 import { renderReport } from "./report.js";
+import { renderSummary } from "./summary.js";
 import { renderCouncil } from "./council.js";
 import { renderQuality } from "./quality.js";
 import { renderCoach } from "./coach.js";
@@ -35,7 +36,7 @@ export function hasStageData(run, stepId) {
 
 function cite(item) {
   return `<button type="button" class="cite" data-src="${esc(item.source)}" data-page="${esc(item.page)}"
-    data-quote="${esc(item.quote || "")}" aria-label="Open ${esc(item.source)} page ${esc(item.page)}">${esc(item.source)} p.${esc(item.page)}</button>`;
+    data-quote="${esc(item.quote || item.highlight || "")}" aria-label="Open ${esc(item.source)} page ${esc(item.page)}">${esc(item.source)} p.${esc(item.page)}</button>`;
 }
 
 function renderExtract(el, run) {
@@ -102,7 +103,7 @@ function renderRetrieve(el, run) {
         const excerpt = String(item.text || "");
         return `<li><b>${esc(item.ref)}</b> ${cite(item)}
           <span class="small muted">${esc(item.kind)}${item.scope ? ` · ${esc(item.scope)}` : ""}${item.score != null ? ` · RRF ${esc(item.score)}` : ""}</span>
-          <div class="small">${esc(excerpt.slice(0, 360))}${excerpt.length > 360 ? "…" : ""}</div></li>`;
+          <div class="small">${item.highlight ? `<mark>${esc(item.highlight)}</mark>` : `${esc(excerpt.slice(0, 360))}${excerpt.length > 360 ? "…" : ""}`}</div></li>`;
       }).join("")}</ul>` : `<p class="muted">No passages were selected. Review the search queries and source index.</p>`}
     </section>`;
 }
@@ -127,7 +128,8 @@ function renderAssessment(el, run, state, actions) {
     <p class="small muted">Citation dots show quote matching: green found on the cited page, amber nearly verbatim, red needs review. Quote matching alone does not prove that the source supports the whole claim.</p>
   </section>`;
   el.appendChild(reportEl);
-  renderReport(reportEl, run);
+  if (state.view === "general") renderSummary(reportEl, run, actions);
+  else renderReport(reportEl, run);
   // The export endpoint is available after the run is saved, not while the draft streams.
   if (state?.busy || !run.id) reportEl.querySelector(".toolbar")?.remove();
 }

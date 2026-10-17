@@ -9,6 +9,7 @@
 #   {field: F, contains: V}        list field contains V
 #   {field: F, text_any: [..]}     lower-cased text of F contains any keyword
 #   {field: F, known: false}       value is unknown / empty
+#   {field: F, min_items: N}       list field has at least N items
 #   Special field "text" = enquiry + extracted summary + targets + matrix (lower-cased).
 #
 # Effects:
@@ -18,6 +19,7 @@
 #   cap_confidence: high|medium|low|insufficient
 #   status_hint: insufficient_information | outside_supported_scope
 #   plan: [...]                    elements the feasibility plan must contain
+#   paths: [{path: A|B|C, effect: supports|premature|conflicts, reason}]   AFS pathway hints (S02 p.20)
 #   sources: [{source, page}]      ALWAYS present
 
 rules:
@@ -211,6 +213,8 @@ rules:
       - {field: text, text_any: [powder, bulk, solid, grain, flour, wood, granul, soil]}
   scores: {NIR: 2}
   flag: {severity: info, text: "NIR bands at 1.3-2.2 um carry moisture information; an NIR-LED fiber sensor concept for moisture exists (prototype concept)."}
+  paths:
+    - {path: C, effect: supports, reason: "AFS shows an NIR-LED fiber sensor concept with an optimal set of wavelengths for moisture."}
   sources: [{source: S02, page: 18}, {source: S02, page: 12}]
 
 - id: R_DAIRY
@@ -269,6 +273,9 @@ rules:
   question: {text: "Which quality variable or specification fails, and what is known about the suspected contaminant (source, chemical class, expected level)?", impact: high, why: "Without a target no method can be selected."}
   cap_confidence: insufficient
   status_hint: insufficient_information
+  paths:
+    - {path: A, effect: premature, reason: "A calibration model needs a defined target variable with reference values."}
+    - {path: C, effect: premature, reason: "A dedicated sensor is designed from key wavelengths found in lab studies; with no defined target there is nothing to select them for."}
   plan: ["Collect matched in-spec and off-spec samples with independent lab analysis.", "Screen them with several methods (multi-method lab trial) to find discriminating spectral features before choosing a sensor."]
   sources: [{source: S01, page: 3}, {source: S02, page: 3}, {source: S02, page: 20}, {source: S01, page: 5}]
 
@@ -290,6 +297,10 @@ rules:
   flag: {severity: block, text: "The supplied clinical evidence is an in vitro proof of concept (two LED NIR prototypes, 14 in vitro samples from 7 patients) and model-tissue lab work. It cannot be quoted as proof that a sensor is ready to guide decisions in live surgery; that use is outside the supported scope and would need clinical validation and regulatory work beyond this assessment."}
   cap_confidence: insufficient
   status_hint: outside_supported_scope
+  paths:
+    - {path: A, effect: premature, reason: "Clinical decision support needs clinical validation before any routine model."}
+    - {path: B, effect: premature, reason: "A lab system can support further ex vivo research, but not the requested clinical use."}
+    - {path: C, effect: premature, reason: "The LED sensor is an in vitro proof of concept; a sensor for clinical decisions needs clinical validation first."}
   plan: ["Reproduce the measurement on the client's own setup with ex vivo / in vitro samples and an independent histopathology reference.", "Use pre-registered validation (cross-validation, randomization tests, independent patients) before any clinical study is designed."]
   sources: [{source: S03, page: 1}, {source: S03, page: 14}, {source: S04, page: 1}]
 
@@ -324,3 +335,52 @@ rules:
       - {field: text, text_any: [temperature, texture, particle, density, flow, "operating condition", vary, varies, change]}
   plan: ["Include the physical variation (temperature, texture, particle size, flow) in the sample set and separate it from composition effects."]
   sources: [{source: S01, page: 17}, {source: S01, page: 7}]
+
+# ---------------------------------------------------------------- AFS pathway hints (S02 p.20)
+- id: R_PATH_MANY_LOW_COST_POINTS
+  title: Many measuring points at low cost favour spectral sensors
+  when:
+    any:
+      - {field: text, text_any: ["low cost", "low-cost", "cheap", "inexpensive", "cost per point", "installation cost", "many points", "positions", "measuring points", "iot", "sensor at each", "kostengünstig", "günstig"]}
+  paths:
+    - {path: C, effect: supports, reason: "Sensors installed at the measuring points give lower installation cost than a central analyzer with long fibers."}
+  sources: [{source: S02, page: 18}, {source: S02, page: 19}]
+
+- id: R_PATH_RD_LAB
+  title: R&D or exploratory lab work favours a multi-spectral lab system
+  when:
+    any:
+      - {field: process_context, eq: lab_research}
+      - {field: text, text_any: ["research group", "research project", "r&d", "laboratory classification", "laboratory study", "own lab ", "lab system", "exploratory study", "forschungsgruppe", "forschungslabor", "f&e"]}
+  paths:
+    - {path: B, effect: supports, reason: "Path B gives the customer a tailored set of spectrometers for R&D in their own lab; testing several methods is what research needs."}
+  sources: [{source: S02, page: 20}, {source: S01, page: 3}]
+
+- id: R_PATH_PROCESS_MODEL
+  title: A production process with a target variable favours a chemometric model
+  when:
+    all:
+      - {field: target_defined, in: ["yes", "partial"]}
+      - {field: text, text_any: ["production", "process line", "processing line", "process control", "automation", "feed frame", "in-line", "inline", "analyzer", "pilot", "stream", "reactor", "extrusion"]}
+  paths:
+    - {path: A, effect: supports, reason: "Path A turns spectral data into real-time concentration values for process automation; a central full-spectrum analyzer gives the higher accuracy."}
+  sources: [{source: S02, page: 20}, {source: S02, page: 18}]
+
+- id: R_PATH_SEVERAL_VARIABLES
+  title: Several variables in one stream need full spectra
+  when:
+    any:
+      - {field: target_variables, min_items: 2}
+  paths:
+    - {path: C, effect: conflicts, reason: "Several variables at once need full-spectrum information; a few-wavelength sensor is designed for one specific control task. A full-spectrum analyzer gives higher accuracy."}
+  sources: [{source: S02, page: 18}, {source: S02, page: 20}]
+
+- id: R_PATH_SENSOR_NEEDS_STABLE_BANDS
+  title: A sensor needs a stable, simple target
+  when:
+    any:
+      - {field: heterogeneous, eq: "yes"}
+      - {field: optical_behavior, eq: variable}
+  paths:
+    - {path: C, effect: premature, reason: "A few-wavelength sensor must be tuned to the case; with heterogeneous or changing optics, key bands must first be shown to be stable in lab studies."}
+  sources: [{source: S03, page: 14}, {source: S01, page: 9}]

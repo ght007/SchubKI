@@ -29,7 +29,10 @@ METHOD_WORDS = {"NIR": [r"\bnir\b", "near-infrared", "near infrared"], "MIR": [r
 
 
 def heuristic(enquiry: str, answers: dict[str, str] | None = None) -> Requirements:
-    text = (enquiry + " " + " ".join(f"{k}: {v}" for k, v in (answers or {}).items())).lower()
+    from .glossary import expand
+    from .paths import general_answers
+    answers = general_answers(answers)   # path-question answers are handled by paths.py
+    text = expand(enquiry + " " + " ".join(f"{k}: {v}" for k, v in (answers or {}).items())).lower()
     sents = _sentences(enquiry)
     has = lambda *ws: any(w in text for w in ws)  # noqa: E731
 
@@ -50,26 +53,37 @@ def heuristic(enquiry: str, answers: dict[str, str] | None = None) -> Requiremen
     else:
         phase = "unknown"
 
-    clear, opaque = has("clear", "transparent"), has("opaque", "concentrate", "optically dense", "turbid")
+    clear = bool(re.search(r"(?<![\w-])(clear|transparent)\b", text))      # not "non-transparent"
+    opaque = has("opaque", "concentrate", "optically dense", "turbid")
     optics = "variable" if clear and opaque else "clear" if clear else "opaque" if has("opaque") else \
         "turbid" if has("turbid", "optically dense") else "unknown"
 
-    assets = [s for s in sents if re.search(r"already have|existing|reuse|we have|our existing", s, re.I)]
+    assets = [expand(s) for s in sents
+              if re.search(r"already have|existing|reuse|we have|our existing|bereits|schon|vorhanden|wiederverwend", s, re.I)]
     premises: list[Premise] = []
     for s in sents:
         low = s.lower()
         kind = None
-        if re.search(r"reuse|remain valid|same concept|re-use", low):
+        if re.search(r"reuse|remain valid|same concept|re-use|wiederverwend|weiter nutzen", low):
             kind = "reuse_claim"
         elif re.search(r"quote|proof|as evidence|findings", low):
             kind = "evidence_claim"
-        elif re.search(r"immediately|exact|approve|ready for", low):
+        elif re.search(r"immediately|exact|approve|ready for|sofort|genaue|freigeb", low):
             kind = "certainty_request"
         elif re.search(r"can be very sensitive|suggests adding|will remain|justification", low):
             kind = "method_claim"
         if kind:
             premises.append(Premise(id=f"P{len(premises) + 1}", statement=s, kind=kind))
 
+    paths = []
+    if re.search(r"(cheap|low[- ]cost|simple|small|iot|led) sensor|sensor at each|sensors? at (many|several|all)", text):
+        paths.append("C")
+    if re.search(r"(existing|our|have an?|process) analy[sz]er|calibration model|chemometric model", text):
+        paths.append("A")
+    if re.search(r"r&d lab|research lab|own lab\b|lab(oratory)? (system|kit|equipment)|spectrometers for (our|the) lab", text):
+        paths.append("B")
+    m_points = re.search(r"\b(\d{1,4})\s+(?:measuring |measurement |sampling )?(points|lines|streams|dryers|reactors|tanks|"
+                         r"locations|sites|machines|presses|messstellen|linien)\b", text)
     context = "clinical" if has("surgery", "in vivo", "patient", "clinical") else \
         "lab_research" if has("laboratory classification", "research group", "laboratory study") else \
         "pilot" if has("pilot") else "unknown"
@@ -92,15 +106,22 @@ def heuristic(enquiry: str, answers: dict[str, str] | None = None) -> Requiremen
         analyzer_remote="yes" if has("another building", "outside the process area", "remote") else "unknown",
         link_length_known="no", existing_assets=assets, requested_methods=requested,
         reference_method="yes" if has("laboratory", "lab ", "reference", "assay", "measured from samples") else "unknown",
-        concentration_level="trace" if has("trace", "ppm") else "unknown",
+        concentration_level="trace" if has("trace", "ppm") else "unknown", preferred_paths=paths,
+        measurement_points=f"{m_points.group(1)} {m_points.group(2)}" if m_points else "unknown",
         facts=facts, unknowns=unknowns, premises=premises)
 
 
 def extract(enquiry: str, answers: dict[str, str], trace: list[TraceItem]) -> Requirements:
     user = f"ENQUIRY:\n{enquiry.strip()}"
-    if answers:
+    from .glossary import find
+    hints = list(dict.fromkeys(f"{h['matched']} = {h['term']}" for h in find(enquiry) if h["category"] != "vague"))
+    if hints:
+        user += "\n\nRECOGNISED TERMS (glossary; aliases resolved, not new facts):\n" + "; ".join(hints)
+    from .paths import general_answers
+    gen = general_answers(answers)   # path answers go to paths.py and the report, not into extraction
+    if gen:
         user += "\n\nADDITIONAL ANSWERS FROM THE CLIENT (treat as stated facts):\n" + \
-                "\n".join(f"- {k}: {v}" for k, v in answers.items())
+                "\n".join(f"- {k}: {v}" for k, v in gen.items())
     req = complete_json("extract", model_for("extract"), _prompt("extract"), user, Requirements, trace,
                         fallback=lambda: heuristic(enquiry, answers), max_tokens=2200, temperature=0.0)
     # Guard: a model reply that is valid JSON but almost empty (no facts, no unknowns) is not
@@ -121,3 +142,17 @@ def extract(enquiry: str, answers: dict[str, str], trace: list[TraceItem]) -> Re
         if trace:
             trace[-1].error = (trace[-1].error + " | near-empty extraction completed by keyword extractor").strip(" |")
     return req
+
+
+def apply_rejected(req: Requirements, rejected: list[str]) -> Requirements:
+    """Reset requirement fields the user marked as misread ("Is this what you mean?" card) to their default,
+    so no rule fires on a wrong reading. The enquiry text itself is never changed."""
+    if not rejected:
+        return req
+    data = req.model_dump()
+    for name in rejected:
+        field = Requirements.model_fields.get(name)
+        if field is None or name in ("summary", "facts", "unknowns", "premises"):
+            continue
+        data[name] = field.get_default(call_default_factory=True)
+    return Requirements.model_validate(data)

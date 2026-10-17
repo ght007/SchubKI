@@ -80,6 +80,9 @@ class Requirements(BaseModel):
     reference_method: YNU = "unknown"
     concentration_level: Literal["major", "minor", "trace", "unknown"] = "unknown"
     measurement_points: str = "unknown"
+    preferred_paths: list[Literal["A", "B", "C"]] = Field(
+        default_factory=list, description="AFS paths the client asks for: A = chemometric model for an analyzer / "
+        "process automation, B = multi-spectral lab system for R&D, C = low-cost spectral sensor(s)")
     facts: list[Fact] = Field(default_factory=list)
     unknowns: list[Unknown] = Field(default_factory=list)
     premises: list[Premise] = Field(default_factory=list)
@@ -97,6 +100,12 @@ class RuleQuestion(BaseModel):
     why: str = ""
 
 
+class PathHint(BaseModel):
+    path: Literal["A", "B", "C"]
+    effect: Literal["supports", "premature", "conflicts"]
+    reason: str
+
+
 class RuleHit(BaseModel):
     rule_id: str
     title: str
@@ -107,7 +116,32 @@ class RuleHit(BaseModel):
     cap_confidence: Optional[ConfidenceLevel] = None
     status_hint: Optional[DecisionStatus] = None
     plan: list[str] = Field(default_factory=list)
+    paths: list[PathHint] = Field(default_factory=list)
     sources: list[SourceRef] = Field(default_factory=list)
+
+
+# ------------------------------------------------------------------ AFS pathway (deterministic)
+class PathFit(BaseModel):
+    path: Literal["A", "B", "C"]
+    requested_by: Literal["expert", "enquiry", "both"]
+    verdict: Literal["fits", "premature", "conflicts", "open"]
+    reason: str
+    sources: list[SourceRef] = Field(default_factory=list)
+
+
+class ProceedPlan(BaseModel):
+    path: Literal["A", "B", "C"]
+    caveat: str
+    steps: list[str]
+    sources: list[SourceRef] = Field(default_factory=list)
+
+
+class PathAnalysis(BaseModel):
+    suggested: Literal["A", "B", "C", "undecided"] = "undecided"
+    reasons: list[str] = Field(default_factory=list)
+    sources: list[SourceRef] = Field(default_factory=list)
+    requested: list[PathFit] = Field(default_factory=list)
+    proceed_anyway: list[ProceedPlan] = Field(default_factory=list)
 
 
 # ------------------------------------------------------------------ coverage + screening (deterministic)
@@ -150,6 +184,7 @@ class Evidence(BaseModel):
     text: str
     quote: Optional[str] = None
     scope: Optional[str] = None
+    highlight: Optional[str] = None   # chunks: the sentence that best matches the queries
     score: float = 0.0
 
 
@@ -360,6 +395,8 @@ class AssessRequest(BaseModel):
     enquiry: str
     answers: dict[str, str] = Field(default_factory=dict, description="Clarifications added by the expert")
     mode: Literal["fast", "council"] = "fast"
+    preferred_paths: list[Literal["A", "B", "C"]] = Field(default_factory=list, description="Paths chosen by the expert")
+    rejected: list[str] = Field(default_factory=list, description="Requirement fields the user marked as misread (reset to unknown)")
     parent_run_id: Optional[str] = None
 
 
@@ -369,8 +406,11 @@ class RunResult(BaseModel):
     mode: str
     enquiry: str
     answers: dict[str, str] = Field(default_factory=dict)
+    preferred_paths: list[str] = Field(default_factory=list)
+    rejected: list[str] = Field(default_factory=list)
     parent_run_id: Optional[str] = None
     requirements: Optional[Requirements] = None
+    paths: Optional[PathAnalysis] = None
     rule_hits: list[RuleHit] = Field(default_factory=list)
     coverage: list[MethodCoverage] = Field(default_factory=list)
     matrix: list[MethodScore] = Field(default_factory=list)

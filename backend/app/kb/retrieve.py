@@ -56,6 +56,32 @@ def _tokens(text: str) -> int:
     return int(len(text.split()) * 1.35) + 8
 
 
+_STOP = {"the", "and", "for", "with", "that", "this", "from", "are", "can", "into", "which", "such", "than", "have",
+         "has", "its", "their", "used", "use", "using", "also", "more", "most", "not", "only", "unknown"}
+
+
+def best_sentence(text: str, queries: list[str]) -> str | None:
+    """The sentence of a chunk that best matches the queries (for highlighting what was retrieved).
+    Score = query words found in the sentence, lightly normalised by sentence length."""
+    import math
+    import re
+
+    qwords = {w for q in queries for w in re.findall(r"[a-z0-9]{3,}", q.lower())} - _STOP
+    if not qwords:
+        return None
+    best, best_score = None, 0.0
+    for sent in re.split(r"(?<=[.!?;])\s+|\s+-\s+", text):
+        sent = sent.strip(' "')
+        if not 30 <= len(sent) <= 400:
+            continue
+        words = set(re.findall(r"[a-z0-9]{3,}", sent.lower()))
+        hits = len(words & qwords)
+        score = hits / math.sqrt(max(4, len(words)))
+        if hits >= 2 and score > best_score:
+            best, best_score = sent, score
+    return best
+
+
 def dense_search(query_vec: np.ndarray, k: int = PER_RANKER_K) -> list[int]:
     ids, mat = store.load_vectors()
     if len(ids) == 0:
@@ -111,6 +137,7 @@ def retrieve(queries: list[str], pinned_pages: list[tuple[str, int]] | None = No
         used += cost
         evidence.append(Evidence(ref=f"E{len(evidence) + 1}", kind=r["kind"], source=r["source"],
                                  page=r["page"], text=text, quote=r["quote"], scope=r["scope"],
+                                 highlight=best_sentence(text, queries) if r["kind"] == "chunk" else None,
                                  score=round(fused.get(cid, 0.0), 4)))
         if len(evidence) >= max_items:
             break
