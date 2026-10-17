@@ -574,3 +574,57 @@ details.proceed summary { cursor: pointer; }
   .cf-actions .row { width: 100%; }
   .chip { white-space: normal; overflow-wrap: anywhere; }
 }
+
+/* ---------------------------------------------------------------- accounts */
+a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items: center; }
+.account-profile { display: inline-flex; align-items: center; gap: .5rem; padding-block: .3rem; max-width: 220px; }
+.account-profile span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-avatar { width: 26px; height: 26px; border-radius: 50%; flex: none; display: grid; place-items: center; object-fit: cover;
+  background: var(--core-soft); color: var(--core); font-size: .72rem; font-weight: 700; }
+.account-avatar.large { width: 48px; height: 48px; font-size: 1.05rem; }
+.account-dialog:has(.account-panel) { width: min(620px, calc(100% - 2rem)); }
+.account-head { display: flex; align-items: center; gap: .9rem; }
+.account-head h2 { margin: 0; }
+.account-head p { margin: .1rem 0 0; }
+.account-facts { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .8rem; margin: 1rem 0 0; }
+.account-history-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; margin-top: 1.25rem; }
+.account-history-head h3 { margin: 0; }
+.account-history { margin-top: .6rem; max-height: min(46vh, 420px); overflow-y: auto; border-top: 1px solid var(--line-soft); }
+.account-runs { list-style: none; margin: 0; padding: 0; }
+.account-runs button { display: grid; gap: .3rem; width: 100%; text-align: left; background: none; border: 0;
+  border-bottom: 1px solid var(--line-soft); padding: .7rem .4rem; cursor: pointer; }
+.account-runs button:hover { background: var(--line-soft); }
+.account-run-title { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-run-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; color: var(--graphite); font-size: .78rem; }
+.account-run-meta .pill { font-size: .72rem; padding-block: .05rem; }
+.account-view-tag { font-weight: 600; }
+.query-result { display: grid; place-items: center; width: 28px; height: 32px; flex: none; border: 0; background: none;
+  color: var(--core); border-radius: var(--radius-s); cursor: pointer; }
+.query-result svg { width: 16px; height: 16px; }
+.query-result:hover { background: var(--core-soft); }
+
+/* account chip in the Queries box (bottom), menu, locked Expert view */
+.query-account { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--line-soft); }
+.account-chip { display: flex; align-items: center; gap: .6rem; width: 100%; padding: .5rem; border: 0; background: none;
+  border-radius: var(--radius-m); cursor: pointer; text-align: left; color: inherit; }
+.account-chip:hover, .account-chip[aria-expanded="true"] { background: var(--line-soft); }
+.account-chip .account-avatar { width: 32px; height: 32px; font-size: .8rem; }
+.account-chip-text { display: grid; min-width: 0; flex: 1; line-height: 1.25; }
+.account-chip-name { font-weight: 600; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-chip-plan { color: var(--graphite); font-size: .76rem; }
+.account-chip > svg { width: 16px; height: 16px; flex: none; color: var(--graphite); }
+.account-chip.guest { justify-content: center; color: var(--core); font-size: .85rem; text-decoration: underline; text-underline-offset: 2px; }
+.account-menu { position: fixed; z-index: 50; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 16px 48px -12px rgba(6, 20, 32, .35); padding: .35rem; display: grid; }
+.account-menu-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .55rem .65rem .6rem;
+  border-bottom: 1px solid var(--line-soft); margin-bottom: .3rem; }
+.account-menu-email { color: var(--graphite); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-menu-item { display: grid; text-align: left; padding: .55rem .65rem; border: 0; background: none; border-radius: var(--radius-s);
+  cursor: pointer; color: inherit; text-decoration: none; font-size: .9rem; }
+.account-menu-item:hover, .account-menu-item:focus-visible { background: var(--line-soft); }
+.account-menu-item.upgrade { font-weight: 600; color: var(--core); }
+.account-menu-item.upgrade span { font-weight: 400; color: var(--graphite); font-size: .76rem; }
+.account-menu-sep { border-top: 1px solid var(--line-soft); margin: .3rem 0; }
+.account-facts a { color: var(--core); }
+.view-toggle button.locked { color: var(--graphite); display: inline-flex; align-items: center; gap: .3rem; }
+.view-toggle .lock { width: 13px; height: 13px; }

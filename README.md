@@ -403,10 +403,34 @@ Lists the models your key can use; the model names in `.env` must be among them.
 ```bash
 python -m uvicorn backend.app.main:app --port 8000
 ```
-Open http://localhost:8000. On first start with an empty index the server runs ingest itself.
+Open http://localhost:8000 (log in, then the assistant opens at `/app`). On first start with an empty index the server runs ingest itself.
 
 **No key, or Groq down?** Set `LLM_MOCK=1`. Every stage uses its rule-based fallback; reports are still
 complete, cited and verified, and say they are rule-based.
+
+### Accounts, plans and pricing
+
+Pages: `/` opens `/login`; the assistant is at `/app` and needs a login (it returns there after sign-in);
+`/login` forwards signed-in users to `/app`; `/pricing` is public. Sign-in by e-mail/password or, when
+`GOOGLE_CLIENT_ID` is set, "Continue with Google". Set `AUTH_REQUIRED=0` to get the open guest app back at `/`
+(fallback for an offline demo).
+
+- **Plans:** Basic $10/month (General view) and Pro $30/month (General + Expert view); new accounts start on
+  Basic. Plans, prices and features live in `backend/app/auth/plans.py`. Payments are not connected yet:
+  `BILLING_MODE=demo` makes the plan buttons switch the plan at once (no payment taken), `BILLING_MODE=off`
+  refuses. A payment provider plugs in at `POST /api/billing/checkout`.
+- **History:** every run (General or Expert view, fast or council, what-ifs) is linked to the user; saved
+  enquiries live in the account. The account chip at the bottom of the Queries box shows name and plan and
+  opens run history, plans and log out.
+- **Storage:** tables `users`, `user_sessions`, `projects`, `saved_queries`, `user_runs` in Supabase when
+  `SUPABASE_DB_URL` is set (created automatically, row-level security on), otherwise in the local SQLite file,
+  which is also the offline fallback. The full run result stays in `runs`; `user_runs` links it to the user.
+- **Security:** passwords are stored only as scrypt hashes; the session is an HttpOnly, SameSite=Lax cookie and
+  the database keeps only its SHA-256 hash; logout revokes it server-side; repeated failed logins are throttled.
+  The view limit is enforced in the UI and in the run history; the API itself stays open for the eval scripts.
+- **Google:** create an OAuth client of type *Web application* in Google Cloud, add `http://localhost` and
+  `http://localhost:8000` (and the hosted URL) under *Authorized JavaScript origins*, and put the client id in
+  `GOOGLE_CLIENT_ID`. The client secret is not used and must not be committed.
 
 ## 13. Evaluation and reproducing the outputs
 
@@ -490,6 +514,14 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 | `GET /api/kb/summary` | Claim and rule counts, rule list with sources |
 | `GET /api/examples` | H, D and adversarial scenarios for the UI loader |
 | `POST /api/feedback` · `GET /api/feedback` | Expert feedback on a run (stored in SQLite) |
+| `GET /api/auth/config` | Whether Google sign-in is configured (public client id) |
+| `POST /api/auth/signup` · `POST /api/auth/login` · `POST /api/auth/google` | Create an account / log in with e-mail or username + password / log in with a Google ID token; sets the session cookie |
+| `POST /api/auth/logout[?everywhere=true]` | Revoke this session (or all of the user's sessions) |
+| `GET /api/auth/me` · `PATCH /api/auth/me` | Current user (`null` for guests) with counts; update name or username |
+| `GET/POST /api/me/queries` · `DELETE /api/me/queries/{id}` | The user's saved enquiries (sidebar) |
+| `GET /api/me/runs?view=general\|expert` | The user's run history; results via `/api/runs/{id}` |
+| `GET/POST /api/me/projects` | The user's projects (saved enquiries can belong to one) |
+| `GET /api/billing/plans` · `POST /api/billing/checkout` | Plans with prices and views, current plan; choose a plan (demo mode switches at once) |
 
 ## 17. Repository layout
 

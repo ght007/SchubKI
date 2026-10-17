@@ -1,5 +1,8 @@
-// Local enquiry drafts only. No user, conversation, or run IDs are stored here.
-// A future provider can implement the same async list/save/remove interface.
+// Saved enquiries behind one async list/save/remove interface:
+//   createLocalQueryRepository   guests: drafts in this browser only, no user or run ids
+//   createServerQueryRepository  logged in: drafts in the user's account, with the last run and its status
+import { deleteJSON, getJSON, postJSON } from "./api.js";
+
 const STORAGE_KEY = "afs.saved-queries.v1";
 const MAX_QUERIES = 50;
 
@@ -34,7 +37,9 @@ export function createLocalQueryRepository() {
   }
 
   return {
+    kind: "local",
     get persistent() { return persistent; },
+    get label() { return persistent ? "Saved on this browser" : "Kept for this session only"; },
     async list() { return queries.map(copy); },
     async save(draft) {
       if (!draft.enquiry?.trim()) return null;
@@ -46,4 +51,35 @@ export function createLocalQueryRepository() {
     },
     async remove(id) { queries = queries.filter((query) => query.id !== id); persist(); },
   };
+}
+
+const fromServer = (query) => ({ ...normalize({ ...query, updatedAt: Date.parse(query.updatedAt) }),
+  view: query.view || null, lastRunId: query.lastRunId || null, lastStatus: query.lastStatus || null });
+
+export function createServerQueryRepository() {
+  return {
+    kind: "server",
+    persistent: true,
+    label: "Saved to your account",
+    async list() { return (await getJSON("/api/me/queries")).map(fromServer); },
+    async save(draft) {
+      if (!draft.enquiry?.trim()) return null;
+      return fromServer(await postJSON("/api/me/queries", { id: draft.id || null, enquiry: draft.enquiry, mode: draft.mode,
+        modelChoice: draft.modelChoice, paths: draft.paths || [], view: draft.view || null }));
+    },
+    async remove(id) { await deleteJSON(`/api/me/queries/${encodeURIComponent(id)}`); },
+  };
+}
+
+// First login on this browser: copy the guest drafts into the account once (the local copy is kept).
+export async function importLocalDrafts(userId, local, server) {
+  const flag = `afs.imported-drafts.${userId}`;
+  try { if (localStorage.getItem(flag)) return 0; } catch (_) { return 0; }
+  const drafts = await local.list();
+  let n = 0;
+  for (const draft of drafts.reverse()) {               // oldest first keeps the order
+    try { await server.save({ ...draft, id: null }); n += 1; } catch (_) { /* skip one bad draft */ }
+  }
+  try { localStorage.setItem(flag, String(Date.now())); } catch (_) { /* ignore */ }
+  return n;
 }
