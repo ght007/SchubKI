@@ -1,4 +1,4 @@
-/* AFS Assessment Assistant - optical bench palette, one typeface, the fiber line as the only motion. */
+/* AFS Assessment Assistant - optical bench palette and spectrum pipeline navigation. */
 :root {
   --paper: #f4f6f8;
   --surface: #ffffff;
@@ -71,48 +71,35 @@ p { margin: .3rem 0 .6rem; }
 
 /* ---------------------------------------------------------------- navigable pipeline */
 .fiber {
-  position: relative; height: 66px; background: var(--surface); border-bottom: 1px solid var(--line);
-  overflow-x: auto; overflow-y: hidden; scrollbar-width: thin;
-}
-.fiber-track {
-  position: absolute; left: 1.25rem; top: 20px; width: calc(max(100%, 700px) - 2.5rem);
-  height: 3px; background: var(--line); border-radius: 2px; pointer-events: none;
-}
-.fiber-lit {
-  position: absolute; left: 0; top: 0; height: 100%; border-radius: 2px; width: 0;
-  background: linear-gradient(90deg, #6d28d9, #2563eb 25%, #0b7285 45%, #16a34a 60%, #eab308 80%, #dc2626);
-  transition: width .6s ease;
-}
-.fiber-pulse {
-  position: absolute; top: -4px; width: 60px; height: 11px; border-radius: 6px; left: 0;
-  background: radial-gradient(closest-side, rgba(255,255,255,.95), rgba(255,255,255,0));
-  opacity: 0; mix-blend-mode: screen;
-}
-.fiber.running .fiber-pulse { opacity: 1; animation: pulse 1.4s linear infinite; }
-@keyframes pulse { from { transform: translateX(-60px); } to { transform: translateX(var(--lit, 100px)); } }
-.fiber-nodes {
-  position: relative; z-index: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
-  width: max(100%, 700px); height: 100%; padding: 0 1.25rem;
+  display: flex; gap: .35rem; align-items: stretch; padding: .6rem 1.25rem;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scroll-snap-type: x proximity;
+  scroll-padding-inline: 1.25rem;
 }
 .fiber-node {
-  display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; min-height: 64px;
-  border: 0; border-radius: var(--radius-s); padding: 0 .25rem .4rem;
-  background: transparent; color: var(--graphite); font-size: .73rem; font-weight: 500;
-  line-height: 1.2; text-align: center; cursor: pointer;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: .1rem;
+  flex: 1 0 105px; min-width: 105px; min-height: 64px; padding: .55rem .7rem;
+  border: 1px solid var(--line); border-radius: var(--radius-s);
+  background: var(--surface); color: var(--graphite); cursor: pointer;
+  line-height: 1.25; text-align: left; scroll-snap-align: start;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease;
 }
-.fiber-node::before {
-  content: ""; width: 11px; height: 11px; flex: none; border-radius: 50%;
-  background: var(--surface); border: 2px solid var(--line); margin-top: 14px;
+.fiber-node .step-count { font-size: .7rem; font-weight: 600; letter-spacing: .025em; white-space: nowrap; }
+.fiber-node .step-name { font-size: .87rem; font-weight: 700; white-space: nowrap; }
+.fiber-node:hover { border-color: var(--step-color, var(--core)); }
+.fiber-node.done {
+  background: var(--step-color, var(--core)); border-color: var(--step-color, var(--core));
+  color: var(--step-ink, #fff);
 }
-.fiber-node span { white-space: nowrap; }
-.fiber-node:hover { color: var(--core); background: var(--core-soft); }
-.fiber-node.done::before { border-color: var(--core); background: var(--core); }
-.fiber-node.active { color: var(--ink); font-weight: 700; }
-.fiber-node.active::before { border-color: var(--core); box-shadow: 0 0 0 3px var(--core-soft); }
-.fiber-node.selected { color: var(--core); background: var(--core-soft); }
-.fiber-node.selected::before { border-color: var(--core); }
-.fiber-node:focus-visible { outline: 2px solid var(--core); outline-offset: -3px; }
-@media (prefers-reduced-motion: reduce) { .fiber.running .fiber-pulse { animation: none; opacity: 0; } .fiber-lit { transition: none; } }
+.fiber-node.active {
+  background: color-mix(in srgb, var(--step-color, var(--core)) 12%, var(--surface));
+  border-color: var(--step-color, var(--core)); color: var(--ink);
+  box-shadow: inset 0 5px 0 var(--step-color, var(--core));
+}
+.fiber-node.error { border: 2px dashed var(--block); background: var(--surface); color: var(--block); }
+.fiber-node.selected { outline: 2px solid var(--ink); outline-offset: 2px; }
+.fiber-node:focus-visible { outline: 3px solid var(--core); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .fiber-node { transition: none; } }
 
 /* ---------------------------------------------------------------- shell */
 .shell { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 1rem; padding: 1rem 1.25rem 3rem; max-width: 1600px; margin: 0 auto; }
@@ -166,29 +153,8 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 .template { white-space: pre-wrap; background: var(--paper); border: 1px dashed var(--line); border-radius: var(--radius-s); padding: .6rem .7rem; font-size: .85rem; }
 .template .blank { background: var(--warn-soft); color: var(--warn); border-radius: 3px; padding: 0 .2rem; }
 
-/* ---------------------------------------------------------------- step and utility navigation */
-.stage-tabs {
-  display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: thin; scroll-snap-type: x proximity;
-  padding: .2rem .2rem .55rem; margin-bottom: .4rem;
-}
-.stage-tab {
-  display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: .18rem;
-  min-width: 116px; min-height: 64px; padding: .45rem .65rem; flex: 1 0 116px;
-  border: 1px solid var(--line); border-radius: var(--radius-m); background: var(--surface);
-  color: var(--graphite); cursor: pointer; text-align: left; font-size: .85rem; line-height: 1.25;
-  scroll-snap-align: start;
-}
-.stage-tab:hover { border-color: var(--core); color: var(--ink); }
-.stage-tab.selected, .stage-tab[aria-selected="true"] {
-  color: var(--ink); border-color: var(--core); background: var(--core-soft);
-  box-shadow: inset 0 3px 0 var(--core);
-}
-.stage-tab.active .stage-state { color: var(--core); }
-.stage-tab.done .stage-state { color: var(--ok); }
-.stage-index { color: var(--graphite); font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
-.stage-tab.selected .stage-index, .stage-tab[aria-selected="true"] .stage-index { color: var(--core); }
-.stage-state { color: var(--graphite); font-size: .72rem; font-weight: 500; }
-.stage-tab:focus-visible, .utility-tabs button:focus-visible { outline: 2px solid var(--core); outline-offset: 2px; }
+/* ---------------------------------------------------------------- utility navigation */
+.utility-tabs button:focus-visible { outline: 2px solid var(--core); outline-offset: 2px; }
 .utility-tabs {
   display: flex; gap: .4rem; align-items: center; flex-wrap: wrap;
   padding: .3rem 0 .85rem; margin-bottom: .9rem; border-bottom: 1px solid var(--line);
@@ -215,13 +181,6 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 .stage-header h2 { margin-bottom: .2rem; }
 .stage-header p { margin: 0; color: var(--graphite); max-width: 70ch; }
 .stage-header .stage-note { margin-top: .7rem; }
-.stage-status {
-  display: inline-flex; align-items: center; gap: .35rem; flex: none; border-radius: 999px;
-  padding: .2rem .6rem; background: var(--line-soft); color: var(--graphite); font-size: .76rem; font-weight: 600;
-}
-.stage-status.active { background: var(--core-soft); color: var(--core); }
-.stage-status.done { background: var(--ok-soft); color: var(--ok); }
-.stage-status.error { background: var(--block-soft); color: var(--block); }
 .stage-placeholder {
   padding: 1.25rem; border: 1px dashed var(--line); border-radius: var(--radius-m);
   background: var(--surface); color: var(--graphite);
@@ -236,8 +195,7 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 .table-scroll { max-width: 100%; overflow-x: auto; }
 .view .section:has(table.data) { overflow-x: auto; }
 @media (max-width: 760px) {
-  .stage-tabs { gap: .3rem; }
-  .stage-tab { min-width: 108px; flex-basis: 108px; }
+  .fiber { padding-inline: .75rem; scroll-padding-inline: .75rem; }
   .stage-header { padding: .8rem .9rem; }
   .stage-grid { grid-template-columns: 1fr; }
 }

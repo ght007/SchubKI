@@ -1,7 +1,7 @@
 // Boot, live pipeline state, and navigation between its steps.
 import { esc, getJSON, stream } from "./api.js";
 import * as store from "./state.js";
-import { STEPS, UTILITIES, STATUS_LABELS, activeStep, canonicalStage, isStep, latestStageEvent, normalizeTab, stepStatus } from "./pipeline-steps.js";
+import { STEPS, UTILITIES, activeStep, canonicalStage, isStep, latestStageEvent, normalizeTab, stepStatus } from "./pipeline-steps.js";
 import { renderStatus, renderFiber } from "./components/header.js";
 import { renderEnquiry } from "./components/enquiry.js";
 import { hasStageData, renderPipelineStep } from "./components/pipeline.js";
@@ -87,35 +87,15 @@ async function run(url, body, isWhatIf = false) {
   }
 }
 
-function renderTabs(s) {
+function renderTools(s) {
   const focused = document.activeElement?.dataset.tab;
-  const focusable = isStep(s.tab) ? s.tab : "extract";
-  $("tabs").innerHTML = STEPS.map((step, index) => {
-    const status = stepStatus(s, step.id);
-    return `<button type="button" id="tab-${step.id}" role="tab" aria-controls="view"
-      aria-selected="${s.tab === step.id}" tabindex="${focusable === step.id ? 0 : -1}"
-      class="stage-tab ${status} ${s.tab === step.id ? "selected" : ""}" data-tab="${step.id}">
-      <span class="stage-index">Step ${index + 1} of ${STEPS.length}</span>
-      <span>${step.short}</span><span class="stage-state">${STATUS_LABELS[status]}</span></button>`;
-  }).join("");
   $("tools").innerHTML = `<span class="small muted">Explore</span>${UTILITIES.map((item) =>
     `<button type="button" id="tab-${item.id}" data-tab="${item.id}" aria-controls="view"
       aria-pressed="${s.tab === item.id}" class="${s.tab === item.id ? "selected" : ""}">${item.label}</button>`).join("")}`;
-  document.querySelectorAll("[data-tab]").forEach((button) =>
+  $("tools").querySelectorAll("[data-tab]").forEach((button) =>
     (button.onclick = () => actions.selectTab(button.dataset.tab)));
-  $("tabs").onkeydown = (ev) => {
-    if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(ev.key)) return;
-    const index = STEPS.findIndex((step) => step.id === ev.target.dataset.tab);
-    if (index < 0) return;
-    ev.preventDefault();
-    const next = ev.key === "Home" ? 0 : ev.key === "End" ? STEPS.length - 1 :
-      (index + (ev.key === "ArrowRight" ? 1 : -1) + STEPS.length) % STEPS.length;
-    actions.selectTab(STEPS[next].id);
-    const selected = $(`tab-${STEPS[next].id}`);
-    selected.focus();
-    selected.scrollIntoView({ block: "nearest", inline: "nearest" });
-  };
-  if (focused) document.querySelector(`[data-tab="${focused}"]`)?.focus({ preventScroll: true });
+  if (focused) $("tools").querySelector(`[data-tab="${focused}"]`)?.focus({ preventScroll: true });
+  $("view").setAttribute("role", isStep(s.tab) ? "tabpanel" : "region");
   $("view").setAttribute("aria-labelledby", `tab-${s.tab}`);
 }
 
@@ -138,19 +118,16 @@ function renderView(s) {
   }
 
   const step = STEPS.find((item) => item.id === s.tab);
-  const index = STEPS.indexOf(step) + 1;
   const status = stepStatus(s, step.id);
   const event = latestStageEvent(s, step.id);
   const current = s.busy ? activeStep(s) : null;
   const details = s.details.filter((item) => canonicalStage(item.stage) === step.id);
   el.innerHTML = `<div class="stage-header">
-    <div><span class="stage-index">Step ${index} of ${STEPS.length}</span>
-      <h2>${step.label}</h2><p class="small muted">${step.description}</p>
+    <div><h2>${step.label}</h2><p class="small muted">${step.description}</p>
       ${event?.detail ? `<p class="stage-note">${esc(event.detail)}${event.ms != null ? ` · ${event.ms} ms` : ""}</p>` : ""}
       ${details.length ? `<p class="stage-note">${esc(details.at(-1).detail)}</p>` : ""}
       ${s.busy && current && current !== step.id ? `<p class="stage-note">Currently running: ${esc(STEPS.find((item) => item.id === current).label)}</p>` : ""}</div>
-    <div class="row"><span class="stage-status ${status}" aria-live="polite">${STATUS_LABELS[status]}</span>
-      ${s.busy && !s.followStage && current ? `<button type="button" class="btn" id="followStep">Follow current step</button>` : ""}</div>
+    ${s.busy && !s.followStage && current ? `<button type="button" class="btn" id="followStep">Follow current step</button>` : ""}
   </div><div id="stage-content"></div>`;
   el.querySelector("#followStep")?.addEventListener("click", actions.followCurrent);
   const content = el.querySelector("#stage-content");
@@ -175,7 +152,7 @@ function render(s) {
   renderStatus($("status"), s);
   renderFiber($("fiber"), s, actions.selectTab);
   renderEnquiry($("enquiry"), s, actions);
-  renderTabs(s);
+  renderTools(s);
   renderView(s);
   document.querySelector(".shell").classList.toggle("with-drawer", !!s.evidence);
   if (s.evidence !== lastEvidence) {

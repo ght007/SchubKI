@@ -80,7 +80,8 @@ cited (and clearly labelled) assessment.
 
 ```
                           ┌─────────────────────────── Browser (frontend/, no build step) ───────────────────────────┐
-                          │ enquiry · seven navigable stage views · What-if / Council / Trace                         │
+                          │ enquiry · numbered spectrum pipeline navigation · seven stage views                     │
+                          │ What-if / Council / Trace                                                                │
                           │ source drawer (PDF page with highlighted quote)                                          │
                           └──────────────────────────────────────┬───────────────────────────────────────────────────┘
                                                                  │ HTTP + SSE (stage, stage_result, result)
@@ -104,7 +105,7 @@ PyMuPDF · rapidfuzz · Groq via the `openai` SDK · vanilla JavaScript ES modul
 
 `engine/pipeline.py` emits a `stage_result` after each stage with only that stage's output. The browser
 merges those results into the live run. `frontend/js/pipeline-steps.js` supplies one ordered step model
-for the progress line and tabs; `components/pipeline.js` renders the corresponding stage views.
+for the single top navigation bar; `components/pipeline.js` renders the corresponding stage views.
 
 **Why SQLite and not a vector database:** about 275 indexed records. Brute-force cosine similarity in
 numpy takes microseconds, FTS5 gives BM25 for free, and the whole system runs from one file with one
@@ -114,8 +115,10 @@ command. A separate vector service would add setup risk and no benefit at this s
 
 The seven browser steps group the modules below: Read, Rules, Evidence, Premises, Assess, Verify, and
 Coach. Each step emits `stage` progress events and a `stage_result` containing its own output when done.
-The progress line and tabs follow the active step automatically; selecting a step lets you inspect its
-result while later steps continue. The final `result` contains the complete run saved in SQLite.
+The numbered segments in the top navigation bar follow the active step automatically and fill with
+their own visual-spectrum color when complete. Selecting a segment lets you inspect that step's result
+while later steps continue. The active and selected steps remain visually distinct. The final `result`
+contains the complete run saved in SQLite.
 
 | # | Stage | Module | LLM? | Output |
 |---|---|---|---|---|
@@ -247,9 +250,10 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
 Open `http://localhost:8000`.
 
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
-- **Progress line and stage tabs:** Read → Rules → Evidence → Premises → Assess → Verify → Coach. Each
-  shows whether its step is waiting, active, done, or stopped. The view follows the active step until you
-  choose one manually; **Follow current step** resumes automatic navigation.
+- **Top pipeline navigation:** One bar contains seven numbered segments: Read → Rules → Evidence →
+  Premises → Assess → Verify → Coach. Each segment fills with its visual-spectrum color when that step
+  completes. The running step and the step being viewed have separate visual states. Select any segment
+  to inspect its output; **Follow current step** resumes automatic navigation.
 - **Left:** enquiry box with a scenario loader (H, D and adversarial cases), Fast / Council mode, and
   stage log.
 - **Seven stage views:** Read shows extracted facts, unknowns, and client premises. Rules shows fired
@@ -465,7 +469,7 @@ afs-assistant/
 - **Council agreement** uses two model families (gpt-oss and qwen) on this key, so it is weaker evidence
   than fully independent models; the UI says so.
 - **Rules are deliberately conservative** and keyword-assisted; an expert should review the fired rules
-  (Methods tab) for each case.
+  (Rules step) for each case.
 - **Free-tier latency** makes Council mode slow; Fast mode is the live-demo mode.
 
 ## 20. Future work

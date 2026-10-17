@@ -1,12 +1,12 @@
-// One ordered model drives the progress line, step tabs, and live status.
+// One ordered model drives the segmented spectrum navigation and live status.
 export const STEPS = [
-  { id: "extract", short: "Read", label: "Read the enquiry", description: "Facts, unknowns, and assumptions found in the customer's words." },
-  { id: "rules", short: "Rules", label: "Rules and screening", description: "AFS rules, method scores, fiber coverage, and spectral ranges." },
-  { id: "retrieve", short: "Evidence", label: "Retrieve evidence", description: "The passages selected to support or challenge the assessment." },
-  { id: "premise", short: "Premises", label: "Check premises", description: "The customer's own claims checked against the available evidence." },
-  { id: "report", short: "Assess", label: "Write the assessment", description: "Recommendations, measurement concept, risks, and first experiment." },
-  { id: "verify", short: "Verify", label: "Verify and review quality", description: "Citation, number, and client fact checks, plus the quality gate." },
-  { id: "coach", short: "Coach", label: "Coach and confidence", description: "Missing facts, follow-up questions, and computed confidence." },
+  { id: "extract", short: "Read", label: "Read the enquiry", color: "#6d28d9", ink: "#fff", description: "Facts, unknowns, and assumptions found in the customer's words." },
+  { id: "rules", short: "Rules", label: "Rules and screening", color: "#2563eb", ink: "#fff", description: "AFS rules, method scores, fiber coverage, and spectral ranges." },
+  { id: "retrieve", short: "Evidence", label: "Retrieve evidence", color: "#0e7490", ink: "#fff", description: "The passages selected to support or challenge the assessment." },
+  { id: "premise", short: "Premises", label: "Check premises", color: "#15803d", ink: "#fff", description: "The customer's own claims checked against the available evidence." },
+  { id: "report", short: "Assess", label: "Write the assessment", color: "#eab308", ink: "#1f2937", description: "Recommendations, measurement concept, risks, and first experiment." },
+  { id: "verify", short: "Verify", label: "Verify and review quality", color: "#c2410c", ink: "#fff", description: "Citation, number, and client fact checks, plus the quality gate." },
+  { id: "coach", short: "Coach", label: "Coach and confidence", color: "#b91c1c", ink: "#fff", description: "Missing facts, follow-up questions, and computed confidence." },
 ];
 
 export const UTILITIES = [
