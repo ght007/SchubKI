@@ -14,6 +14,13 @@ const state = {
   modelChoice: "auto", // UI preference only; backend model routing is unchanged
   draftEnquiry: null, // null means use the loaded run's enquiry
   selectedExample: "",
+  savedQueries: [],       // browser-local enquiry drafts; no user or chat association
+  activeQueryId: null,
+  querySidebarOpen: true,
+  queryPersistent: true,
+  savingQuery: false,
+  queryNotice: "",
+  skipQueryAutosave: false, // keep a removed query from reappearing when leaving its draft
   examples: [],
   health: null,
   evidence: null,       // {source, page, quote, verified}

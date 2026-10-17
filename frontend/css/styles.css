@@ -57,6 +57,13 @@ p { margin: .3rem 0 .6rem; }
 .brand-mark { width: 34px; height: 34px; flex: none; }
 .brand-name { font-weight: 700; font-size: 1.05rem; letter-spacing: -.015em; }
 .brand-sub { color: var(--graphite); font-size: .8rem; }
+.topbar-right { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; flex-wrap: wrap; flex: 1 1 500px; }
+.topbar-right .status { justify-content: flex-end; }
+.account-actions { display: flex; align-items: center; gap: .5rem; flex: none; }
+.account-login { display: inline-flex; align-items: center; gap: .4rem; }
+.account-login svg { width: 17px; height: 17px; }
+.btn.account-subscribe { color: #fff; border-color: #6d28d9; background: linear-gradient(120deg, #6d28d9, #2563eb); font-weight: 600; }
+.account-subscribe:hover { filter: brightness(1.1); }
 .status { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
 .pill {
   display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--line); border-radius: 999px;
@@ -140,6 +147,52 @@ p { margin: .3rem 0 .6rem; }
 }
 
 /* ---------------------------------------------------------------- enquiry */
+.reading-layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); align-items: start; gap: 1.25rem; }
+.reading-main { min-width: 0; }
+.query-sidebar { position: sticky; top: 1rem; display: flex; flex-direction: column; gap: .85rem;
+  height: min(700px, calc(100vh - 12rem)); min-height: 400px; padding: 1rem .7rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); }
+.query-sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding-inline: .35rem; }
+.query-sidebar-heading h2 { font-size: 1rem; margin: 0; }
+.query-sidebar-toggle { display: none; }
+.query-new { width: 100%; text-align: left; }
+.query-new span { margin-right: .3rem; }
+.query-sidebar-body { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.query-sidebar-body[hidden] { display: none; }
+.query-sidebar-body nav { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.query-list-label { display: flex; align-items: center; justify-content: space-between; color: var(--graphite); font-size: .82rem; font-weight: 600; padding: .35rem .5rem .6rem; }
+.query-list-label span { font-size: .72rem; font-weight: 400; }
+.query-list { list-style: none; margin: 0; padding: 0; }
+.query-row { display: flex; align-items: center; border-radius: var(--radius-m); margin-bottom: .25rem; }
+.query-row:hover, .query-row.active { background: var(--line-soft); }
+.query-open { display: flex; align-items: center; gap: .6rem; flex: 1; min-width: 0; padding: .65rem .5rem;
+  border: 0; border-radius: var(--radius-m); text-align: left; background: transparent; cursor: pointer; font-size: .88rem; }
+.query-open svg { width: 18px; height: 18px; flex: none; color: var(--graphite); }
+.query-open span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.query-delete { display: grid; place-items: center; width: 28px; height: 32px; flex: none; margin-right: .2rem;
+  border: 0; border-radius: var(--radius-s); background: transparent; color: var(--graphite); cursor: pointer; opacity: 0; }
+.query-delete svg { width: 16px; height: 16px; }
+.query-row:hover .query-delete, .query-row:focus-within .query-delete { opacity: 1; }
+.query-delete:hover { color: var(--block); background: var(--block-soft); }
+.query-empty { color: var(--graphite); font-size: .84rem; line-height: 1.6; padding: .4rem .5rem; }
+.query-sidebar-footer { margin-top: auto; padding: .9rem .3rem 0; border-top: 1px solid var(--line-soft); }
+.query-sidebar-footer .btn { width: 100%; }
+.query-storage-note { color: var(--graphite); font-size: .73rem; margin: .55rem 0 0; text-align: center; }
+.query-notice { color: var(--core); font-size: .78rem; margin: .3rem 0 0; text-align: center; }
+.query-notice:empty { display: none; }
+@media (hover: none) { .query-delete { opacity: 1; } }
+@media (max-width: 900px) {
+  .reading-layout { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .query-sidebar { position: static; height: auto; min-height: 0; }
+  .query-sidebar-toggle { display: inline-block; }
+  .query-sidebar-body { max-height: 360px; }
+  .query-sidebar-body nav { max-height: 200px; }
+}
+@media (max-width: 600px) {
+  .topbar-right { justify-content: space-between; }
+  .topbar-right .status { justify-content: flex-start; }
+  .account-actions { flex-wrap: wrap; }
+}
 .enquiry-stage { width: min(100%, 880px); margin: 1.5rem auto 0; padding: clamp(1.25rem, 3vw, 2.25rem); }
 .page-content .enquiry-stage { margin-top: 0; }
 .enquiry-stage h2 { margin-bottom: 1.1rem; font-size: 1.35rem; }
@@ -181,6 +234,19 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius-s); overflow: hidden; }
 .seg button { border: 0; background: var(--surface); padding: .35rem .7rem; cursor: pointer; font-size: .85rem; }
 .seg button[aria-pressed="true"] { background: var(--core-soft); color: var(--core); font-weight: 600; }
+
+/* ---------------------------------------------------------------- account placeholders */
+.account-dialog { width: min(480px, calc(100% - 2rem)); max-height: calc(100vh - 2rem); padding: 0;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 20px 80px rgba(0,0,0,.25); font: inherit; }
+.account-dialog::backdrop { background: rgba(6,20,32,.5); backdrop-filter: blur(3px); }
+.account-dialog-content { position: relative; padding: 1.75rem; }
+.account-dialog h2 { font-size: 1.4rem; margin-top: .75rem; }
+.account-coming-soon { display: inline-block; color: var(--core); background: var(--core-soft); font-size: .75rem; padding: .15rem .55rem; border-radius: 999px; }
+.dialog-close { position: absolute; right: .75rem; top: .55rem; background: transparent; color: var(--graphite);
+  border: 0; border-radius: var(--radius-s); font-size: 1.6rem; line-height: 1; padding: .3rem; cursor: pointer; }
+.account-dialog li { margin-block: .4rem; }
+.account-dialog-actions { display: flex; justify-content: flex-end; gap: .5rem; flex-wrap: wrap; margin-top: 1.5rem; }
 
 /* ---------------------------------------------------------------- coach */
 .meter { height: 8px; border-radius: 4px; background: var(--line-soft); overflow: hidden; margin: .4rem 0 .8rem; }

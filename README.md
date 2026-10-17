@@ -325,6 +325,12 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   optional Path A/B/C selection, the instant pre-check, and the reading confirmation with follow-up questions.
   Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
   browser; backend routing still uses the server configuration.
+- **Saved queries:** a sidebar on Reading lists recent enquiry drafts. Save a query, start a new one, reopen
+  a saved query, or remove it. Text and Reading options are saved in this browser; checking or assessing an
+  enquiry also saves it. This UI has no user/chat database links. On small screens the list folds away.
+- **Account controls:** Log in and Subscribe to Expert are available throughout the app. Their dialogs are
+  placeholders; they collect no credentials or payments. Integration points for the separate account/chat
+  work are described in [frontend integration](docs/frontend-integration.md).
 - **Temporary loading screen:** the current model task, stage completion, an updating model trace,
   council activity, and timings. It appears during calculation only; detailed outputs are kept in the
   completed calculation record.

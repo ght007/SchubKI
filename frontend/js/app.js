@@ -11,9 +11,29 @@ import { renderConfirm } from "./components/confirm.js";
 import { resetPrecheck } from "./components/precheck.js";
 import { activePathAnswers, loadPathQuestions, setDetected } from "./components/pathq.js";
 import { loadGlossary } from "./glossary.js";
+import { createLocalQueryRepository } from "./query-history.js";
+import { renderQuerySidebar } from "./components/query-sidebar.js";
+import { mountAccountControls } from "./components/account-controls.js";
 
 const $ = (id) => document.getElementById(id);
+const queryRepository = createLocalQueryRepository();
+const compactSidebar = window.matchMedia("(max-width: 900px)");
 let readingRequest = 0;
+
+function openReadingDraft(query = null) {
+  ++readingRequest;
+  resetPrecheck();
+  setDetected([]);
+  history.replaceState(null, "", location.pathname + location.search);
+  store.remember("tab", "reading");
+  store.set({ tab: "reading", run: null, previous: null, liveRun: null, stages: [], details: [], error: "",
+    understand: null, reading: false, rejected: [], answers: {}, evidence: null, selectedExample: "",
+    draftEnquiry: query?.enquiry || "", activeQueryId: query?.id || null, paths: query?.paths || [],
+    mode: query?.mode || store.get().mode, modelChoice: query?.modelChoice || store.get().modelChoice,
+    querySidebarOpen: !compactSidebar.matches, queryNotice: "", skipQueryAutosave: false });
+  window.scrollTo(0, 0);
+  $("enq")?.focus({ preventScroll: true });
+}
 
 const actions = {
   setMode(mode) { store.remember("mode", mode); store.set({ mode }); },
@@ -27,10 +47,46 @@ const actions = {
   },
   setModelChoice(modelChoice) { store.remember("modelChoice", modelChoice); store.set({ modelChoice }); },
   setDraftEnquiry(draftEnquiry) {
-    Object.assign(store.get(), { draftEnquiry, selectedExample: "", answers: {}, rejected: [] }); // keep typing without a re-render
+    Object.assign(store.get(), { draftEnquiry, selectedExample: "", answers: {}, rejected: [], queryNotice: "", skipQueryAutosave: false }); // keep typing without a re-render
+    renderQuerySidebar($("query-sidebar"), store.get(), actions);
   },
   setExample(selectedExample, draftEnquiry) {
-    Object.assign(store.get(), { selectedExample, draftEnquiry, answers: {}, rejected: [] });
+    Object.assign(store.get(), { selectedExample, draftEnquiry, answers: {}, rejected: [], queryNotice: "", skipQueryAutosave: false });
+    renderQuerySidebar($("query-sidebar"), store.get(), actions);
+  },
+  toggleQuerySidebar() { store.set({ querySidebarOpen: !store.get().querySidebarOpen }); },
+  async saveQuery({ silent = false } = {}) {
+    const s = store.get();
+    const enquiry = s.draftEnquiry ?? s.run?.enquiry ?? "";
+    if (!enquiry.trim() || s.savingQuery) return;
+    const id = s.activeQueryId;
+    const draft = { id, enquiry, mode: s.mode, modelChoice: s.modelChoice, paths: [...s.paths] };
+    store.set({ savingQuery: true, queryNotice: "" });
+    try {
+      const saved = await queryRepository.save(draft);
+      const savedQueries = await queryRepository.list();
+      const current = store.get();
+      const stillCurrent = current.activeQueryId === id && (current.draftEnquiry ?? current.run?.enquiry ?? "") === enquiry;
+      store.set({ savedQueries, queryPersistent: queryRepository.persistent, savingQuery: false,
+        ...(stillCurrent ? { activeQueryId: saved.id, skipQueryAutosave: false } : {}),
+        queryNotice: silent ? "" : queryRepository.persistent ? "Query saved." : "Saved for this session." });
+    } catch (_) { store.set({ savingQuery: false, queryNotice: "Could not save this query." }); }
+  },
+  async newQuery() {
+    if (store.get().busy) return;
+    if (!store.get().skipQueryAutosave) await actions.saveQuery({ silent: true });
+    openReadingDraft();
+  },
+  async openQuery(id) {
+    if (store.get().busy) return;
+    if (!store.get().skipQueryAutosave) await actions.saveQuery({ silent: true });
+    const query = (await queryRepository.list()).find((item) => item.id === id);
+    if (query) openReadingDraft(query);
+  },
+  async removeQuery(id) {
+    await queryRepository.remove(id);
+    store.set({ savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent,
+      ...(store.get().activeQueryId === id ? { activeQueryId: null, skipQueryAutosave: true } : {}), queryNotice: "Query removed." });
   },
   selectTab(id) {
     const tab = normalizeTab(id);
@@ -42,6 +98,8 @@ const actions = {
   async understand(enquiry) {
     const request = ++readingRequest;
     store.set({ reading: true, error: "", draftEnquiry: enquiry, tab: "reading" });
+    await actions.saveQuery({ silent: true });
+    if (request !== readingRequest) return;
     try {
       const data = await postJSON("/api/understand", { enquiry, answers: {}, preferred_paths: [...store.get().paths] });
       if (request !== readingRequest) return;
@@ -72,6 +130,8 @@ const actions = {
       const path = key.match(/^Path ([ABC]) - /);
       return withAnswers ? !path || shown.has(path[1]) : !keys.has(key) && !path;
     }));
+    await actions.saveQuery({ silent: true });
+    if (store.get().understand !== u || store.get().busy) return;
     await run("/api/assess", { enquiry: u.enquiry, answers, mode: s.mode,
       preferred_paths: s.paths, rejected: [...s.rejected] });
   },
@@ -81,6 +141,7 @@ const actions = {
     if (s.busy || s.reading) return;
     Object.assign(s, { draftEnquiry: enquiry });
     if (s.confirm) { await actions.understand(enquiry.trim()); return; }
+    await actions.saveQuery({ silent: true });
     const answers = activePathAnswers(Object.fromEntries(Object.entries(s.answers).filter(([, value]) => value.trim())));
     await run("/api/assess", { enquiry, answers, mode: s.mode, preferred_paths: s.paths });
   },
@@ -160,11 +221,16 @@ function renderView(s) {
   const el = $("view");
   const run = s.busy ? s.liveRun : s.run;
   const step = s.busy ? LOADING_PAGE : STEPS.find((item) => item.id === s.tab);
-  el.innerHTML = `<div id="stage-content" class="page-content"></div>`;
+  const readingPage = !s.busy && s.tab === "reading";
+  el.innerHTML = readingPage ? `<div class="reading-layout">
+    <aside id="query-sidebar" class="query-sidebar" aria-labelledby="saved-queries-title"></aside>
+    <div id="reading-main" class="reading-main"><div id="stage-content" class="page-content"></div></div>
+  </div>` : `<div id="stage-content" class="page-content"></div>`;
   const content = el.querySelector("#stage-content");
   if (s.busy) {
     renderProcess(content, run, s, actions);
   } else if (s.tab === "reading") {
+    renderQuerySidebar($("query-sidebar"), s, actions);
     renderEnquiry(content, s, actions);
     if (s.understand && !s.busy && !s.reading) renderConfirm(content.querySelector("#reading-confirm"), s, actions);
   } else {
@@ -184,7 +250,7 @@ function renderView(s) {
         `<div class="err">${esc(s.error || run.error)}</div>` : ""}</div>`;
     }
   }
-  renderPageHeader(el, content, s, step, run);
+  renderPageHeader(readingPage ? $("reading-main") : el, content, s, step, run);
 }
 
 let lastEvidence = null;
@@ -211,11 +277,14 @@ document.addEventListener("click", (ev) => {
 document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && store.get().evidence) store.set({ evidence: null }); });
 
 store.subscribe(render);
+mountAccountControls($("account-actions"), { previewExpert: () => actions.setView("expert") });
+compactSidebar.addEventListener("change", (event) => store.set({ querySidebarOpen: !event.matches }));
 
 (async function boot() {
   const linkedRun = location.hash.match(/run=([\w-]+)/);
   const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"));
   store.set({ tab: canOpenStep(store.get(), preferredTab) ? preferredTab : "reading",
+    savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent, querySidebarOpen: !compactSidebar.matches,
     mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto"),
     view: store.recall("view", "general"), confirm: store.recall("confirm", "on") === "on" });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
