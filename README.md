@@ -415,6 +415,8 @@ All settings are read from `.env` (`backend/app/config.py`).
 | `EMBED_BACKEND` | empty | `hashing` = skip the model download, use the offline embedder |
 | `SHOW_DEV_CASES` | `0` | `1` = show our own adversarial cases A01–A07 in the UI scenario loader |
 | `DB_PATH`, `RAW_DIR`, `KB_DIR` | `data/cache/afs.db`, `data/raw`, `data/kb` | paths |
+| `SUPABASE_DB_URL` | empty | Supabase Postgres URI (Session pooler). Set = Supabase is the main database (see "Where the data lives") |
+| `DB_BACKEND` | `supabase` | `sqlite` = ignore Supabase and run on the local file only |
 
 ## 15. Groq free tier: what to expect
 
@@ -451,7 +453,7 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 | `GET /api/source` | Source registry with pages loaded |
 | `GET /api/source/{doc}/{page}?q=` | Page text, metadata, whether `q` is on the page |
 | `GET /api/source/{doc}/{page}/image?q=` | PNG of the PDF page with `q` highlighted |
-| `GET /api/health` | Index size, embedding backend, mock flag, key present, models |
+| `GET /api/health` | Index size, embedding backend, mock flag, key present, models, database status (`db`) |
 | `GET /api/kb/summary` | Claim and rule counts, rule list with sources |
 | `GET /api/examples` | H, D and adversarial scenarios for the UI loader |
 | `POST /api/feedback` · `GET /api/feedback` | Expert feedback on a run (stored in SQLite) |
@@ -499,6 +501,9 @@ afs-assistant/
 | `ImportError: DLL load failed while importing _extra` (PyMuPDF) | Python 3.14 and/or missing Visual C++ runtime. Use Python 3.12 (section 11) and install the VC++ Redistributable x64. Check `python -c "import sys; print(sys.version, sys.executable)"`. |
 | Traceback path shows `...\Python314\...` | The venv is not active, or was created with 3.14. Activate `.venv312` before running. |
 | `uvicorn` is not recognised | Use `python -m uvicorn backend.app.main:app --port 8000`. |
+| Header: *Supabase offline: saving locally*, log `could not translate host name` / `Network is unreachable` | The direct `db.<ref>.supabase.co` host is IPv6-only. Use the **Session pooler** URI (Supabase > Connect > Method: Session pooler) in `SUPABASE_DB_URL`; `push_to_supabase.py` finds it for you and prints the host. |
+| Header: *Supabase (KB local)* | Online knowledge base missing, from another ingest, or other embeddings. Run `python scripts/push_to_supabase.py`, then restart. |
+| `password authentication failed` | Wrong password, or `@` in it not written as `%40`. |
 | Server stops at startup | Startup runs ingest when the index is empty; fix the ingest error first. |
 | Ingest: "Claim quotes not found on their pages" | A source file is missing, renamed or a different version. Check the names in `data/raw/`. |
 | Embedding download fails | Set `EMBED_BACKEND=hashing` (offline embedder), re-run ingest. |
@@ -587,10 +592,34 @@ insufficient. "What would raise confidence" = the top three unknown, high-impact
 
 ### Where the data lives
 
-One SQLite file, `data/cache/afs.db` (path from `DB_PATH`), not committed to git:
-`chunks` + `chunks_fts` (275 searchable records, BM25), `vectors` (embeddings), `meta` (ingest stats),
-`runs` (every assessment as JSON), `llm_cache` (validated Groq replies by prompt hash), `feedback`.
-Re-running ingest rebuilds only the first three; deleting the file loses saved runs and the cache.
+**Supabase (hosted Postgres) is the main database when `SUPABASE_DB_URL` is set**; the local SQLite file
+`data/cache/afs.db` is the build target of the ingest, a local copy, and the offline fallback.
+
+| Data | Supabase (main) | Local SQLite |
+|---|---|---|
+| Knowledge base: `chunks` (+ generated `tsvector`, GIN index), `vectors` (pgvector), `meta` | **Retrieval runs here**: BM25 computed in SQL over Postgres full text (same formula and parameters as SQLite FTS5: k1 1.2, b 0.75), cosine search with pgvector | Built by `python -m backend.app.kb.ingest`; published with `python scripts/push_to_supabase.py`; used when Supabase is offline or not in step |
+| `runs` | written and read here | copy of every run |
+| `llm_cache` | shared cache (saves Groq quota across machines) | checked first (same key = same reply) |
+| `feedback` | written here first (ids from Supabase) | copy |
+
+Rules that keep it safe:
+- **Same index or none**: the online knowledge base is used only if it was pushed from the *same ingest*
+  (`ingested_at`) with the *same embedding backend*; otherwise retrieval uses the local index and the
+  header says why ("run scripts/push_to_supabase.py"). A query vector is always made locally.
+- **Offline**: if Supabase cannot be reached, the app keeps working on SQLite, shows *Supabase offline:
+  saving locally* (Expert header), and retries at most once a minute.
+- **Automatic sync** (`AUTO_SYNC=1`, default): after every run, anything that is still only local (runs and
+  cache by key, feedback by content) is uploaded in the background; at startup the knowledge base is published
+  when Supabase has none or one from another ingest. `push_to_supabase.py` does the same by hand.
+- **IPv6-only direct host**: if `db.<ref>.supabase.co` cannot be reached, the app tries Supabase's IPv4 session
+  pooler in every region, uses the one that answers, and remembers it in `data/cache/supabase_pooler.json`
+  (git-ignored), so the search runs once.
+- **Checked**: `python scripts/check_supabase.py` tests connection, row counts, knowledge-base match,
+  retrieval overlap with the local index, and a write/read/delete round-trip.
+- Measured on H01–H06 (our test Postgres 16 + pgvector 0.8): dense search identical, keyword top-8 mostly
+  7–8/8 identical, final evidence 12–14 of 14 passages identical, statuses and verification unchanged.
+- Row level security is on with no policies: the public API key sees nothing; only the connection string can.
+
 The embedding model is cached in `data/cache/models/`.
 
 ### How the knowledge base was built

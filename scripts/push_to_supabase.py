@@ -11,13 +11,18 @@ A real push needs:  pip install "psycopg[binary]"
 What ends up in Postgres
 - chunks, vectors, meta are REPLACED, so the hosted copy mirrors the latest local ingest.
 - runs, llm_cache, feedback are MERGED: rows already online are kept and new ones are added.
+  Feedback is matched by content, not id: the app takes feedback ids from Supabase while online and
+  from SQLite while offline, so the same id can mean different rows.
 - FTS5 is SQLite-only. Postgres gets a generated tsvector column + GIN index on chunks
   instead, and the float32 blobs become a pgvector column. Two SQL functions mirror local
   retrieval: search_chunks(query, n) (full text) and match_chunks(embedding, n) (cosine).
 - Row level security is ON with no policies, so the anon/public API key sees nothing. Only
   the database connection string or the service-role key can read the tables.
 
-The app itself still reads SQLite; this script only publishes a copy.
+The app uses Supabase as its main database when SUPABASE_DB_URL is set (backend/app/kb/remote.py):
+retrieval runs there once this script has published the knowledge base of the current ingest, and
+runs / cache / feedback are written there directly. Run this script after every ingest, and after
+working offline (it uploads what was saved locally meanwhile).
 """
 from __future__ import annotations
 
@@ -226,21 +231,22 @@ INS_RUN = _insert("runs", RUN_COLS, "on conflict (id) do update set created = ex
                   "mode = excluded.mode, enquiry = excluded.enquiry, status = excluded.status, json = excluded.json",
                   casts={"json": "::jsonb"})
 INS_CACHE = _insert("llm_cache", CACHE_COLS, "on conflict (key) do nothing")
-INS_FB = _insert("feedback", FB_COLS, "on conflict (id) do nothing")
-INS_FB_NEW = _insert("feedback", FB_COLS[1:])
+# insert a feedback row unless an identical one is already online (ids are not comparable across copies)
+INS_FB = ("insert into public.feedback (run_id, created, target, verdict, comment) select %s, %s, %s, %s, %s "
+          "where not exists (select 1 from public.feedback f where f.run_id is not distinct from %s "
+          "and f.created is not distinct from %s and f.target is not distinct from %s "
+          "and f.verdict is not distinct from %s and f.comment is not distinct from %s)")
 
 
 def _params(data: dict[str, list]):
     """(statement, rows) in dependency order."""
-    fb_old = [r for r in data["feedback"] if r["id"] is not None]
-    fb_new = [r for r in data["feedback"] if r["id"] is None]
     yield INS_CHUNK, [tuple(r[c] for c in CHUNK_COLS) for r in data["chunks"]]
     yield INS_VEC, [(v["chunk_id"], vec_literal(v["embedding"])) for v in data["vectors"]]
     yield INS_META, [(r["key"], r["value"]) for r in data["meta"]]
     yield INS_RUN, [tuple(r[c] for c in RUN_COLS) for r in data["runs"]]
     yield INS_CACHE, [tuple(r[c] for c in CACHE_COLS) for r in data["llm_cache"]]
-    yield INS_FB, [tuple(r[c] for c in FB_COLS) for r in fb_old]
-    yield INS_FB_NEW, [tuple(r[c] for c in FB_COLS[1:]) for r in fb_new]
+    fb = [tuple(r[c] for c in FB_COLS[1:]) for r in data["feedback"]]
+    yield INS_FB, [row + row for row in fb]
 
 
 # ------------------------------------------------------------------ push over a connection
@@ -259,6 +265,7 @@ def push(data: dict[str, list], url: str, dim: int) -> dict[str, int]:
     with psycopg.connect(url, prepare_threshold=None, connect_timeout=20) as conn:
         with conn.transaction():
             conn.execute(schema_sql(dim))
+            conn.execute(FIX_FEEDBACK_SEQ)   # rows inserted with explicit ids earlier can leave the counter behind
             conn.execute(RESET_KB)
             with conn.cursor() as cur:
                 for stmt, rows in _params(data):
@@ -302,7 +309,7 @@ def write_sql(data: dict[str, list], dim: int, out_dir: Path) -> list[Path]:
         p.write_text(f"begin;\n{body}\ncommit;\n", encoding="utf-8")
         files.append(p)
 
-    emit("schema", schema_sql(dim).strip() + "\n" + RESET_KB)
+    emit("schema", schema_sql(dim).strip() + "\n" + FIX_FEEDBACK_SEQ + "\n" + RESET_KB)
     for stmt, rows in _params(data):
         if not rows:
             continue

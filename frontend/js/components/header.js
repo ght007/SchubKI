@@ -14,6 +14,14 @@ function viewToggle(s) {
     <button data-view="expert" aria-pressed="${s.view === "expert"}" title="Full workbench: matrix, evidence, checks, trace">Expert</button></div>`;
 }
 
+// Where data lives: Supabase (online), offline fallback to the local file, or local only.
+function dbPill(db) {
+  if (!db) return "";
+  const [label, cls] = db.mode === "supabase" ? [db.kb === "supabase" ? "Supabase" : "Supabase (KB local)", "ok"]
+    : db.mode === "offline" ? ["Supabase offline: saving locally", "warn"] : ["Local database", ""];
+  return `<span class="pill ${cls}" title="${esc(db.detail || "")}">${esc(label)}</span>`;
+}
+
 export function renderStatus(el, s, actions) {
   const r = s.run;
   const wire = () => el.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => actions.setView(b.dataset.view)));
@@ -21,7 +29,7 @@ export function renderStatus(el, s, actions) {
     const h = s.health;
     el.innerHTML = (h ? `<span class="pill ${h.mock || !h.has_key ? "warn" : "ok"}"><span class="dot"></span>${
       h.mock ? "Rule-only mode (no LLM)" : h.has_key ? "Groq connected" : "No Groq key: rule-only"}</span>
-      ${s.view === "expert" ? `<span class="pill">${h.kb_records} indexed passages</span>` : ""}` : "") + viewToggle(s);
+      ${s.view === "expert" ? `<span class="pill">${h.kb_records} indexed passages</span>${dbPill(h.db)}` : ""}` : "") + viewToggle(s);
     wire();
     return;
   }

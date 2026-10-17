@@ -26,10 +26,12 @@ app.include_router(runs.router)
 
 @app.on_event("startup")
 def startup() -> None:
-    if store.kb_size() == 0:
+    if store.local_kb_size() == 0:      # the local index is also the offline fallback, so it must exist
         log.info("Knowledge base empty: running ingest (first start only)")
         from .kb import ingest
         log.info("Ingest: %s", ingest.run())
+    log.info("Database: %s", store.db_status().get("detail"))
+    store.schedule_sync(startup=True)   # publish the knowledge base if needed, upload local-only rows
     status = models.check()
     log.info("LLM mock=%s key=%s models=%s", settings.llm_mock, bool(settings.groq_api_key), status)
 

@@ -22,7 +22,7 @@ def health():
     stats = store.get_meta("ingest_stats", "{}")
     return {"ok": store.kb_size() > 0, "kb_records": store.kb_size(), "ingest": json.loads(stats or "{}"),
             "embed_backend": store.get_meta("embed_backend", embed.backend()),
-            "mock": settings.llm_mock, "has_key": bool(settings.groq_api_key),
+            "mock": settings.llm_mock, "has_key": bool(settings.groq_api_key), "db": store.db_status(),
             "models": {"fast": settings.model_fast, "main": settings.model_main,
                        "council": models.council_models()}, "model_status": models.status()}
 
