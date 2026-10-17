@@ -1,5 +1,6 @@
 // Summary badges and the navigable spectrum line with completion dots.
 import { esc } from "../api.js";
+import { isPro } from "./account-controls.js";
 import { STEPS, STATUS_LABELS, activeStep, canOpenStep, isStep, pipelineProgress, stepStatus } from "../pipeline-steps.js";
 
 const STATUS = {
@@ -17,10 +18,14 @@ function revealStep(nav, button) {
   else if (bounds.right > viewport.right) nav.scrollLeft += bounds.right - viewport.right + 12;
 }
 
+const LOCK = `<svg class="lock" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4.5" y="9" width="11" height="8" rx="1.5"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></svg>`;
+
 function viewToggle(s) {
+  const pro = isPro(s.user);   // Basic plan: General only; the Expert button leads to /pricing
   return `<div class="seg view-toggle" role="group" aria-label="View">
     <button data-view="general" aria-pressed="${s.view === "general"}" title="Compact summary for non-experts">General</button>
-    <button data-view="expert" aria-pressed="${s.view === "expert"}" title="Full workbench: matrix, evidence, checks, trace">Expert</button></div>`;
+    <button data-view="expert" aria-pressed="${s.view === "expert"}" class="${pro ? "" : "locked"}"
+      title="${pro ? "Full workbench: matrix, evidence, checks, trace" : "Expert view is part of the Pro plan"}">${pro ? "" : LOCK}Expert</button></div>`;
 }
 
 // Where data lives: Supabase (online), offline fallback to the local file, or local only.
