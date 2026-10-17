@@ -6,6 +6,8 @@ import { setDetected } from "./pathq.js";
 
 let timer = null;
 let lastText = "";
+let lastResult = null;
+let requestId = 0;
 
 export function schedulePrecheck(text, el) {
   clearTimeout(timer);
@@ -13,14 +15,19 @@ export function schedulePrecheck(text, el) {
 }
 
 export async function runPrecheck(text, el) {
-  if (text === lastText) return;
+  if (!el?.isConnected) return;
+  if (text === lastText && lastResult) { renderPrecheck(el, lastResult); return; }
+  const request = ++requestId;
+  lastResult = null;
   lastText = text;
-  if (!text.trim()) { el.innerHTML = ""; el.hidden = true; setDetected([]); return; }
+  if (!text.trim()) { lastResult = null; el.innerHTML = ""; el.hidden = true; setDetected([]); return; }
   try {
     const res = await postJSON("/api/precheck", { enquiry: text, answers: {} });
+    if (request !== requestId || !el.isConnected) return;
+    lastResult = res;
     renderPrecheck(el, res);
     setDetected(res.paths_detected || []);
-  } catch (_) { el.hidden = true; }
+  } catch (_) { if (request === requestId) el.hidden = true; }
 }
 
 function srcLabel(s) { return s ? ` [${s.source} p.${s.page}]` : ""; }
@@ -50,4 +57,4 @@ export function renderPrecheck(el, r) {
   el.querySelectorAll("[data-pc]").forEach((inp) => (inp.oninput = () => { store.get().answers[inp.dataset.pc] = inp.value; }));
 }
 
-export function resetPrecheck() { lastText = ""; }
+export function resetPrecheck() { clearTimeout(timer); ++requestId; lastText = ""; lastResult = null; }

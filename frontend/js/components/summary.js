@@ -29,10 +29,10 @@ const PATH_PLAIN = {
   undecided: "Path to be decided after the lab trial",
 };
 
-function sources(stmts) {
-  const cites = stmts.flatMap((s) => s.citations || []);
+function sources(stmts, base, checks) {
+  const cites = stmts.flatMap((s, index) => (s.citations || []).map((c) => citeChip(c, checks[`${base}[${index}]`])));
   if (!cites.length) return "";
-  return `<details class="srcs"><summary>Show sources</summary>${cites.map((c) => citeChip(c)).join("")}</details>`;
+  return `<details class="srcs"><summary>Show sources</summary>${cites.join("")}</details>`;
 }
 
 export function renderSummary(el, run, actions) {
@@ -44,6 +44,7 @@ export function renderSummary(el, run, actions) {
   const recs = r.recommendations.filter((x) => x.role !== "not_recommended");
   const notRec = r.recommendations.filter((x) => x.role === "not_recommended");
   const fp = r.feasibility_plan;
+  const checks = Object.fromEntries((run.verification?.claims || []).map((check) => [check.location, check.status]));
   const steps = (fp.steps?.length ? fp.steps : [...fp.samples, ...fp.comparison]).slice(0, 4);
   const plainFor = (x) => (x.method_ids || []).map((m) => METHOD_PLAIN[m]).filter(Boolean)[0] || "";
 
@@ -66,7 +67,7 @@ export function renderSummary(el, run, actions) {
         ${recs.length ? recs.map((x) => `<div class="sum-rec">
             <div><b>${esc(x.method)}</b> <span class="role ${x.role}">${esc(x.role.replace("_", " "))}</span></div>
             ${plainFor(x) ? `<div class="small muted">${esc(plainFor(x))}</div>` : ""}
-            <p>${annotate(x.rationale[0]?.text || "")}</p>${sources(x.rationale)}</div>`).join("")
+            <p class="${x.rationale[0]?.kind === "sourced" ? `stmt sourced ${checks[`recommendations[${r.recommendations.indexOf(x)}].rationale[0]`] || "unchecked"}` : ""}">${x.rationale[0]?.kind === "sourced" && x.rationale[0]?.citations?.length ? `<span class="grounded-text">${annotate(x.rationale[0].text)}</span>` : annotate(x.rationale[0]?.text || "")}</p>${sources(x.rationale, `recommendations[${r.recommendations.indexOf(x)}].rationale`, checks)}</div>`).join("")
           : `<p>No method can be recommended yet. Answer the questions below first.</p>`}
         ${notRec.length ? `<p class="small"><b>Not recommended:</b> ${notRec.map((x) => `${esc(x.method)} (${esc(x.rationale[0]?.text || "")})`).join("; ")}</p>` : ""}
       </section>

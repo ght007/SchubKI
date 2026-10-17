@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from ..engine import paths as paths_mod
 from ..engine import pipeline
 from ..kb import store
 from ..schemas import AssessRequest
@@ -77,10 +78,13 @@ async def whatif(body: WhatIfRequest):
     parent = store.get_run(body.run_id)
     if not parent:
         raise HTTPException(404, "Run not found")
+    preferred_paths = body.preferred_paths if body.preferred_paths is not None else parent.get("preferred_paths", [])
+    active_paths = set(preferred_paths) | set((parent.get("requirements") or {}).get("preferred_paths", []))
     answers = {**parent.get("answers", {}), **{k: v for k, v in body.answers.items() if v.strip()}}
+    answers = {key: value for key, value in answers.items()
+               if not paths_mod.is_path_answer(key) or key[5:6] in active_paths}
     req = AssessRequest(enquiry=parent["enquiry"], answers=answers, mode=body.mode or parent.get("mode", "fast"),
-                        preferred_paths=body.preferred_paths if body.preferred_paths is not None
-                        else parent.get("preferred_paths", []), rejected=parent.get("rejected", []),
+                        preferred_paths=preferred_paths, rejected=parent.get("rejected", []),
                         parent_run_id=body.run_id)
     return _stream(req)
 

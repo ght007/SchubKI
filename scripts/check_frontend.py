@@ -29,9 +29,15 @@ def main() -> int:
     for ref in re.findall(r'(?:src|href)="/static/([^"]+)"', html):
         if not (ROOT / ref).exists():
             problems.append(f"index.html refers to frontend/{ref}, which does not exist")
-    for ident in ("precheck", "coach", "enquiry", "view", "tabs"):
+    for ident in ("status", "fiber", "view", "drawer", "account-actions"):
         if f'id="{ident}"' not in html:
-            problems.append(f'index.html has no element id="{ident}" (old index.html?)')
+            problems.append(f'index.html has no element id="{ident}"')
+
+    # Intake and follow-up containers are rendered inside Reading in the four-tab shell.
+    enquiry = (ROOT / "js/components/enquiry.js").read_text(encoding="utf-8")
+    for ident in ("precheck", "pathpick", "reading-confirm", "enq"):
+        if f'id="{ident}"' not in enquiry:
+            problems.append(f'Reading has no element id="{ident}"')
 
     files = sorted((ROOT / "js").rglob("*.js"))
     for f in files:

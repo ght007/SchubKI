@@ -1,5 +1,6 @@
-// Status badge, confidence, quality, verified counter + the fiber progress line.
+// Summary badges and the navigable spectrum line with completion dots.
 import { esc } from "../api.js";
+import { STEPS, STATUS_LABELS, activeStep, canOpenStep, isStep, pipelineProgress, stepStatus } from "../pipeline-steps.js";
 
 const STATUS = {
   provisional_assessment: ["Provisional assessment", "core"],
@@ -7,6 +8,14 @@ const STATUS = {
   outside_supported_scope: ["Outside supported scope", "block"],
 };
 const CONF = { high: "ok", medium: "core", low: "warn", insufficient: "block" };
+let lastSelectedStep = null;
+
+function revealStep(nav, button) {
+  const bounds = button.getBoundingClientRect();
+  const viewport = nav.getBoundingClientRect();
+  if (bounds.left < viewport.left) nav.scrollLeft += bounds.left - viewport.left - 12;
+  else if (bounds.right > viewport.right) nav.scrollLeft += bounds.right - viewport.right + 12;
+}
 
 function viewToggle(s) {
   return `<div class="seg view-toggle" role="group" aria-label="View">
@@ -23,7 +32,7 @@ function dbPill(db) {
 }
 
 export function renderStatus(el, s, actions) {
-  const r = s.run;
+  const r = s.busy ? s.liveRun : s.run;
   const wire = () => el.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => actions.setView(b.dataset.view)));
   if (!r || !r.report) {
     const h = s.health;
@@ -50,20 +59,65 @@ export function renderStatus(el, s, actions) {
   wire();
 }
 
-const NODES = [
-  ["extract", "Read"], ["rules", "Rules"], ["retrieve", "Evidence"], ["premise", "Premises"],
-  ["report", "Assess"], ["verify", "Verify"], ["coach", "Coach"],
-];
-
-export function renderFiber(el, s) {
-  const done = new Set(s.stages.filter((x) => x.status === "done").map((x) => (x.stage === "council" ? "report" : x.stage)));
-  const active = s.busy ? (s.stages.filter((x) => x.status === "start").map((x) => (x.stage === "council" ? "report" : x.stage)).pop()) : null;
-  const n = done.size;
-  const frac = s.run && !s.busy ? 1 : Math.min(1, n / (NODES.length - 1));
+export function renderFiber(el, s, onSelect) {
+  const focused = el.contains(document.activeElement) ? document.activeElement.dataset.step : null;
+  const current = activeStep(s);
+  const focusable = isStep(s.tab) ? s.tab : "reading";
+  const progress = pipelineProgress(s);
+  const stops = STEPS.map((step, index) => `${step.color} ${(index / (STEPS.length - 1) * 100).toFixed(2)}%`);
+  stops.splice(1, 0, "#2563eb 16.67%");
+  stops.splice(3, 0, "#eab308 55%");
+  const spectrum = `linear-gradient(90deg, ${stops.join(", ")})`;
   el.classList.toggle("running", s.busy);
-  el.innerHTML = `
-    <div class="fiber-track"><div class="fiber-lit" style="width:${(frac * 100).toFixed(1)}%"></div>
-      <div class="fiber-pulse" style="--lit:${Math.max(40, frac * (el.clientWidth - 40))}px"></div></div>
-    <div class="fiber-nodes">${NODES.map(([k, l]) =>
-      `<div class="node ${done.has(k) ? "done" : ""} ${active === k ? "active" : ""}"><span>${l}</span></div>`).join("")}</div>`;
+  if (!el.querySelector(".fiber-rail")) {
+    el.innerHTML = `<div class="fiber-rail" style="--spectrum:${spectrum};--progress:0%">
+      <div class="fiber-track" aria-hidden="true"></div>
+      <div class="fiber-lit" role="progressbar" aria-label="Assessment calculation" aria-valuemin="0" aria-valuemax="100"></div>
+      ${STEPS.map((step, index) => `<button type="button" id="tab-${step.id}" role="tab" aria-controls="view"
+        class="fiber-node" style="--step-color:${step.color}"
+        data-step="${step.id}"><span class="step-count">Step ${index + 1} of ${STEPS.length}</span>
+        <span class="step-name">${step.short}</span></button>`).join("")}</div>`;
+    el.onclick = (event) => {
+      const button = event.target.closest("[data-step]");
+      if (button && !button.disabled) onSelect(button.dataset.step);
+    };
+  }
+  const rail = el.querySelector(".fiber-rail");
+  el.querySelectorAll("[data-step]").forEach((button) => {
+      const step = STEPS.find((item) => item.id === button.dataset.step);
+      const index = STEPS.indexOf(step);
+      const status = stepStatus(s, step.id);
+      const available = canOpenStep(s, step.id);
+      const selected = !s.busy && s.tab === step.id;
+      button.disabled = !available;
+      button.className = `fiber-node ${status} ${selected ? "selected" : ""}`;
+      button.tabIndex = !s.busy && focusable === step.id ? 0 : -1;
+      button.setAttribute("aria-selected", String(selected));
+      button.setAttribute("aria-current", current === step.id ? "step" : "false");
+      button.setAttribute("aria-disabled", String(!available));
+      button.setAttribute("aria-label", `Step ${index + 1} of ${STEPS.length}: ${step.label}. ${STATUS_LABELS[status]}${available ? "" : ". Available after processing"}`);
+      button.title = available ? "" : "Available after processing";
+  });
+  rail.style.setProperty("--progress", `${progress.toFixed(2)}%`);
+  const progressbar = rail.querySelector("[role=progressbar]");
+  progressbar.setAttribute("aria-hidden", String(!s.busy));
+  progressbar.setAttribute("aria-valuenow", String(Math.round(progress)));
+  progressbar.setAttribute("aria-valuetext", `${Math.round(progress)}%${current ? `; ${STEPS.find((step) => step.id === current).label}` : ""}`);
+  el.onkeydown = (ev) => {
+    if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(ev.key)) return;
+    const available = STEPS.filter((step) => canOpenStep(s, step.id));
+    const index = available.findIndex((step) => step.id === ev.target.dataset.step);
+    if (index < 0) return;
+    ev.preventDefault();
+    const next = ev.key === "Home" ? 0 : ev.key === "End" ? available.length - 1 :
+      (index + (ev.key === "ArrowRight" ? 1 : -1) + available.length) % available.length;
+    onSelect(available[next].id);
+    const selected = el.querySelector(`[data-step="${available[next].id}"]`);
+    selected.focus({ preventScroll: true });
+    revealStep(el, selected);
+  };
+  if (focused) el.querySelector(`[data-step="${focused}"]`)?.focus({ preventScroll: true });
+  const visibleStep = s.busy ? current : s.tab;
+  if (visibleStep !== lastSelectedStep && isStep(visibleStep)) revealStep(el, el.querySelector(`[data-step="${visibleStep}"]`));
+  lastSelectedStep = visibleStep;
 }

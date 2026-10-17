@@ -27,7 +27,7 @@ function draw() {
   const pathLine = [...u.paths.chosen.map((p) => [p, "chosen"]), ...u.paths.detected.map((p) => [p, "found in the enquiry"])];
 
   el.innerHTML = `<section class="confirm">
-    <div class="row between"><h2 style="margin:0">Is this what you mean?</h2>
+    <div class="row between"><h2 id="reading-confirm-title" style="margin:0">Is this what you mean?</h2>
       <span class="small muted">Read by ${esc(u.read_by)} · the customer's text is not changed</span></div>
     <p class="small muted" style="margin:.3rem 0 0">Check what was understood, untick anything that is wrong, answer what you can. Everything is optional.</p>
 
@@ -53,10 +53,10 @@ function draw() {
     <div class="cf-block"><h3>AFS path</h3>
       ${pathLine.length ? `<ul class="plain small">${pathLine.map(([p, how]) =>
         `<li><b>${p} · ${esc(u.paths.titles[p])}</b> <span class="muted">(${how})</span></li>`).join("")}</ul>`
-        : `<p class="small muted">None chosen or found: the assistant will suggest one. You can pick one in the left panel.</p>`}
+        : `<p class="small muted">None chosen or found: the assistant will suggest one. You can choose a path above.</p>`}
     </div>
 
-    <div class="cf-block"><div class="row between"><h3>Open questions</h3>
+    <div class="cf-block"><div class="row between"><h3 id="reading-questions">Follow-up questions</h3>
       <span class="small muted">${answered} of ${u.questions.length} answered · ${u.completeness} of ${u.total} key facts in the text</span></div>
       ${main.map(question).join("")}
       ${more.length ? `<details ${general ? "" : "open"}><summary class="small">More questions (${more.length})</summary>${more.map(question).join("")}</details>` : ""}
@@ -66,7 +66,7 @@ function draw() {
     <div class="row between cf-actions">
       <label class="small"><input type="checkbox" id="cf-always" ${s.confirm ? "checked" : ""}> Show this step before every run</label>
       <div class="row">
-        <button class="btn" id="cf-back">Back</button>
+        <button class="btn" id="cf-back">Edit enquiry</button>
         <button class="btn" id="cf-skip" title="Run now without these answers (rejected readings still apply)">Skip questions and assess</button>
         <button class="btn primary" id="cf-go">Yes, assess</button>
       </div>

@@ -3,13 +3,24 @@
 const state = {
   run: null,            // current RunResult
   previous: null,       // run before the last what-if
+  liveRun: null,        // fields received from the run currently in progress
   stages: [],           // [{stage, label, status, detail, ms}]
-  details: [],          // council / repair progress lines
+  details: [],          // [{stage, detail}] council / repair progress lines
   busy: false,
   error: "",
-  tab: "assessment",
+  tab: "reading",
   view: "general",      // "general" (compact, default) | "expert" (full workbench)
   mode: "fast",
+  modelChoice: "auto", // UI preference only; backend model routing is unchanged
+  draftEnquiry: null, // null means use the loaded run's enquiry
+  selectedExample: "",
+  savedQueries: [],       // browser-local enquiry drafts; no user or chat association
+  activeQueryId: null,
+  querySidebarOpen: true,
+  queryPersistent: true,
+  savingQuery: false,
+  queryNotice: "",
+  skipQueryAutosave: false, // keep a removed query from reappearing when leaving its draft
   examples: [],
   health: null,
   evidence: null,       // {source, page, quote, verified}
@@ -32,6 +43,6 @@ export function set(patch) {
 
 export function subscribe(fn) { subs.add(fn); return () => subs.delete(fn); }
 
-const memo = { tab: "afs.tab", mode: "afs.mode", view: "afs.view", confirm: "afs.confirm" };
+const memo = { tab: "afs.tab", mode: "afs.mode", modelChoice: "afs.modelChoice", view: "afs.view", confirm: "afs.confirm" };
 export function remember(key, value) { try { localStorage.setItem(memo[key], value); } catch (_) { /* private mode */ } }
 export function recall(key, fallback) { try { return localStorage.getItem(memo[key]) || fallback; } catch (_) { return fallback; } }

@@ -88,10 +88,11 @@ cited (and clearly labelled) assessment.
 
 ```
                           ┌─────────────────────────── Browser (frontend/, no build step) ───────────────────────────┐
-                          │ enquiry · coach · tabs: assessment, methods, spectral map, confidence, what-if, council,   │
-                          │ trace · source drawer (PDF page with highlighted quote)                                  │
+                          │ enquiry · numbered dots on a spectrum pipeline line · four tabs                         │
+                          │ Reading · Result Assessment (grounded sources) · Confidence · Coach                      │
+                          │ source drawer (PDF page with highlighted quote)                                          │
                           └──────────────────────────────────────┬───────────────────────────────────────────────────┘
-                                                                 │ HTTP + Server-Sent Events
+                                                                 │ HTTP + SSE (stage, stage_result, result)
 ┌────────────────────────────────────────────────── FastAPI (backend/app) ──────────────────────────────────────────────┐
 │ api/assess.py  api/sources.py  api/runs.py                                                                            │
 │                                                                                                                       │
@@ -110,13 +111,25 @@ cited (and clearly labelled) assessment.
 **Stack:** Python 3.12 · FastAPI · Pydantic · SQLite (FTS5) · fastembed (bge-small-en-v1.5, ONNX, CPU) ·
 PyMuPDF · rapidfuzz · Groq via the `openai` SDK · vanilla JavaScript ES modules (no framework, no build).
 
+`engine/pipeline.py` emits a `stage_result` after each stage with only that stage's output. The browser
+merges those results into the live run. `frontend/js/pipeline-steps.js` supplies one ordered step model
+for the single top navigation bar; `components/pipeline.js` renders the corresponding stage views.
+
 **Why SQLite and not a vector database:** about 275 indexed records. Brute-force cosine similarity in
 numpy takes microseconds, FTS5 gives BM25 for free, and the whole system runs from one file with one
 command. A separate vector service would add setup risk and no benefit at this size.
 
 ## 4. The pipeline, stage by stage
 
-Each stage streams a progress event to the browser (the "fiber" line at the top lights up).
+The four browser tabs are Reading, Result Assessment, Confidence and Verification, and Coach.
+A temporary loading screen shows the current model and rule tasks while the navigation line fills.
+Each underlying stage emits `stage` progress
+events and a `stage_result` containing its own output when done.
+The numbered dots in the top navigation bar follow the active step automatically. They stay hollow
+until their step completes, then fill with its visual-spectrum color; the connecting line keeps a color
+gradient. Navigation is locked during calculation; the final `result` opens Result Assessment
+(or Coach after a what-if re-run) and unlocks the tabs. It
+contains the complete run saved in SQLite.
 
 | # | Stage | Module | LLM? | Output |
 |---|---|---|---|---|
@@ -181,7 +194,7 @@ readiness claim, and the clinical-scope rule turns such requests into `outside_s
 6. **Pinned evidence:** cards on pages cited by blocking or warning rules are always included.
 7. **Token budget** (`MAX_EVIDENCE_TOKENS`, default 1800–2500) keeps prompts within the free tier.
 
-The Trace tab shows the queries and the budget used for each run.
+The Process tab shows the queries and the budget used for each run.
 
 ## 7. Grounding: verifier, quality gate, confidence
 
@@ -246,7 +259,7 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
   accuracy, process conditions, installation, measuring points, response time) are marked stated /
   inferred / unknown and ranked by impact. It also writes an **improved enquiry template** to send to the
   customer, with `[blanks]` for missing facts. It never fills a blank; a template without blanks is rejected.
-- **What-if:** type the customer's answers (in the coach or the What-if tab) and re-run. The answers are
+- **What-if:** type the customer's answers in Coach and re-run. The answers are
   added as stated facts, the whole pipeline runs again, and a before/after diff shows what changed
   (status, confidence, lead methods, ranking, completeness, AFS path, quality).
 
@@ -254,7 +267,9 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
 
 Open `http://localhost:8000`.
 
-**Two views** (toggle in the header; the browser remembers the choice):
+**Two views** (toggle in the header; the browser remembers the choice). Both keep the same four tabs:
+Reading, Result Assessment, Confidence and Verification, and Coach.
+
 - **General (default)**, for internal non-experts such as sales or management: status and confidence in plain
   words, the answer, *problems found in the request* (always shown), what to test first with a one-line plain
   explanation of each method (sources behind "Show sources"), the top three questions, the first experiment,
@@ -265,7 +280,7 @@ Open `http://localhost:8000`.
 terms (German aliases resolved, e.g. *Feuchte → moisture*, *Glasfaser → silica fiber*), vague words, early
 warnings from blocking rules, and missing key facts. It is informational; the questions are asked on the next step.
 
-**"Is this what you mean?" (step 1 of every UI run, on by default)**: *Check and assess* first reads the enquiry
+**"Is this what you mean?" (in Reading, on by default)**: *Check and assess* first reads the enquiry
 with the extraction model (the run's own first stage) and shows a card with:
 - **We understood**: the structured readings that drive the rules (what to measure, sample form, optics, methods
   asked for, equipment they have, path they ask for, ...). Each has ✓ / ✗; a ✗ resets that reading to *unknown* for
@@ -276,7 +291,8 @@ with the extraction model (the run's own first stage) and shows a card with:
   or found path. A path question that covers a missing fact replaces it (Path A "reference values?" replaces the
   general reference question). Answers the text already gives are **pre-filled and tagged "from your text"**.
 - **Yes, assess** (with the answers given) · **Skip questions and assess** · **Back**; *Show this step before
-  every run* can be unticked (remembered) for live demos, then *Assess enquiry* runs straight away.
+  every run* can be unticked (remembered), then *Assess enquiry* runs straight away. Path questions remain
+  available in Reading when the confirmation card is disabled.
 
 The customer's text is never rewritten: corrections travel as `rejected` fields, answers as a separate block.
 Because path answers and ✗ corrections are kept out of the extraction prompt, confirming **reuses the cached
@@ -291,27 +307,44 @@ customer seems to ask for are marked *in the enquiry* by the pre-check. Each pat
 answers carry a sourced effect on that path's verdict (e.g. C + "No" → *premature*, S01 p.9; B + "In production"
 → *conflicts*, S02 p.20); the rest is context for the report. Path answers travel as
 `Path X - <question>: <answer>`, are kept after the run, and are kept out of the keyword heuristics and the
-extraction prompt so they cannot be misread as other facts. Change the paths and press *Re-run* in the What-if tab to re-assess.
+extraction prompt so they cannot be misread as other facts. Change paths in Reading and press *Re-run* in Coach
+to re-assess. Answers for a removed path are excluded unless the customer asked for that path in the enquiry.
 
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
-- **Fiber line:** pipeline progress (Read → Rules → Evidence → Premises → Assess → Verify → Coach).
-- **Left:** enquiry box, path picker, Fast / Council mode, stage log; enquiry coach below. The scenario
-  loader (H, D, and adversarial cases if `SHOW_DEV_CASES=1`) is shown in the **Expert** view only; General is for
-  typing a real enquiry.
-- **Tabs**
-  - *Assessment* (glossary tooltips on domain terms; pathway card with suggested path, verdict per requested
-    path and "If you proceed anyway" plans): headline, premise check, requirements, questions, recommendations (typed statements,
-    citation chips), concept, spectral range, risks, feasibility experiment, AFS pathway; Markdown download
-    (the **complete** run: the assessment, then appendices A–M with path analysis, extracted requirements, rules,
-    method screening, spectral coverage, evidence, verification, quality checks, confidence, coach, council,
-    what-if changes, retrieval queries and the model trace; the same file from either view).
-  - *Methods & evidence*: screening matrix with every contribution, fired rules, retrieved passages.
-  - *Spectral map*: log wavelength axis 0.18–20 µm with analyte bands, method ranges and fiber
-    transmission; an incompatible client fiber is drawn in red with the silica limit line.
-  - *Confidence & quality*: signals, caps, the 16 checks, verifier and number tables.
-  - *What-if*: questions with what each would decide, answer fields, before/after diff.
-  - *Council*: drafts, gate failures, judge × draft scores, agreement.
-  - *Trace*: every LLM call (model, tokens, latency, cache, fallback), stage timings, retrieval queries.
+- **Top pipeline navigation:** One gradient line connects four numbered dots: Reading →
+  Result Assessment → Confidence and Verification → Coach. Dots stay hollow until their tab's work
+  completes, then fill with that
+  step's spectrum color. The gradient line stays continuous through the brighter, gradient-backed selected step.
+  Submitting an enquiry opens a temporary calculation screen. The gradient line advances as stages finish,
+  and navigation stays locked until the complete result arrives. The loading screen then closes and
+  Result Assessment opens automatically (Coach after a what-if re-run).
+- **Page headers:** each tab starts with a dark, color-tinted header containing a short explanation,
+  its measured runtime (and the full run time when available), and links to the sections on that page.
+  The header stays at the top while scrolling, and the current section's link is accented automatically.
+  Links open collapsed sections, keep their target below the pinned header, and preserve `#run=<id>` deep links.
+  On small screens the section links scroll horizontally to leave room for the page content.
+- **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
+  optional Path A/B/C selection, the instant pre-check, and the reading confirmation with follow-up questions.
+  Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
+  browser; backend routing still uses the server configuration.
+- **Saved queries:** a sidebar on Reading lists recent enquiry drafts. Save a query, start a new one, reopen
+  a saved query, or remove it. Text and Reading options are saved in this browser; checking or assessing an
+  enquiry also saves it. This UI has no user/chat database links. On small screens the list folds away.
+- **Account controls:** Log in and Subscribe to Expert are available throughout the app. Their dialogs are
+  placeholders; they collect no credentials or payments. Integration points for the separate account/chat
+  work are described in [frontend integration](docs/frontend-integration.md).
+- **Temporary loading screen:** the current model task, stage completion, an updating model trace,
+  council activity, and timings. It appears during calculation only; detailed outputs are kept in the
+  completed calculation record.
+- **Result Assessment:** compact summary in General, full report in Expert, with glossary tooltips, path
+  verdicts, and sourced plans for a requested path that is premature or conflicting. Sourced statements are
+  highlighted; selecting a citation opens its supporting quote highlighted in the knowledge base page and
+  original PDF. Both views export the complete Markdown run, including appendices A–M.
+- **Confidence and Verification:** computed confidence, citation checks, number and client-fact checks,
+  and the quality gate. The complete calculation record, model trace, and council results are available
+  in a collapsed details section.
+- **Coach:** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
+  Completed runs can be reopened with `#run=<id>`.
 - **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
   verbatim, the page text with the passage marked, and the original PDF page with the passage highlighted.
 
@@ -439,10 +472,10 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 
 | Method & path | Purpose |
 |---|---|
-| `POST /api/understand` | Step 1 ("Is this what you mean?"): readings, glossary translations, paths, warnings, one merged question list with pre-fills. Body: `{enquiry, answers?, preferred_paths?}` |
-| `POST /api/assess` | Run the pipeline; Server-Sent Events stream (`stage`, `detail`, `error`, `result`). Body: `{enquiry, answers?, mode: fast|council, preferred_paths?: ["A","B","C"], rejected?: ["optical_behavior", ...]}` |
+| `POST /api/understand` | Reading confirmation: structured readings, glossary translations, paths, warnings, and one list of questions with pre-fills. Body: `{enquiry, answers?, preferred_paths?}` |
+| `POST /api/assess` | Run the pipeline; SSE stream (`stage`, `stage_result`, `detail`, `error`, `result`). Each `stage_result` contains that stage's fields and the current trace; `result` contains the complete saved run. Body: `{enquiry, answers?, mode: fast|council, preferred_paths?: ["A","B","C"], rejected?: ["optical_behavior", ...]}` |
 | `POST /api/assess/sync` | Same, returns the run JSON (scripts, curl) |
-| `POST /api/whatif` | Re-run a saved run with answers; SSE. Body: `{run_id, answers, mode?}` |
+| `POST /api/whatif` | Re-run a saved run with answers; same SSE events. Body: `{run_id, answers, mode?, preferred_paths?}` |
 | `GET /api/coach/{run_id}` | Coach result of a run |
 | `POST /api/precheck` | Instant keyword pre-check (no LLM). Body: `{enquiry, answers?}` |
 | `GET /api/glossary` | Glossary entries for tooltips |
@@ -479,13 +512,16 @@ afs-assistant/
 │  │  ├─ models.py              model roles, council list, availability check
 │  │  └─ prompts/               extract · premise · report · repair · judge · coach (.md)
 │  ├─ kb/                       pages.py (page text, normaliser) · store.py (SQLite) · embed.py · ingest.py · retrieve.py
-│  ├─ engine/                   extract · rules · coverage · screen · paths · glossary · precheck · context · premise · report · council ·
-│  │                            verify · quality · confidence · coach · whatif · pipeline
+│  ├─ engine/                   extract · understand · paths · glossary · precheck · rules · coverage · screen ·
+│  │                            context · premise · report · council ·
+│  │                            verify · quality · confidence · coach · whatif · pipeline (stage_result SSE)
 │  └─ render/markdown.py        run → Markdown
 ├─ frontend/
 │  ├─ index.html · css/styles.css
-│  └─ js/                       api.js · state.js · app.js · glossary.js · components/ (header, enquiry, precheck, coach, summary, report,
-│                               matrix, spectral-map, evidence, quality, council, whatif, trace)
+│  └─ js/                       api.js · state.js · app.js · glossary.js · pipeline-steps.js (shared step model)
+│      └─ components/           pipeline.js (tab views and temporary loading screen) · page-header · header · enquiry · confirm ·
+│                               pathq · precheck · coach · summary · report · matrix · spectral-map ·
+│                               evidence · quality · council · whatif · trace
 ├─ eval/
 │  ├─ cases/                    final_cases.yaml (H01–H06 verbatim) · dev_cases.yaml (D01–D08 + worked answers) · adversarial_cases.yaml
 │  ├─ run_cases.py · summary.py · judge.py
@@ -509,7 +545,7 @@ afs-assistant/
 | Embedding download fails | Set `EMBED_BACKEND=hashing` (offline embedder), re-run ingest. |
 | Many `429 … waiting` lines | Free-tier per-minute limit; normal (section 15). Endless 30 s waits on one model usually mean its daily limit is used up. |
 | `413 Request too large` | One request exceeds the per-minute limit; lower `MAX_EVIDENCE_TOKENS`. |
-| Trace shows "fallback" | That stage's LLM call failed; the rule-based version was used. The error text is in the Trace tab and in `outputs/*.json` (`trace`). |
+| Process shows "fallback" | That stage's LLM call failed; the rule-based version was used. The error text is in Process and in `outputs/*.json` (`trace`). |
 | UI shows "Rule-only mode" | `LLM_MOCK=1` or no `GROQ_API_KEY` in `.env`. |
 | Citation drawer: "quote NOT found" | The model cited a passage that is not on that page; the claim is treated as unsupported and flagged by the quality gate. |
 
@@ -527,7 +563,7 @@ afs-assistant/
 - **Council agreement** uses two model families (gpt-oss and qwen) on this key, so it is weaker evidence
   than fully independent models; the UI says so.
 - **Rules are deliberately conservative** and keyword-assisted; an expert should review the fired rules
-  (Methods tab) for each case.
+  (Process tab) for each case.
 - **Free-tier latency** makes Council mode slow; Fast mode is the live-demo mode.
 
 ## 20. Future work

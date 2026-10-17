@@ -17,13 +17,14 @@ function checksByLocation(run) {
 
 export function citeChip(c, status) {
   const st = status || "unchecked";
-  return `<button class="cite ${st}" data-src="${esc(c.source)}" data-page="${c.page}" data-quote="${esc(c.quote)}" data-status="${st}"
-    title="${esc(c.quote)} (${st})"><span class="v"></span>${esc(c.source)} p.${c.page}</button>`;
+  return `<button type="button" class="cite ${st}" data-src="${esc(c.source)}" data-page="${c.page}" data-quote="${esc(c.quote)}" data-status="${st}"
+    title="${esc(c.quote)} (${st})" aria-label="Open highlighted source ${esc(c.source)} page ${c.page}"><span class="v"></span>${esc(c.source)} p.${c.page}</button>`;
 }
 
 function stmt(s, loc, checks) {
   const st = checks[loc];
-  return `<div class="stmt ${s.kind}">${annotate(s.text)}${(s.citations || []).map((c) => citeChip(c, st)).join("")}<span class="kind">${KIND[s.kind] || s.kind}</span></div>`;
+  const grounded = s.kind === "sourced" && (s.citations || []).length;
+  return `<div class="stmt ${s.kind} ${esc(st || "unchecked")}">${grounded ? `<span class="grounded-text">${annotate(s.text)}</span>` : annotate(s.text)}${(s.citations || []).map((c) => citeChip(c, st)).join("")}<span class="kind">${KIND[s.kind] || s.kind}</span></div>`;
 }
 
 export function renderReport(el, run) {
@@ -31,9 +32,9 @@ export function renderReport(el, run) {
   const checks = checksByLocation(run);
   const fp = r.feasibility_plan;
   el.innerHTML = `
-    <div class="toolbar">
+    ${run.id ? `<div class="toolbar">
       <a class="btn" href="/api/runs/${run.id}/export.md" download>Download Markdown</a>
-    </div>
+    </div>` : ""}
     <div class="headline ${r.decision_status}">${annotate(r.headline)}</div>
 
     ${run.premises?.length ? `<section class="section"><h2>Premise check <small>the client's own claims, tested first</small></h2>
