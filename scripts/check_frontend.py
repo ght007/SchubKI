@@ -29,7 +29,7 @@ def main() -> int:
     for ref in re.findall(r'(?:src|href)="/static/([^"]+)"', html):
         if not (ROOT / ref).exists():
             problems.append(f"index.html refers to frontend/{ref}, which does not exist")
-    for ident in ("status", "fiber", "view", "drawer", "account-actions", "reading-review", "nav-back", "evidence-divider"):
+    for ident in ("status", "fiber", "view", "drawer", "account-actions", "reading-review", "nav-back", "nav-forward", "run-stop", "evidence-divider"):
         if f'id="{ident}"' not in html:
             problems.append(f'index.html has no element id="{ident}"')
 

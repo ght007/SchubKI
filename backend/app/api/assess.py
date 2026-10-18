@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from ..auth import service as accounts
+from ..cancellation import RunCancelled, cancellation_scope, check_cancelled
 from ..engine import paths as paths_mod
 from ..engine import pipeline
 from ..kb import store
@@ -44,30 +45,57 @@ def _record(owner: tuple[str, str, str | None] | None, run: RunResult | None) ->
 def _stream(request: AssessRequest, owner: tuple[str, str, str | None] | None = None) -> StreamingResponse:
     loop = asyncio.get_event_loop()
     queue: asyncio.Queue = asyncio.Queue()
+    cancelled = threading.Event()
+
+    def enqueue(event: dict | None) -> None:
+        if cancelled.is_set():
+            return
+        try:
+            loop.call_soon_threadsafe(queue.put_nowait, event)
+        except RuntimeError:  # the client and its event loop have already gone away
+            cancelled.set()
 
     def emit(event: dict) -> None:
-        loop.call_soon_threadsafe(queue.put_nowait, event)
+        if cancelled.is_set():
+            raise RunCancelled("Assessment stopped")
+        enqueue(event)
 
     def work() -> None:
-        with _RUN_LOCK:
-            try:
-                _record(owner, pipeline.run(request, emit))   # linked before the stream closes
-            finally:
-                loop.call_soon_threadsafe(queue.put_nowait, None)
-
-    threading.Thread(target=work, daemon=True).start()
+        acquired = False
+        try:
+            # A cancelled request must not start later when a busy pipeline slot opens.
+            while not cancelled.is_set():
+                if _RUN_LOCK.acquire(timeout=0.1):
+                    acquired = True
+                    break
+            if not acquired:
+                return
+            with cancellation_scope(cancelled):
+                result = pipeline.run(request, emit)
+                check_cancelled()
+                _record(owner, result)   # linked before the stream closes
+        except RunCancelled:
+            pass
+        finally:
+            if acquired:
+                _RUN_LOCK.release()
+            enqueue(None)
 
     async def gen():
-        yield "retry: 60000\n\n"
-        while True:
-            try:
-                event = await asyncio.wait_for(queue.get(), timeout=15)
-            except asyncio.TimeoutError:
-                yield ": keep-alive\n\n"
-                continue
-            if event is None:
-                break
-            yield f"data: {json.dumps(event)}\n\n"
+        try:
+            threading.Thread(target=work, daemon=True).start()
+            yield "retry: 60000\n\n"
+            while True:
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=15)
+                except asyncio.TimeoutError:
+                    yield ": keep-alive\n\n"
+                    continue
+                if event is None:
+                    break
+                yield f"data: {json.dumps(event)}\n\n"
+        finally:
+            cancelled.set()
 
     return StreamingResponse(gen(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})

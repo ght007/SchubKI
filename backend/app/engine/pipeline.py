@@ -10,6 +10,7 @@ import uuid
 from typing import Callable, Optional
 
 from ..config import settings
+from ..cancellation import RunCancelled, check_cancelled
 from ..kb import retrieve as retrieve_mod
 from ..kb import store
 from ..render import outline as outline_mod
@@ -64,10 +65,12 @@ def _run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
     t_all = time.time()
 
     def stage(name: str, label: str):
+        check_cancelled()
         emit({"type": "stage", "stage": name, "status": "start", "label": label})
         return time.time()
 
     def done(name: str, t0: float, detail: str = ""):
+        check_cancelled()
         run_.timings_ms[name] = int((time.time() - t0) * 1000)
         emit({"type": "stage", "stage": name, "status": "done", "detail": detail, "ms": run_.timings_ms[name]})
         emit({"type": "stage_result", "stage": name,
@@ -169,9 +172,13 @@ def _run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
                 run_.diff = whatif_mod.diff(RunResult.model_validate(parent), run_)
         run_.outline = outline_mod.build(run_)   # the 11-section output format (page, export, outputs/)
         done("coach", t, f"completeness {run_.coach.completeness}/{run_.coach.total}")
+    except RunCancelled:
+        raise
     except Exception as exc:  # never lose a run silently
+        check_cancelled()
         run_.error = f"{type(exc).__name__}: {exc}"
         emit({"type": "error", "detail": run_.error})
+    check_cancelled()
     run_.timings_ms["total"] = int((time.time() - t_all) * 1000)
     store.save_run(run_.model_dump(mode="json"))
     emit({"type": "result", "run": run_.model_dump(mode="json")})

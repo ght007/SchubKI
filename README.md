@@ -318,7 +318,7 @@ The sections below describe where each current feature is available.
 terms (German aliases resolved, e.g. *Feuchte → moisture*, *Glasfaser → silica fiber*), vague words, early
 warnings from blocking rules, and missing key facts. It is informational; the questions are asked on the next step.
 
-**"Is this what you mean?" (Customer Enquiry dialog, on by default)**: *Check and assess* first reads the enquiry
+**"Is this what you mean?" (Customer Enquiry dialog)**: *Check and assess* first reads the enquiry
 with the extraction model (the run's own first stage), then opens a modal review without expanding the page.
 The reading and follow-up questions scroll inside the dialog, with **Yes, assess** always available
 in its footer. Questions can be left unanswered. Escape or the close button returns to editing the original
@@ -332,9 +332,8 @@ enquiry without starting an assessment. The review contains:
   or found path. A path question that covers a missing fact replaces it (Path A "reference values?" replaces the
   general reference question). Answers the text already gives are **pre-filled and tagged "from your text"**.
 - **Assessment action**: **Yes, assess** includes any answers given and retains readings marked as unknown.
-  Unanswered questions are optional. The review preference is set in Customer Enquiry with
-  *Review the reading and follow-up questions before assessing* (remembered). When unticked,
-  *Assess enquiry* runs straight away and path questions remain available in Customer Enquiry.
+  Unanswered questions are optional. The review opens before each new assessment; there is no
+  preference checkbox to bypass it, and earlier browser opt-out preferences are ignored.
 
 The customer's text is never rewritten: corrections travel as `rejected` fields, answers as a separate block.
 Because path answers and ✗ corrections are kept out of the extraction prompt, confirming **reuses the cached
@@ -356,9 +355,13 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   and pipeline navigation stay visible together at the top while scrolling, before, during, and after a run.
   The header is temporarily hidden while the evidence viewer is open; Close or Escape brings it back.
   Section jumps and the sidebars account for the header's actual height, including wrapped rows on small screens.
-- **Back navigation:** the left-arrow **Back** button beside the pipeline tabs returns to the previous
-  available step in the current General or Expert view. Its tooltip names the destination. It is disabled
-  on Customer Enquiry and while reading or processing an enquiry.
+- **Back and Forward navigation:** arrow buttons beside the pipeline tabs move to the previous or next
+  available step in the current General or Expert view. Tooltips name the destination. Both are disabled
+  while reading or processing, and at the respective end of the available steps.
+- **Stop assessment:** a red **Stop** button appears in the pinned navigation during processing in both
+  views. It aborts the stream and keeps the enquiry and answers available to retry. The server cancels
+  queued work, subsequent stages and model retries, without saving an unfinished assessment as complete.
+  A model request already in flight may finish before its worker releases the processing slot.
 - **Top pipeline navigation:** General has three tabs: Reading → Result Assessment → Confidence and
   Verification. Expert adds **Process Information** between Reading and Result Assessment, and **Coach** at the end.
   One continuous gradient line connects the numbered dots, which fill with their spectrum color as work

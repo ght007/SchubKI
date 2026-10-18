@@ -2,7 +2,7 @@
 import { esc, getJSON, postJSON, stream } from "./api.js";
 import * as store from "./state.js";
 import { STEPS, LOADING_PAGE, canOpenStep, normalizeTab, stepStatus } from "./pipeline-steps.js";
-import { renderStatus, renderFiber, renderBackNavigation } from "./components/header.js";
+import { renderStatus, renderFiber, renderBackNavigation, renderForwardNavigation } from "./components/header.js";
 import { renderPageNavigation } from "./components/page-navigation.js";
 import { renderEnquiry } from "./components/enquiry.js";
 import { hasStageData, renderPipelineStep, renderLoadingFlow, renderProcessInformation } from "./components/pipeline.js";
@@ -30,6 +30,7 @@ const localQueries = createLocalQueryRepository();
 let queryRepository = localQueries;   // swapped for the account store after login (boot)
 const compactSidebar = window.matchMedia("(max-width: 900px)");
 let readingRequest = 0;
+let activeRun = null;
 
 function openReadingDraft(query = null) {
   ++readingRequest;
@@ -68,7 +69,6 @@ const actions = {
     store.set({ view, tab });
   },
   openAccountMenu(anchor) { openAccountMenu(anchor, store.get().user, { openRun: (id) => actions.openRun(id) }); },
-  setConfirm(confirm) { store.remember("confirm", confirm ? "on" : "off"); store.set({ confirm }); },
   togglePath(path) {
     const s = store.get();
     if (s.busy || s.reading) return;
@@ -199,10 +199,12 @@ const actions = {
     const s = store.get();
     if (s.busy || s.reading) return;
     Object.assign(s, { draftEnquiry: enquiry });
-    if (s.confirm) { await actions.understand(enquiry.trim()); return; }
-    await actions.saveQuery({ silent: true });
-    const answers = activePathAnswers(Object.fromEntries(Object.entries(s.answers).filter(([, value]) => value.trim())));
-    await run("/api/assess", { enquiry, answers, mode: s.mode, preferred_paths: s.paths, model: chosenModel() });
+    await actions.understand(enquiry.trim());
+  },
+  stop() {
+    if (!activeRun || !store.get().busy || store.get().run?.id || activeRun.signal.aborted) return;
+    activeRun.abort();
+    store.set({ stopping: true });
   },
   async assessCouncil() {
     const r = store.get().busy ? null : store.get().run;
@@ -225,6 +227,9 @@ const actions = {
 function chosenModel() { const m = store.get().modelChoice; return m && m !== "auto" ? m : null; }
 
 async function run(url, body) {
+  if (activeRun || store.get().busy) return;
+  const controller = new AbortController();
+  activeRun = controller;
   ++readingRequest;
   resetPrecheck();
   const previous = store.get().run;
@@ -237,8 +242,9 @@ async function run(url, body) {
     rejected: body.rejected || previous?.rejected || [],
     timings_ms: {},
   };
-  store.set({ busy: true, error: "", stages: [], details: [], previous,
+  store.set({ busy: true, stopping: false, error: "", stages: [], details: [], previous,
     run: null, liveRun, understand: null, reading: false, evidence: null,
+    draftEnquiry: liveRun.enquiry,
     tab: store.get().view === "expert" ? "process" : "reading" });
   window.scrollTo(0, 0);
   let receivedResult = false;
@@ -248,6 +254,7 @@ async function run(url, body) {
   let finished = null;
   try {
     await stream(url, body, (e) => {
+      if (controller.signal.aborted || activeRun !== controller) return;
       const s = store.get();
       if (e.type === "stage") {
         store.set({ stages: [...s.stages, e] });
@@ -270,19 +277,21 @@ async function run(url, body) {
           answers, paths: e.run.preferred_paths || [], rejected: [] });
         if (e.run.id) history.replaceState(null, "", `#run=${e.run.id}`);
       }
-    }, headers);
+    }, headers, controller.signal);
   } catch (err) {
-    store.set({ error: `Could not reach the assistant: ${err.message}` });
+    store.set({ error: controller.signal.aborted ? "Assessment stopped. You can edit the enquiry and try again."
+      : `Could not reach the assistant: ${err.message}` });
   } finally {
+    activeRun = null;
     if (!receivedResult) {
       const s = store.get();
       store.set({ run: { ...s.liveRun, error: s.error || "Run ended before a result was returned." },
-        liveRun: null, busy: false, tab: s.view === "expert" ? "process" : "reading" });
+        liveRun: null, busy: false, stopping: false, tab: s.view === "expert" ? "process" : "reading" });
     } else {
       const s = store.get();
       const tab = s.view === "expert" ? "process" : s.run?.error ? "reading" : normalizeTab(completionTab, s.view);
       store.remember("tab", tab);
-      store.set({ liveRun: null, busy: false, tab });
+      store.set({ liveRun: null, busy: false, stopping: false, tab });
     }
     if (store.get().run?.error) document.querySelector("#view .err")?.scrollIntoView({ block: "center" });
     else window.scrollTo(0, 0);
@@ -346,6 +355,10 @@ function render(s) {
   updateHeaderHeight();
   renderStatus($("status"), s, actions);
   renderBackNavigation($("nav-back"), s, actions.selectTab);
+  renderForwardNavigation($("nav-forward"), s, actions.selectTab);
+  $("run-stop").hidden = !s.busy || !!s.run?.id;
+  $("run-stop").disabled = s.stopping;
+  $("run-stop").setAttribute("aria-busy", String(s.stopping));
   renderFiber($("fiber"), s, actions.selectTab);
   const transientLoading = s.busy && s.view !== "expert";
   $("view").setAttribute("role", transientLoading ? "region" : "tabpanel");
@@ -377,6 +390,7 @@ document.addEventListener("keydown", (ev) => {
 });
 
 store.subscribe(render);
+$("run-stop").onclick = actions.stop;
 const accountProps = { openRun: (id) => actions.openRun(id) };
 compactSidebar.addEventListener("change", (event) => store.set({ querySidebarOpen: !event.matches }));
 
@@ -410,7 +424,7 @@ async function loadAccount() {
     savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent,
     queryStorageLabel: queryRepository.label, querySidebarOpen: !compactSidebar.matches,
     mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto"),
-    view, confirm: store.recall("confirm", "on") === "on" });
+    view });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }
   try {

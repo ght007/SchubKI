@@ -25,13 +25,13 @@ On viewports up to 1100px, or when the content area is narrower than 740px (for 
 drawer), the panel uses a native popover opened by “On this page”. Section selection closes the popover.
 Observers and global listeners are cleaned up when the view is rebuilt.
 
-## Back navigation and resizable evidence
+## Back/Forward navigation and resizable evidence
 
-The persistent `#nav-back` button sits to the left of the tab list. `previousStep(state)` selects the
-previous available step from `visibleSteps(state)`, so General skips Expert-only tabs. The button's
-tooltip and accessible name identify the destination; it is disabled on Customer Enquiry and while
-`busy` or `reading`. It uses the existing tab-selection action, retaining the current enquiry, run and
-source selection rather than navigating away from the application.
+The persistent `#nav-back` and `#nav-forward` arrow buttons flank the tab list. `previousStep(state)`
+and `nextStep(state)` select available steps from `visibleSteps(state)`, so General skips Expert-only
+tabs. Each button's tooltip and accessible name identify its destination. Both are disabled while
+`busy` or `reading`; a button is also disabled when no available step exists in its direction. They use
+the existing tab-selection action, retaining the current enquiry, run and source selection.
 
 `components/evidence-split.js` mounts once on `.shell` and `#evidence-divider`. When the source viewer
 opens, CSS grid gives the source and assessment equal tracks with a divider between them. Each citation
@@ -65,9 +65,10 @@ returns focus to the enquiry field without assessing. Starting a run closes the 
 
 The dialog stays mounted across page updates. Text input does not redraw it; choice and correction
 updates preserve keyboard focus, scroll position, answers, and expanded disclosures. The dialog footer
-contains only **Yes, assess**. The review preference checkbox remains in Customer Enquiry and controls
-whether future runs show the review. The page navigation links only to the
-enquiry form and any inline path questions shown when review is disabled, rather than into the modal.
+contains only **Yes, assess**. Each new enquiry assessment goes through this dialog. Both preference
+checkboxes and the `confirm` state have been removed; legacy `afs.confirm=off` browser preferences are
+ignored. The enquiry button stays **Check and assess**. Path and pre-check follow-up answers are collected
+inside the dialog. Page navigation links to the enquiry form, rather than into the modal.
 The existing submission, optional-question, reading-correction, and backend contracts are unchanged.
 
 ## General and Expert processing
@@ -88,6 +89,15 @@ The spectrum line derives its columns, endpoint positions, colors, and progress 
 - While busy, only Expert's process tab is available; other navigation remains locked until the stream ends.
   A final result event alone does not unlock it. After failure, Reading and Expert's process record are
   available, while result tabs remain locked.
+- `#run-stop` is visible during processing in both views and aborts the active stream's `AbortController`.
+  It becomes disabled while stopping and disappears after cancellation, failure or the final result.
+  Cancelled callbacks are ignored; the enquiry, answers and partial process record remain available.
+  The UI reports a stopped assessment rather than a connection error and allows a fresh review and retry.
+  The SSE generator sets a per-request cancellation event on disconnect. Queued workers abandon their
+  slot request; active workers check cancellation at stage boundaries, before saving, and before model
+  attempts. Retry waits are interruptible, and cancellation bypasses error fallback and history recording.
+  An already running synchronous model request may finish before its worker releases the semaphore slot;
+  no later model calls or stages start for that cancelled request. Sync API calls are unaffected.
 - Switching display mode during calculation immediately switches between the simple flow and the expert
   record, using the same in-memory run. It neither restarts nor changes the backend request.
   The coaching stage still runs in both modes to compute confidence. General maps its active navigation

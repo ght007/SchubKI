@@ -52,19 +52,8 @@ function draw() {
       ${["A", "B", "C"].map((p) => `<button type="button" class="pathopt" data-path="${p}" aria-pressed="${chosen.includes(p)}" ${s.busy || s.reading ? "disabled" : ""}>
           <span class="pl">${p}</span><span>${esc(defs[p]?.title || FALLBACK[p].title)}</span>
           ${detected.includes(p) && !chosen.includes(p) ? `<span class="tag">in the enquiry</span>` : ""}</button>`).join("")}
-      ${s.confirm && shown.length ? `<span class="small muted">Choose Check and assess to open the review dialog with questions for ${shown.length > 1 ? "these paths" : "this path"}.</span>` : ""}
-    </div>
-    ${!s.confirm && shown.length ? `<div class="pathq"><h3 id="path-questions">Path follow-up questions</h3>
-      ${shown.map((path) => (defs[path]?.questions || []).map((q) => `<div class="pq">
-        <div class="small"><b>${esc(q.text)}</b> <span class="tag">Path ${path}</span></div>
-        <div class="opts">${q.options.map((option) => `<button type="button" class="opt" data-path-q="${esc(q.key)}" data-option="${esc(option)}"
-          aria-pressed="${s.answers[q.key] === option}">${esc(option)}</button>`).join("")}</div>
-      </div>`).join("")).join("")}</div>` : ""}`;
+      ${shown.length ? `<span class="small muted">Choose Check and assess to open the review dialog with questions for ${shown.length > 1 ? "these paths" : "this path"}.</span>` : ""}
+    </div>`;
 
   el.querySelectorAll("[data-path]").forEach((b) => (b.onclick = () => actions.togglePath(b.dataset.path)));
-  el.querySelectorAll("[data-path-q]").forEach((button) => (button.onclick = () => {
-    const key = button.dataset.pathQ;
-    actions.setAnswer(key, s.answers[key] === button.dataset.option ? "" : button.dataset.option);
-    draw();
-  }));
 }

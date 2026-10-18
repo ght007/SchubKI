@@ -40,7 +40,7 @@ export function renderPrecheck(el, r) {
   el.innerHTML = `
     <div class="row between"><h2 style="margin:0">Before you run it</h2>
       <span class="small muted">${r.completeness} of ${r.total} key facts present</span></div>
-    <p class="small muted" style="margin:.2rem 0 .6rem">Instant check while you type, no AI. ${s.confirm ? "The open questions are asked on the next step." : "Answers you add are sent as a separate \"added by the expert\" block; the customer's text is not changed."}</p>
+    <p class="small muted" style="margin:.2rem 0 .6rem">Instant check while you type, no AI. The open questions are asked in the review dialog.</p>
 
     ${r.warnings.length ? `<div class="pc-warn">${r.warnings.map((w) => `<p><b>${esc(w.title)}.</b> ${esc(w.text)} <span class="small">[${esc(w.sources.join(", "))}]</span></p>`).join("")}</div>` : ""}
 
@@ -48,13 +48,10 @@ export function renderPrecheck(el, r) {
       `<span class="chip ${esc(t.category)}" title="${esc(t.definition + srcLabel(t.source))}">${esc(t.matched)}${t.matched.toLowerCase() !== t.term.toLowerCase() ? ` → ${esc(t.term)}` : ""}</span>`).join("")}</div></div>` : ""}
 
     ${r.vague.length ? `<div class="pc-block"><div class="small"><b>Too vague to act on</b></div>${r.vague.map((v) => `
-      <div class="pc-q"><span class="chip vague">${esc(v.matched)}</span> <span class="small">${esc(v.ask)}</span>
-      ${s.confirm ? "" : `<input type="text" data-pc="${esc(v.ask)}" value="${esc(s.answers[v.ask] || "")}" placeholder="Answer if known">`}</div>`).join("")}</div>` : ""}
+      <div class="pc-q"><span class="chip vague">${esc(v.matched)}</span> <span class="small">${esc(v.ask)}</span></div>`).join("")}</div>` : ""}
 
     ${missing.length ? `<div class="pc-block"><div class="small"><b>Missing facts</b></div>${missing.map((m) => `
-      <div class="pc-q"><span class="small"><b>${esc(m.label)}</b> <span class="muted">${m.impact} impact</span></span>
-      ${s.confirm ? "" : `<input type="text" data-pc="${esc(m.label)}" value="${esc(s.answers[m.label] || "")}" placeholder="${esc(m.question)}">`}</div>`).join("")}</div>` : ""}`;
-  el.querySelectorAll("[data-pc]").forEach((inp) => (inp.oninput = () => { store.get().answers[inp.dataset.pc] = inp.value; }));
+      <div class="pc-q"><span class="small"><b>${esc(m.label)}</b> <span class="muted">${m.impact} impact</span></span></div>`).join("")}</div>` : ""}`;
 }
 
 export function resetPrecheck() { clearTimeout(timer); ++requestId; lastText = ""; lastResult = null; }

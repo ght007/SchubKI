@@ -6,8 +6,8 @@ Every LLM call in the app goes through `complete_json`. It
   * waits and retries on HTTP 429 using Groq's retry-after header,
   * caches replies in SQLite by a hash of (model, messages, schema),
   * records a TraceItem (tokens, latency, cache hit) for the Trace tab,
-  * never raises to the pipeline: if the model fails, the caller's `fallback`
-    (a deterministic, rule-based answer) is used and the trace says so.
+  * uses the caller's `fallback` if the model fails and records that in the trace;
+    cancellation propagates to the pipeline without a retry or fallback.
 """
 from __future__ import annotations
 
@@ -22,6 +22,7 @@ from typing import Callable, Optional, Type, TypeVar
 from pydantic import BaseModel, ValidationError
 
 from ..config import settings
+from ..cancellation import RunCancelled, check_cancelled, wait_for_retry
 from ..kb import store
 from ..schemas import TraceItem
 
@@ -98,6 +99,7 @@ def _call(model: str, messages: list[dict], schema: Type[BaseModel], max_tokens:
     use_schema = model not in _json_object_only
     shrunk = False
     for attempt in range(settings.llm_max_retries + 1):
+        check_cancelled()
         if use_schema:
             # the schema travels in response_format; do not pay for it twice in the prompt
             msgs = messages
@@ -114,10 +116,14 @@ def _call(model: str, messages: list[dict], schema: Type[BaseModel], max_tokens:
             kwargs["extra_body"] = extra
         try:
             resp = client.chat.completions.create(**kwargs)
+            check_cancelled()
             usage = {"prompt_tokens": getattr(resp.usage, "prompt_tokens", 0),
                      "completion_tokens": getattr(resp.usage, "completion_tokens", 0)}
             return resp.choices[0].message.content or "", usage
+        except RunCancelled:
+            raise
         except Exception as exc:  # openai.* errors
+            check_cancelled()
             status = getattr(exc, "status_code", None)
             msg = str(exc).lower()
             if status == 413 and not shrunk:
@@ -135,7 +141,7 @@ def _call(model: str, messages: list[dict], schema: Type[BaseModel], max_tokens:
             if status == 429:
                 wait = min(_retry_after(exc) + 0.5, 30)
                 log.warning("429 from %s, waiting %.1fs", model, wait)
-                time.sleep(wait)
+                wait_for_retry(wait)
                 continue
             if status == 400 and use_schema and ("response_format" in msg or "json_schema" in msg or "schema" in msg):
                 _json_object_only.add(model)
@@ -149,7 +155,7 @@ def _call(model: str, messages: list[dict], schema: Type[BaseModel], max_tokens:
                 use_schema = False
                 continue
             if status in (500, 502, 503, 504) or status is None:
-                time.sleep(2 * (attempt + 1))
+                wait_for_retry(2 * (attempt + 1))
                 if attempt < settings.llm_max_retries:
                     continue
             raise
@@ -160,6 +166,7 @@ def complete_json(stage: str, model: str, system: str, user: str, schema: Type[T
                   trace: list[TraceItem], fallback: Optional[Callable[[], T]] = None,
                   max_tokens: int = 2500, temperature: float = 0.2) -> T | None:
     """Return a validated `schema` instance, or fallback() / None if the model fails."""
+    check_cancelled()
     system_full = f"{system}\n\nReturn ONLY one JSON object (no prose, no markdown)."
     messages = [{"role": "system", "content": system_full}, {"role": "user", "content": user}]
     key = hashlib.sha256(json.dumps([model, messages, schema.__name__]).encode()).hexdigest()
@@ -167,6 +174,7 @@ def complete_json(stage: str, model: str, system: str, user: str, schema: Type[T
     item = TraceItem(stage=stage, model=model)
 
     def done(result, ok=True, error="", cached=False, usage=None):
+        check_cancelled()
         item.ok, item.error, item.cached = ok, error[:300], cached
         item.latency_ms = int((time.time() - t0) * 1000)
         if usage:
@@ -205,7 +213,10 @@ def complete_json(stage: str, model: str, system: str, user: str, schema: Type[T
         if settings.llm_cache:
             store.cache_put(key, model, parsed.model_dump_json(), usage)
         return done(parsed, usage=usage)
+    except RunCancelled:
+        raise
     except Exception as exc:
+        check_cancelled()
         log.warning("LLM stage %s failed on %s: %s", stage, model, exc)
         result = fallback() if fallback else None
         if result is not None:

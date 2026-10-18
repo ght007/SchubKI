@@ -1,7 +1,7 @@
 // Summary badges and the navigable spectrum line with completion dots.
 import { esc } from "../api.js";
 import { isPro } from "./account-controls.js";
-import { STATUS_LABELS, activeStep, canOpenStep, pipelineProgress, previousStep, stepStatus, visibleSteps } from "../pipeline-steps.js";
+import { STATUS_LABELS, activeStep, canOpenStep, nextStep, pipelineProgress, previousStep, stepStatus, visibleSteps } from "../pipeline-steps.js";
 
 const STATUS = {
   provisional_assessment: ["Provisional assessment", "core"],
@@ -78,6 +78,20 @@ export function renderBackNavigation(button, s, onSelect) {
   button.onclick = () => {
     if (!previous) return;
     onSelect(previous.id);
+    window.scrollTo(0, 0);
+  };
+}
+
+export function renderForwardNavigation(button, s, onSelect) {
+  const next = nextStep(s);
+  button.disabled = !next;
+  button.title = next ? `Forward to ${next.label}` : s.busy || s.reading
+    ? "Forward is available after processing" : s.tab === visibleSteps(s).at(-1)?.id
+      ? "Already on the last step" : "Forward is available after assessment";
+  button.setAttribute("aria-label", next ? button.title : `Forward. ${button.title}`);
+  button.onclick = () => {
+    if (!next) return;
+    onSelect(next.id);
     window.scrollTo(0, 0);
   };
 }
