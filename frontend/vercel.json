@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    { "source": "/", "destination": "/login", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://schubki-api.onrender.com/api/:path*" },
+    { "source": "/static/:path*", "destination": "/:path*" },
+    { "source": "/app", "destination": "/index.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/pricing", "destination": "/pricing.html" }
+  ],
+  "headers": [
+    { "source": "/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0" }] },
+    { "source": "/api/(.*)", "headers": [{ "key": "x-vercel-enable-rewrite-caching", "value": "0" }] }
+  ]
+}

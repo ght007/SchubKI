@@ -337,6 +337,11 @@ compactSidebar.addEventListener("change", (event) => store.set({ querySidebarOpe
 async function loadAccount() {
   let user = null;
   try { user = (await getJSON("/api/auth/me")).user; } catch (_) { /* server starting: stay guest */ }
+  if (!user) {   // static hosting (Vercel) serves /app without the server's login check: mirror it here
+    try {
+      if ((await getJSON("/api/auth/config")).auth_required) { location.replace("/login?next=%2Fapp"); return; }
+    } catch (_) { /* server starting: stay guest */ }
+  }
   store.set({ user });
   mountAccountControls($("account-actions"), { ...accountProps, user });
   if (!user) return;

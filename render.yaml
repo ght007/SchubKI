@@ -1,0 +1,43 @@
+# Render Blueprint: the FastAPI backend (also serves the full app on its own URL).
+# Render > New > Blueprint > this repo. Secrets (sync: false) are entered in the Render dashboard, never here.
+# Step-by-step: docs/DEPLOY.md
+services:
+  - type: web
+    name: schubki-api            # URL becomes https://schubki-api.onrender.com if the name is free
+    runtime: python
+    plan: free                   # sleeps after 15 min idle; open /api/live before a demo
+    region: frankfurt
+    buildCommand: >-
+      pip install -r requirements.txt &&
+      python scripts/fetch_sources.py &&
+      python -m backend.app.kb.ingest
+    startCommand: >-
+      uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+      --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /api/live
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      # secrets: set in the dashboard
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SUPABASE_DB_URL      # Session pooler URI; without it accounts/runs vanish when the instance sleeps
+        sync: false
+      - key: SOURCES_URL          # private link to a .zip with the S01-S05 PDFs (they are not in git)
+        sync: false
+      - key: GOOGLE_CLIENT_ID     # optional; public OAuth client id only
+        sync: false
+      # plain settings (same defaults as .env.example)
+      - key: LLM_MOCK
+        value: "0"
+      - key: LLM_CACHE
+        value: "1"
+      - key: LLM_MAX_RETRIES
+        value: "8"
+      - key: MAX_EVIDENCE_TOKENS
+        value: "2500"
+      - key: AUTH_REQUIRED
+        value: "1"
+      - key: BILLING_MODE
+        value: demo
