@@ -4,7 +4,10 @@ import { latestStageEvent } from "../pipeline-steps.js";
 
 let cleanupNavigation = () => {};
 
-const contentsLinks = (links) => links.map(([label, id]) => `<a href="#${id}">${esc(label)}</a>`).join("");
+const contentsLinks = (links) => links.map(([label, id]) => {
+  const next = id === "reading-assess-title";
+  return `<a href="#${id}"${next ? ' class="page-toc-next"' : ""}>${esc(label)}${next ? '<span class="page-next-label">Next</span>' : ""}</a>`;
+}).join("");
 
 function contents(content, tab) {
   if (tab === "reading") return [
@@ -13,6 +16,7 @@ function contents(content, tab) {
     ["Review the reading", "reading-confirm-title"],
     ["Follow-up questions", "reading-questions"],
     ["Path follow-up questions", "path-questions"],
+    ["Start assessment", "reading-assess-title"],
   ].filter(([, id]) => content.querySelector(`#${id}`));
 
   const headings = [...content.querySelectorAll("h2, h3, summary")].filter((node) => {
@@ -163,6 +167,7 @@ export function renderPageNavigation(content, s, step) {
   panel.innerHTML = `<button type="button" class="page-navigation-close" popovertarget="page-navigation" popovertargetaction="hide" aria-label="Close page navigation" autofocus>Close ×</button>
     <div class="page-navigation-copy"><h1 id="page-title-${step.id}">${esc(step.label)}</h1><p>${esc(step.description)}</p></div>
   ${detailParts.length ? `<p class="page-detail">${detailParts.map(esc).join(" · ")}</p>` : ""}
+  ${step.id === "reading" && s.understand && !s.reading ? `<p class="page-review-status" role="status"><strong>Awaiting your review</strong>Check the reading and questions, then start the assessment below.</p>` : ""}
   <nav class="page-toc" aria-label="Contents of ${esc(step.label)}">
     <span class="page-toc-label">On this page</span>
     <div class="page-toc-links">${contentsLinks(links)}</div>

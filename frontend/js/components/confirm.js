@@ -9,6 +9,17 @@ import * as store from "../state.js";
 let el = null;
 let actions = null;
 
+function focusReviewTarget(id) {
+  const target = document.getElementById(id);
+  if (!target) return;
+  target.focus({ preventScroll: true });
+  target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+}
+
+export function focusReadingReview() {
+  focusReviewTarget("reading-confirm-title");
+}
+
 export function renderConfirm(container, s, acts) {
   el = container;
   actions = acts;
@@ -26,10 +37,14 @@ function draw() {
   const more = u.questions.filter((q) => !isMain(q));
   const pathLine = [...u.paths.chosen.map((p) => [p, "chosen"]), ...u.paths.detected.map((p) => [p, "found in the enquiry"])];
 
-  el.innerHTML = `<section class="confirm">
-    <div class="row between"><h2 id="reading-confirm-title" style="margin:0">Is this what you mean?</h2>
-      <span class="small muted">Read by ${esc(u.read_by)} · the customer's text is not changed</span></div>
-    <p class="small muted" style="margin:.3rem 0 0">Check what was understood, untick anything that is wrong, answer what you can. Everything is optional.</p>
+  el.innerHTML = `<section class="confirm" aria-labelledby="reading-confirm-title">
+    <div class="cf-intro">
+      <h2 id="reading-confirm-title" tabindex="-1"><span class="cf-next-step">Next step · Review and confirm</span>Is this what you mean?</h2>
+      <p>The assessment has not started yet. Check the reading below, mark anything that is wrong, and answer what you can.</p>
+      <p class="small">Then choose <b>Yes, assess</b> at the bottom, or <b>Skip questions and assess</b> to continue without answers. All questions are optional.</p>
+      <button type="button" class="btn cf-jump" id="cf-jump">Go to assessment actions ↓</button>
+    </div>
+    <p class="small muted cf-reader">Read by ${esc(u.read_by)} · the customer's text is not changed</p>
 
     ${u.warnings.length ? `<div class="pc-warn" style="margin-top:.8rem">${u.warnings.map((w) =>
       `<p><b>${esc(w.title)}.</b> ${esc(w.text)} <span class="small">[${esc(w.sources.join(", "))}]</span></p>`).join("")}</div>` : ""}
@@ -63,14 +78,16 @@ function draw() {
       ${!u.questions.length ? `<p class="small muted">No open questions.</p>` : ""}
     </div>
 
-    <div class="row between cf-actions">
-      <label class="small"><input type="checkbox" id="cf-always" ${s.confirm ? "checked" : ""}> Show this step before every run</label>
-      <div class="row">
-        <button class="btn" id="cf-back">Edit enquiry</button>
-        <button class="btn" id="cf-skip" title="Run now without these answers (rejected readings still apply)">Skip questions and assess</button>
-        <button class="btn primary" id="cf-go">Yes, assess</button>
+    <section class="cf-actions" aria-labelledby="reading-assess-title">
+      <h3 id="reading-assess-title" tabindex="-1">Ready to start the assessment?</h3>
+      <p class="small">Use your answers with <b>Yes, assess</b>, or continue without them with <b>Skip questions and assess</b>.</p>
+      <div class="cf-action-buttons">
+        <button type="button" class="btn" id="cf-back">Edit enquiry</button>
+        <button type="button" class="btn" id="cf-skip" title="Run now without these answers (rejected readings still apply)">Skip questions and assess</button>
+        <button type="button" class="btn primary" id="cf-go">Yes, assess</button>
       </div>
-    </div>
+      <label class="small cf-always"><input type="checkbox" id="cf-always" ${s.confirm ? "checked" : ""}> Show this step before every run</label>
+    </section>
   </section>`;
 
   el.querySelectorAll("[data-ok]").forEach((b) => (b.onclick = () => { store.get().rejected = s.rejected.filter((f) => f !== b.dataset.ok); draw(); }));
@@ -86,6 +103,7 @@ function draw() {
   }));
   el.querySelectorAll("[data-t]").forEach((inp) => (inp.oninput = () => { store.get().answers[inp.dataset.t] = inp.value; }));
   el.querySelector("#cf-always").onchange = (ev) => actions.setConfirm(ev.target.checked);
+  el.querySelector("#cf-jump").onclick = () => focusReviewTarget("reading-assess-title");
   el.querySelector("#cf-back").onclick = () => actions.closeConfirm();
   el.querySelector("#cf-skip").onclick = () => actions.confirmRun(false);
   el.querySelector("#cf-go").onclick = () => actions.confirmRun(true);

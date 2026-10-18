@@ -14,6 +14,21 @@ On viewports up to 1100px, or when the content area is narrower than 740px (for 
 drawer), the panel uses a native popover opened by “On this page”. Section selection closes the popover.
 Observers and global listeners are cleaned up when the view is rebuilt.
 
+## Reading review handoff
+
+When `actions.understand` finishes successfully, `focusReadingReview()` focuses and scrolls to
+`#reading-confirm-title`. This happens once for the current request, after the review renders; changing
+an answer or display preference does not trigger another automatic jump. Scrolling respects reduced motion.
+If reading fails or the request is superseded, it does not move focus to a stale review.
+
+`confirm.js` explains that assessment is waiting for the user's review. Its top shortcut scrolls to the
+highlighted `#reading-assess-title` action block, where **Yes, assess** includes answers and **Skip questions
+and assess** omits them. Neither this shortcut nor scrolling starts an assessment.
+The original enquiry button becomes **Continue review ↓** and returns to the review without another request.
+The right-side panel shows **Awaiting your review** and a **Start assessment** contents link marked **Next**
+while the review is open. The same link and status are available in the compact “On this page” popover.
+The existing submission, optional-question, reading-correction, and backend contracts are unchanged.
+
 ## General and Expert processing
 
 `pipeline-steps.js` defines all five tabs; `visibleSteps(state)` excludes Process Information and Coach in General

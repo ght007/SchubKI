@@ -7,7 +7,7 @@ import { renderPageNavigation } from "./components/page-navigation.js";
 import { renderEnquiry } from "./components/enquiry.js";
 import { hasStageData, renderPipelineStep, renderLoadingFlow, renderProcessInformation } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
-import { renderConfirm } from "./components/confirm.js";
+import { renderConfirm, focusReadingReview } from "./components/confirm.js";
 import { resetPrecheck } from "./components/precheck.js";
 import { activePathAnswers, loadPathQuestions, setDetected } from "./components/pathq.js";
 import { loadGlossary } from "./glossary.js";
@@ -108,6 +108,7 @@ const actions = {
     store.set({ reading: true, error: "", draftEnquiry: enquiry, tab: "reading" });
     await actions.saveQuery({ silent: true });
     if (request !== readingRequest) return;
+    let reviewReady = false;
     try {
       const data = await postJSON("/api/understand", { enquiry, answers: {}, preferred_paths: [...store.get().paths] });
       if (request !== readingRequest) return;
@@ -120,10 +121,14 @@ const actions = {
       data.enquiry = enquiry;
       setDetected(data.paths.detected);
       store.set({ understand: data, answers, rejected: s.understand ? s.rejected : [] });
+      reviewReady = true;
     } catch (err) {
       if (request === readingRequest) store.set({ error: `Could not read the enquiry: ${err.message}` });
     } finally {
-      if (request === readingRequest) store.set({ reading: false });
+      if (request === readingRequest) {
+        store.set({ reading: false });
+        if (reviewReady) focusReadingReview();
+      }
     }
   },
   closeConfirm() { ++readingRequest; store.set({ understand: null, rejected: [], reading: false }); },

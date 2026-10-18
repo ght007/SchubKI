@@ -291,7 +291,11 @@ terms (German aliases resolved, e.g. *Feuchte → moisture*, *Glasfaser → sili
 warnings from blocking rules, and missing key facts. It is informational; the questions are asked on the next step.
 
 **"Is this what you mean?" (in Reading, on by default)**: *Check and assess* first reads the enquiry
-with the extraction model (the run's own first stage) and shows a card with:
+with the extraction model (the run's own first stage), then scrolls to and focuses the review card.
+The card explains that assessment has not started yet and points to the final actions. A pending-review
+notice and **Start assessment · Next** shortcut appear in the right-side navigation (under “On this page”
+on smaller screens). The enquiry button becomes **Continue review ↓** so returning to the form still gives
+a way forward. The review contains:
 - **We understood**: the structured readings that drive the rules (what to measure, sample form, optics, methods
   asked for, equipment they have, path they ask for, ...). Each has ✓ / ✗; a ✗ resets that reading to *unknown* for
   the run (e.g. "it is **not clear** yet" misread as *optics: clear*), so no rule fires on it. Glossary translations
@@ -300,7 +304,9 @@ with the extraction model (the run's own first stage) and shows a card with:
 - **Open questions, one list without repeats**: vague words, missing key facts, and the questions of every chosen
   or found path. A path question that covers a missing fact replaces it (Path A "reference values?" replaces the
   general reference question). Answers the text already gives are **pre-filled and tagged "from your text"**.
-- **Yes, assess** (with the answers given) · **Skip questions and assess** · **Back**; *Show this step before
+- **Ready to start the assessment?**: a highlighted action block with **Yes, assess** (with the answers given),
+  **Skip questions and assess** (without those answers), and **Edit enquiry**. A shortcut at the top of the
+  review jumps here without starting a run. *Show this step before
   every run* can be unticked (remembered), then *Assess enquiry* runs straight away. Path questions remain
   available in Reading when the confirmation card is disabled.
 
