@@ -330,7 +330,9 @@ answers carry a sourced effect on that path's verdict (e.g. C + "No" → *premat
 extraction prompt so they cannot be misread as other facts. Change paths in Reading and press *Re-run* in Coach
 to re-assess. Answers for a removed path are excluded unless the customer asked for that path in the enquiry.
 
-- **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
+- **Pinned app header:** the AFS logo/title, account/login and plan controls, view toggle, status badges,
+  and pipeline navigation stay visible together at the top while scrolling, before, during, and after a run.
+  Section jumps and the sidebars account for the header's actual height, including wrapped rows on small screens.
 - **Top pipeline navigation:** General has three tabs: Reading → Result Assessment → Confidence and
   Verification. Expert adds **Process Information** between Reading and Result Assessment, and **Coach** at the end.
   One continuous gradient line connects the numbered dots, which fill with their spectrum color as work

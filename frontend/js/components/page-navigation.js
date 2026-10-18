@@ -37,7 +37,7 @@ function trackContents(panel, content, tab) {
   const toc = panel.querySelector(".page-toc-links");
   const toggle = layout.querySelector(".page-navigation-toggle");
   const compact = window.matchMedia("(max-width: 1100px)");
-  const loadingBar = document.querySelector(".fiber.running");
+  const appHeader = document.querySelector(".app-header");
   let frame = 0;
   let refresh = true;
   let signature = "";
@@ -69,7 +69,9 @@ function trackContents(panel, content, tab) {
         activeId = "";
       }
     }
-    const top = loadingBar?.getBoundingClientRect().height || 0;
+    // Account controls and status badges can wrap and change the pinned header's height.
+    const top = appHeader?.getBoundingClientRect().height || 0;
+    document.documentElement.style.setProperty("--app-header-height", `${top}px`);
     const offset = top + 16;
     panel.style.setProperty("--page-navigation-top", `${offset}px`);
     content.style.setProperty("--page-scroll-offset", `${offset}px`);
@@ -115,7 +117,7 @@ function trackContents(panel, content, tab) {
   const mutations = new MutationObserver(() => { refresh = true; schedule(); });
   mutations.observe(content, { childList: true, subtree: true });
   const sizes = new ResizeObserver(schedule);
-  [layout, panel, content, loadingBar].filter(Boolean).forEach((node) => sizes.observe(node));
+  [layout, panel, content, appHeader].filter(Boolean).forEach((node) => sizes.observe(node));
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule);
   content.addEventListener("toggle", schedule, true);

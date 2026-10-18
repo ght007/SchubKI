@@ -2,6 +2,14 @@
 
 ## Page navigation
 
+`frontend/index.html` groups the app's top bar and spectrum pipeline navigation in `.app-header`.
+This wrapper stays sticky at the top in every run state, keeping the AFS logo/title, account controls,
+view toggle, and tabs visible together. The pipeline bar no longer sticks separately only while running.
+The page-navigation resize observer measures the whole wrapper and publishes `--app-header-height`.
+Section scroll offsets, the right-side panel, the Reading query sidebar, and the source drawer use this
+height so they remain below the pinned controls as account/status rows wrap or change. On narrow screens
+the source drawer is capped to the space below the header and scrolls as one panel.
+
 `frontend/js/components/page-navigation.js` wraps page content with a sticky navigation panel on the right.
 It owns the title, explanation, section links, and `aria-current="location"` tracking.
 Page runtime and Full run badges are not rendered here. Detailed stage timings remain in Process
