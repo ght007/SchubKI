@@ -58,10 +58,8 @@ def test_path_answers_set_verdicts_and_stay_out_of_keyword_heuristics():
     assert next(f for f in coach.fields(req, ans) if f.name == "reference").status == "unknown"
 
 
-def test_understand_merges_questions_prefills_and_rejects(monkeypatch):
+def test_understand_merges_questions_prefills_and_rejects():
     from backend.app.engine import extract, understand
-    # deterministic: use the keyword reader, never call Groq from a unit test
-    monkeypatch.setattr(understand.extract_mod, "extract", lambda enquiry, answers, trace: extract.heuristic(enquiry, answers))
     text = "We want cheap sensors at 40 points to measure moisture in a powder dryer. Lab reference is oven drying."
     u = understand.run(text, {}, ["A"])
     keys = [q["key"] for q in u["questions"]]

@@ -1,9 +1,97 @@
-# Query sidebar and account controls
+# Frontend integration
+
+## Page navigation
+
+`frontend/js/components/page-navigation.js` wraps page content with a sticky navigation panel on the right.
+It owns the title, explanation, section links, and `aria-current="location"` tracking.
+Page runtime and Full run badges are not rendered here. Detailed stage timings remain in Process
+Information → Model calls and timing.
+Reading's link list deliberately excludes the scenario loader, assessment mode, and model choice;
+their form controls remain available. Other pages derive their links from content headings.
+Headings inside collapsed sections can opt into navigation with `data-page-toc`, as the spectral coverage
+map does. Selecting that link opens its parent disclosure before scrolling to the map.
+On viewports up to 1100px, or when the content area is narrower than 740px (for example beside the source
+drawer), the panel uses a native popover opened by “On this page”. Section selection closes the popover.
+Observers and global listeners are cleaned up when the view is rebuilt.
+
+## General and Expert processing
+
+`pipeline-steps.js` defines all five tabs; `visibleSteps(state)` excludes Process Information in General.
+`normalizeTab(id, view)` also handles stored legacy tab names without exposing the process tab in General.
+The spectrum line derives its columns, endpoint positions, colors, and progress from the visible steps.
+
+- General: four tabs and a temporary `renderLoadingFlow` screen containing only the simple stage flow.
+  No process-detail markup is rendered. A successful run opens Result Assessment (Coach after a what-if).
+- Expert: five tabs, with `process` labeled **Process Information**. Starting a run selects this tab.
+  `renderProcessInformation` renders live stage outputs and the completed record. It remains selected when
+  processing finishes, and is available whenever a run or partial failed run exists.
+- While busy, only Expert's process tab is available; other navigation remains locked until the stream ends.
+  A final result event alone does not unlock it. After failure, Reading and Expert's process record are
+  available, while result tabs remain locked.
+- Switching display mode during calculation immediately switches between the simple flow and the expert
+  record, using the same in-memory run. It neither restarts nor changes the backend request.
+- Confidence and Verification contains evaluation outputs only. Rule, retrieval, premise, trace, and
+  council diagnostics live in Process Information. Disclosure sections use stable `data-process-section`
+  keys and heading IDs so open sections and contents links survive live updates.
+
+To open the spectral map: select **Expert → Process Information → Spectral coverage map** in the right-side
+navigation. This opens **AFS rules and method screening** and scrolls to `#spectral-coverage-map` while
+preserving the current `#run=<id>` URL. On a narrow screen, open “On this page” first.
+
+This distinction is a frontend presentation preference; account authorization remains separate.
+The existing RAG pipeline, stream payloads, saved run objects, and Markdown export are unchanged.
+
+## Data retention
+
+Preserve the existing content in Expert's Process Information tab when reorganizing the frontend.
+A field being hidden or unused in the UI does not authorize removing it from the backend schema,
+pipeline output, API response, stored run, or export. This includes requirements, rule hits, method scores,
+spectral and fiber coverage, retrieval, evidence, premises, paths, reports, verification, quality, confidence,
+coaching, council records, traces, timings, and what-if differences.
+
+The current result outline intentionally leaves some generated data unused. Keep the backend data and the
+original report/summary renderers available for future integration. The new outline slots are presentation
+hooks; defining them does not migrate or replace the existing backend response format.
+
+## Result Assessment outline
+
+`frontend/js/components/assessment-outline.js` owns the new result outline. General and Expert show the same
+11 placeholder sections, in the order below. The sticky right-side navigation builds its contents links from their
+headings, so section jumps and the current-section accent work without a separate navigation definition.
+
+| Frontend slot | Heading |
+| --- | --- |
+| `decision_status` | Decision Status |
+| `requirements_stated` | Requirements stated |
+| `key_unknowns` | Key unknowns |
+| `clarification_questions` | Clarification questions |
+| `recommendation` | Recommendation |
+| `measurement_concept` | Measurement concept |
+| `spectral_range` | Spectral range |
+| `risks_and_uncertainty` | Risks and uncertainty |
+| `first_feasibility_experiment` | First feasibility experiment |
+| `decision_basis` | Decision basis |
+| `sources` | Sources |
+
+Each section has `data-assessment-field="<slot>"`, a heading ID `assessment-<slot-with-hyphens>`, and a content
+container with that ID plus `-content`. These are frontend hooks, not a new backend response contract.
+When the future RAG format is agreed, add a presenter that renders its fields into these content containers.
+Keep the heading IDs and section order stable. Escape plain text and reuse the existing citation/source drawer
+components when adding grounded statements; external sources must display their quoted passages.
+
+The outline intentionally accepts no run payload and does not adapt, rewrite, or manufacture values from
+`run.report`, requirements, premises, or evidence. No scenario-specific example content is embedded.
+`pipeline.js` shows the outline after the existing report stage completes and keeps the current report's
+Markdown download available. Current run objects, API responses, saved data, prompts, retrieval, verification,
+and the original `report.js` / `summary.js` components are retained. Confidence and Verification, Coach,
+Reading, and processing behavior continue using their existing data.
+
+## Query sidebar and account controls
 
 The Reading sidebar is a local enquiry-draft UI. It has no authentication, user-to-chat mapping,
 conversation messages, or database integration. Login and subscription controls are app-wide placeholders.
 
-## Saved query provider
+### Saved query provider
 
 `frontend/js/query-history.js` exports `createLocalQueryRepository()`. `app.js` uses its asynchronous interface:
 
@@ -24,8 +112,11 @@ the restored draft. Follow-up answers are supplied again when assessing.
 
 The future per-user chat implementation can replace the repository construction in `app.js` with its own
 provider. Conversation history and authentication remain the responsibility of that implementation.
+For integration with parallel account/chat work, review this branch with `git diff origin/main...HEAD`
+(the changes since the common ancestor). Preserve backend and database changes already on `main` while
+connecting the provider and account events; these frontend placeholders do not replace those services.
 
-## Account entry points
+### Account entry points
 
 `frontend/js/components/account-controls.js` mounts once in `#account-actions`, outside the tab content.
 The buttons dispatch cancelable events on `document`:

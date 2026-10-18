@@ -46,14 +46,6 @@ class Settings:
     frontend_dir: Path = ROOT / "frontend"
     prompts_dir: Path = ROOT / "backend" / "app" / "llm" / "prompts"
 
-    # Accounts (optional login). Only the public client id is needed for Google sign-in, not the secret.
-    google_client_ids: list[str] = field(default_factory=lambda: _list("GOOGLE_CLIENT_ID", ""))
-    session_days: int = int(os.getenv("SESSION_DAYS", "30"))
-    # 1 = the assistant (/app) needs a login and / opens the login page; 0 = open guest app (demo fallback)
-    auth_required: bool = os.getenv("AUTH_REQUIRED", "1") == "1"
-    # demo = plan buttons switch the plan at once without payment; off = refuse until payments are connected
-    billing_mode: str = os.getenv("BILLING_MODE", "demo").strip().lower()
-
 
 settings = Settings()
 

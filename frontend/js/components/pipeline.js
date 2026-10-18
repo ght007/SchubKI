@@ -2,8 +2,8 @@
 import { esc } from "../api.js";
 import { renderMatrix } from "./matrix.js";
 import { renderSpectral } from "./spectral-map.js";
-import { renderReport } from "./report.js";
-import { renderSummary } from "./summary.js";
+import { renderAssessmentOutline } from "./assessment-outline.js";
+import { projectSetupHTML } from "./project-setup.js";
 import { renderCouncil } from "./council.js";
 import { renderQuality } from "./quality.js";
 import { renderCoach } from "./coach.js";
@@ -121,17 +121,14 @@ function renderPremise(el, run) {
     </section>`;
 }
 
-function renderAssessment(el, run, state, actions) {
-  const reportEl = document.createElement("div");
-  el.innerHTML = `<section class="section evidence-intro"><h2>Grounded evidence</h2>
-    <p>Source-backed statements are highlighted throughout the assessment. Select a citation beside a statement to see its supporting quote highlighted in the knowledge base page and original PDF.</p>
-    <p class="small muted">Citation dots show quote matching: green found on the cited page, amber nearly verbatim, red needs review. Quote matching alone does not prove that the source supports the whole claim.</p>
-  </section>`;
-  el.appendChild(reportEl);
-  if (state.view === "general") renderSummary(reportEl, run, actions);
-  else renderReport(reportEl, run);
-  // The export endpoint is available after the run is saved, not while the draft streams.
-  if (state?.busy || !run.id) reportEl.querySelector(".toolbar")?.remove();
+function renderAssessment(el, run, state) {
+  renderAssessmentOutline(el);
+  // Preserve access to the existing generated report while the new presentation is a skeleton.
+  if (!state.busy && run.id) el.insertAdjacentHTML("beforeend", `<div class="assessment-export">
+    <p class="small muted">The current generated report is still available to download.</p>
+    <a class="btn" href="/api/runs/${encodeURIComponent(run.id)}/export.md" download>Download current report (Markdown)</a>
+  </div>`);
+  el.insertAdjacentHTML("beforeend", projectSetupHTML(run));
 }
 
 function renderCoachStep(el, run, state, actions) {
@@ -142,13 +139,13 @@ function renderCoachStep(el, run, state, actions) {
 }
 
 const PROCESS_STAGES = [
-  ["extract", "Read the enquiry", "LLM extracts facts; rule fallback if unavailable"],
-  ["rules", "Apply AFS rules", "Deterministic rules, screening, and fiber coverage"],
-  ["retrieve", "Retrieve knowledge base evidence", "Full-text and dense search; deterministic ranking"],
-  ["premise", "Check customer premises", "LLM compares claims with sources; rule fallback if unavailable"],
-  ["report", "Write the assessment", "Single LLM or Council drafts and judging"],
-  ["verify", "Verify and check quality", "Deterministic checks; optional LLM repair"],
-  ["coach", "Coach and compute confidence", "LLM drafts follow-up text; confidence is computed"],
+  ["extract", "Read the enquiry", "LLM extracts facts; rule fallback if unavailable", "Reading your enquiry"],
+  ["rules", "Apply AFS rules", "Deterministic rules, screening, and fiber coverage", "Checking suitable methods"],
+  ["retrieve", "Retrieve knowledge base evidence", "Full-text and dense search; deterministic ranking", "Finding supporting sources"],
+  ["premise", "Check customer premises", "LLM compares claims with sources; rule fallback if unavailable", "Reviewing the enquiry"],
+  ["report", "Write the assessment", "Single LLM or Council drafts and judging", "Preparing the assessment"],
+  ["verify", "Verify and check quality", "Deterministic checks; optional LLM repair", "Checking the results"],
+  ["coach", "Coach and compute confidence", "LLM drafts follow-up text; confidence is computed", "Preparing follow-up questions"],
 ];
 
 function processStageState(state, run, stage) {
@@ -167,16 +164,33 @@ function processActor(run, stage, fallback) {
   return [...new Set(calls.map((item) => `${item.model}${item.ok ? "" : " (fallback)"}`))].map(esc).join(", ");
 }
 
-export function renderProcess(el, run, state, actions) {
+export function renderLoadingFlow(el, run, state) {
+  el.innerHTML = `<section class="section process-flow"><h2 id="loading-progress">Assessment progress</h2>
+    <p class="muted">Your results will open when all steps are complete.</p>
+    <ol class="process-list">${PROCESS_STAGES.map(([stage, , , label]) => {
+      const status = processStageState(state, run, stage);
+      const statusLabel = { done: "Complete", active: "In progress", pending: "Waiting", error: "Stopped" }[status];
+      return `<li class="process-item ${status}" aria-label="${esc(label)}: ${statusLabel}">
+        <span class="process-marker" aria-hidden="true"></span><div class="process-title"><b>${esc(label)}</b>
+          ${status === "active" ? '<span class="small muted" role="status">In progress</span>' : ""}</div></li>`;
+    }).join("")}</ol>
+  </section>`;
+}
+
+export function renderProcessInformation(el, run, state, actions) {
+  if (state.view !== "expert") { renderLoadingFlow(el, run, state); return; }
   const active = PROCESS_STAGES.find(([stage]) => processStageState(state, run, stage) === "active");
   const activeStage = [...state.stages].reverse().find((event) => event.status === "start")?.stage;
   const activity = [...state.details].reverse().find((item) => item.stage === activeStage)?.detail;
+  const finishing = PROCESS_STAGES.every(([stage]) => processStageState(state, run, stage) === "done");
   el.innerHTML = `${state.busy ? `<section class="section process-live" aria-live="polite">
-    <h2>Working on your assessment</h2>
-    <p><b>${esc(active?.[1] || "Starting the pipeline")}</b></p>
-    <p>${esc(activity || [...state.stages].reverse().find((event) => event.status === "start")?.label || "Preparing the first stage…")}</p>
-  </section>` : run?.error ? `<section class="section stage-placeholder"><h2>Processing stopped</h2><p>${esc(run.error)}</p></section>` : ""}
-  <section class="section"><h2>Calculation stages</h2>
+    <h2 id="process-activity">Working on your assessment</h2>
+    <p><b>${esc(active?.[1] || (finishing ? "Finalizing the assessment" : "Starting the pipeline"))}</b></p>
+    <p>${esc(finishing ? "Waiting for the calculation to finish before unlocking the result tabs." :
+      activity || [...state.stages].reverse().find((event) => event.status === "start")?.label || "Preparing the first stage…")}</p>
+  </section>` : run?.error ? `<section class="section stage-placeholder"><h2 id="process-activity">Processing stopped</h2><p class="err">${esc(run.error)}</p><p>Open Reading to edit the enquiry and try again.</p></section>` :
+    run?.id ? `<section class="section process-live"><h2 id="process-activity">Calculation complete</h2><p>Result Assessment, Confidence and Verification, and Coach are now available. The calculation record stays here for review.</p></section>` : ""}
+  <section class="section"><h2 id="process-stages">Calculation stages</h2>
     <p class="small muted">${state.busy ? "Follow each model or rule task as it runs. Completed model calls appear in the trace below as soon as their stage finishes." : "Recorded model and rule tasks, with their timings and outputs."}</p>
     <ol class="process-list">${PROCESS_STAGES.map(([stage, label, actor]) => {
       const status = processStageState(state, run, stage);
@@ -188,43 +202,51 @@ export function renderProcess(el, run, state, actions) {
     }).join("")}</ol>
   </section>`;
   if (!run) return;
-  if (!state.busy && run.requirements) {
+  if (run.requirements) {
     const requirements = document.createElement("details");
     requirements.className = "section";
-    requirements.innerHTML = `<summary>Requirements read from the enquiry</summary><div></div>`;
+    requirements.dataset.processSection = "requirements";
+    requirements.innerHTML = `<summary id="process-requirements">Requirements read from the enquiry</summary><div></div>`;
     el.appendChild(requirements);
     renderExtract(requirements.querySelector("div"), run);
   }
 
-  if (!state.busy && hasStageData(run, "rules")) {
-    const rules = document.createElement("div");
+  if (hasStageData(run, "rules")) {
+    const rules = document.createElement("details");
+    rules.className = "section";
+    rules.dataset.processSection = "rules";
+    rules.innerHTML = `<summary id="process-rules">AFS rules and method screening</summary><div></div>`;
     el.appendChild(rules);
-    renderRules(rules, run);
+    renderRules(rules.querySelector("div"), run);
   }
-  if (!state.busy && hasStageData(run, "retrieve")) {
+  if (hasStageData(run, "retrieve")) {
     const retrieval = document.createElement("details");
     retrieval.className = "section";
-    retrieval.innerHTML = `<summary>Evidence retrieval</summary><div></div>`;
+    retrieval.dataset.processSection = "retrieval";
+    retrieval.innerHTML = `<summary id="process-retrieval">Evidence retrieval</summary><div></div>`;
     el.appendChild(retrieval);
     renderRetrieve(retrieval.querySelector("div"), run);
   }
-  if (!state.busy && hasStageData(run, "premise")) {
+  if (hasStageData(run, "premise")) {
     const premises = document.createElement("details");
     premises.className = "section";
-    premises.innerHTML = `<summary>Customer premise checks</summary><div></div>`;
+    premises.dataset.processSection = "premises";
+    premises.innerHTML = `<summary id="process-premises">Customer premise checks</summary><div></div>`;
     el.appendChild(premises);
     renderPremise(premises.querySelector("div"), run);
   }
   const trace = document.createElement("details");
   trace.className = "section";
-  trace.innerHTML = `<summary>Model calls and timing</summary><div></div>`;
+  trace.dataset.processSection = "trace";
+  trace.innerHTML = `<summary id="process-trace">Model calls and timing</summary><div></div>`;
   trace.open = state.busy && state.view === "expert";
   el.appendChild(trace);
   renderTrace(trace.querySelector("div"), run);
-  if (run.mode === "council" || run.id) {
+  if (run.mode === "council" || (!state.busy && run.id)) {
     const council = document.createElement("details");
     council.className = "section";
-    council.innerHTML = `<summary>Council drafts and judging</summary><div></div>`;
+    council.dataset.processSection = "council";
+    council.innerHTML = `<summary id="process-council">Council drafts and judging</summary><div></div>`;
     council.open = state.busy && activeStage === "council";
     el.appendChild(council);
     if (state.busy && !run.council) {
@@ -250,16 +272,8 @@ export function renderPipelineStep(el, stepId, run, state = {}, actions = {}) {
     case "rules": renderRules(el, run); break;
     case "retrieve": renderRetrieve(el, run); break;
     case "premise": renderPremise(el, run); break;
-    case "report": renderAssessment(el, run, state, actions); break;
-    case "verify": {
-      renderQuality(el, run);
-      const record = document.createElement("details");
-      record.className = "section";
-      record.innerHTML = `<summary>Calculation details, model trace, and council</summary><div></div>`;
-      el.appendChild(record);
-      renderProcess(record.querySelector("div"), run, state, actions);
-      break;
-    }
+    case "report": renderAssessment(el, run, state); break;
+    case "verify": renderQuality(el, run); break;
     case "coach": renderCoachStep(el, run, state, actions); break;
   }
 }

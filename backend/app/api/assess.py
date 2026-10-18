@@ -3,45 +3,22 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 import threading
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from ..auth import service as accounts
 from ..engine import paths as paths_mod
 from ..engine import pipeline
 from ..kb import store
-from ..schemas import AssessRequest, RunResult
-from .auth import current_user
+from ..schemas import AssessRequest
 
 router = APIRouter(prefix="/api")
 _RUN_LOCK = threading.Semaphore(2)   # free tier: at most two pipelines at once
-log = logging.getLogger("afs.assess")
 
 
-def _owner(http: Request | None) -> tuple[str, str, str | None] | None:
-    """(user id, view, saved-query id) when a logged-in user starts a run; None for guests.
-    The view (general/expert) and the sidebar query id come from headers so the run request is unchanged."""
-    user = current_user(http) if http is not None else None
-    if not user:
-        return None
-    view = http.headers.get("x-afs-view", "general")
-    query_id = (http.headers.get("x-afs-query-id") or "")[:64] or None
-    return user["id"], view, query_id
-
-
-def _record(owner: tuple[str, str, str | None] | None, run: RunResult | None) -> None:
-    if owner and run is not None:
-        try:
-            accounts.record_run(owner[0], run.model_dump(mode="json"), owner[1], owner[2])
-        except Exception as exc:  # noqa: BLE001  (history is a convenience; never fail a run over it)
-            log.warning("Could not link run to user: %s", exc)
-
-
-def _stream(request: AssessRequest, owner: tuple[str, str, str | None] | None = None) -> StreamingResponse:
+def _stream(request: AssessRequest) -> StreamingResponse:
     loop = asyncio.get_event_loop()
     queue: asyncio.Queue = asyncio.Queue()
 
@@ -51,7 +28,7 @@ def _stream(request: AssessRequest, owner: tuple[str, str, str | None] | None = 
     def work() -> None:
         with _RUN_LOCK:
             try:
-                _record(owner, pipeline.run(request, emit))   # linked before the stream closes
+                pipeline.run(request, emit)
             finally:
                 loop.call_soon_threadsafe(queue.put_nowait, None)
 
@@ -74,21 +51,19 @@ def _stream(request: AssessRequest, owner: tuple[str, str, str | None] | None = 
 
 
 @router.post("/assess")
-async def assess(request: AssessRequest, http: Request = None):
+async def assess(request: AssessRequest):
     if not request.enquiry.strip():
         raise HTTPException(400, "Empty enquiry")
     if len(request.enquiry) > 6000:
         raise HTTPException(400, "Enquiry too long (max 6000 characters)")
-    return _stream(request, _owner(http))
+    return _stream(request)
 
 
 @router.post("/assess/sync")
-def assess_sync(request: AssessRequest, http: Request = None):
+def assess_sync(request: AssessRequest):
     """Same pipeline without streaming (used by eval scripts and curl)."""
     with _RUN_LOCK:
-        result = pipeline.run(request)
-    _record(_owner(http), result)
-    return result.model_dump(mode="json")
+        return pipeline.run(request).model_dump(mode="json")
 
 
 class WhatIfRequest(BaseModel):
@@ -99,7 +74,7 @@ class WhatIfRequest(BaseModel):
 
 
 @router.post("/whatif")
-async def whatif(body: WhatIfRequest, http: Request = None):
+async def whatif(body: WhatIfRequest):
     parent = store.get_run(body.run_id)
     if not parent:
         raise HTTPException(404, "Run not found")
@@ -111,7 +86,7 @@ async def whatif(body: WhatIfRequest, http: Request = None):
     req = AssessRequest(enquiry=parent["enquiry"], answers=answers, mode=body.mode or parent.get("mode", "fast"),
                         preferred_paths=preferred_paths, rejected=parent.get("rejected", []),
                         parent_run_id=body.run_id)
-    return _stream(req, _owner(http))
+    return _stream(req)
 
 
 class PrecheckRequest(BaseModel):

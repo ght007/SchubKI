@@ -1,8 +1,7 @@
 """Multi-query BM25 + dense -> RRF -> MMR -> evidence pack.
 
 1. Several queries (built from the extracted requirements) are run through two
-   rankers: keyword search (Postgres full text in Supabase, or SQLite FTS5 BM25 locally) and dense
-   cosine similarity (pgvector in Supabase, or numpy locally). kb/store.py decides which.
+   rankers: SQLite FTS5 BM25 and dense cosine similarity.
 2. All rankings are fused with Reciprocal Rank Fusion: score(d) = sum 1/(k + rank).
 3. Maximal Marginal Relevance picks a relevant but non-redundant subset within a
    token budget (important on the Groq free tier).
@@ -84,7 +83,12 @@ def best_sentence(text: str, queries: list[str]) -> str | None:
 
 
 def dense_search(query_vec: np.ndarray, k: int = PER_RANKER_K) -> list[int]:
-    return store.dense_search(query_vec, k)
+    ids, mat = store.load_vectors()
+    if len(ids) == 0:
+        return []
+    sims = mat @ query_vec
+    order = np.argsort(-sims)[:k]
+    return [int(ids[i]) for i in order]
 
 
 def retrieve(queries: list[str], pinned_pages: list[tuple[str, int]] | None = None,
@@ -104,15 +108,20 @@ def retrieve(queries: list[str], pinned_pages: list[tuple[str, int]] | None = No
     candidates = sorted(fused, key=fused.get, reverse=True)[:40]
     debug["fused"] = [(c, round(fused[c], 4)) for c in candidates[:15]]
 
-    index = store.get_vectors(candidates)
+    ids, mat = store.load_vectors()
+    index = {int(i): mat[n] for n, i in enumerate(ids)}
     candidates = [c for c in candidates if c in index]
     picked = mmr(candidates, fused, index, top_n=max_items * 2)
     debug["mmr"] = picked
 
     # pinned: claims sitting on pages that fired rules cite
-    pinned: list[int] = store.claims_on_pages(sorted(set(pinned_pages))) if pinned_pages else []
+    pinned: list[int] = []
+    if pinned_pages:
+        wanted = set(pinned_pages)
+        for row in store.all_chunks():
+            if row["kind"] == "claim" and (row["source"], row["page"]) in wanted:
+                pinned.append(row["id"])
     debug["pinned"] = pinned
-    debug["backend"] = "supabase" if store.kb_online() else "local"
 
     rows = store.get_chunks(list(dict.fromkeys(pinned + picked)))
     evidence: list[Evidence] = []

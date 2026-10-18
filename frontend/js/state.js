@@ -14,9 +14,7 @@ const state = {
   modelChoice: "auto", // UI preference only; backend model routing is unchanged
   draftEnquiry: null, // null means use the loaded run's enquiry
   selectedExample: "",
-  user: null,             // logged-in account with plan and allowed views (null = guest); /api/auth/me
-  savedQueries: [],       // enquiry drafts: browser-local for guests, from the account when logged in
-  queryStorageLabel: "",  // where the drafts are kept, shown under the sidebar
+  savedQueries: [],       // browser-local enquiry drafts; no user or chat association
   activeQueryId: null,
   querySidebarOpen: true,
   queryPersistent: true,

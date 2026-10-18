@@ -12,7 +12,7 @@ def test_whatif_drops_answers_for_removed_paths_and_keeps_detected_paths(monkeyp
                     "Sample": "Powder"},
     }
     monkeypatch.setattr(assess.store, "get_run", lambda _: parent)
-    monkeypatch.setattr(assess, "_stream", lambda request, owner=None: request)
+    monkeypatch.setattr(assess, "_stream", lambda request: request)
 
     request = asyncio.run(assess.whatif(assess.WhatIfRequest(
         run_id="parent", preferred_paths=["B"], answers={"Path B - Where it is used": "Our R&D lab"})))
