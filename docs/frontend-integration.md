@@ -8,8 +8,8 @@ Page runtime and Full run badges are not rendered here. Detailed stage timings r
 Information → Model calls and timing.
 Reading's link list deliberately excludes the scenario loader, assessment mode, and model choice;
 their form controls remain available. Other pages derive their links from content headings.
-Headings inside collapsed sections can opt into navigation with `data-page-toc`, as the spectral coverage
-map does. Selecting that link opens its parent disclosure before scrolling to the map.
+Headings inside collapsed sections can opt into navigation with `data-page-toc`.
+Selecting such a link opens its parent disclosure before scrolling to the heading.
 On viewports up to 1100px, or when the content area is narrower than 740px (for example beside the source
 drawer), the panel uses a native popover opened by “On this page”. Section selection closes the popover.
 Observers and global listeners are cleaned up when the view is rebuilt.
@@ -30,20 +30,20 @@ The spectrum line derives its columns, endpoint positions, colors, and progress 
   available, while result tabs remain locked.
 - Switching display mode during calculation immediately switches between the simple flow and the expert
   record, using the same in-memory run. It neither restarts nor changes the backend request.
-- Confidence and Verification contains evaluation outputs only. Rule, retrieval, premise, trace, and
-  council diagnostics live in Process Information. Disclosure sections use stable `data-process-section`
-  keys and heading IDs so open sections and contents links survive live updates.
-
-To open the spectral map: select **Expert → Process Information → Spectral coverage map** in the right-side
-navigation. This opens **AFS rules and method screening** and scrolls to `#spectral-coverage-map` while
-preserving the current `#run=<id>` URL. On a narrow screen, open “On this page” first.
+- Confidence and Verification contains evaluation outputs only. Process Information shows live activity,
+  the seven calculation stages, model calls, stage timings, and council records. The requirements,
+  rule/method-screening, evidence-retrieval, customer-premise, and spectral-map panels are not mounted
+  in this view or included in its contents links. Retrieval queries and ranking details are also omitted
+  from the trace UI.
+  Model-call and council disclosures use stable `data-process-section` keys and heading IDs so open
+  sections and contents links survive live updates.
 
 This distinction is a frontend presentation preference; account authorization remains separate.
 The existing RAG pipeline, stream payloads, saved run objects, and Markdown export are unchanged.
 
 ## Data retention
 
-Preserve the existing content in Expert's Process Information tab when reorganizing the frontend.
+Remove frontend sections only when requested; preserve their underlying backend data.
 A field being hidden or unused in the UI does not authorize removing it from the backend schema,
 pipeline output, API response, stored run, or export. This includes requirements, rule hits, method scores,
 spectral and fiber coverage, retrieval, evidence, premises, paths, reports, verification, quality, confidence,
@@ -52,6 +52,11 @@ coaching, council records, traces, timings, and what-if differences.
 The current result outline intentionally leaves some generated data unused. Keep the backend data and the
 original report/summary renderers available for future integration. The new outline slots are presentation
 hooks; defining them does not migrate or replace the existing backend response format.
+
+The removed requirements, rules, retrieval, premise, and spectral-map panels leave their data in
+`run.requirements`, `rule_hits`, `matrix`, `spectral`, `coverage`, `retrieval`, `evidence`, and `premises`.
+Legacy renderers remain in the frontend for future integration. No backend field, stream payload,
+saved run, or Markdown export is deleted or rewritten by this visibility change.
 
 ## Result Assessment outline
 
@@ -136,3 +141,8 @@ document.addEventListener("afs:login-requested", (event) => {
 The default dialogs make no network requests and collect no credentials or payment details.
 “Preview Expert view” changes the existing display preference only. It grants no subscription or login state;
 General/Expert remains an ungated UI toggle until the account implementation defines access rules.
+
+## Documentation maintenance
+
+Update both `README.md` and this integration guide with every subsequent update. Keep the descriptions of
+visible sections, navigation, integration hooks, and backend data retention consistent with the implementation.

@@ -200,7 +200,8 @@ readiness claim, and the clinical-scope rule turns such requests into `outside_s
 6. **Pinned evidence:** cards on pages cited by blocking or warning rules are always included.
 7. **Token budget** (`MAX_EVIDENCE_TOKENS`, default 1800–2500) keeps prompts within the free tier.
 
-In Expert mode, Process Information → Evidence retrieval shows the queries and passage budget for each run.
+Queries and the passage budget remain in the saved run's `retrieval` field and the trace API response.
+The current Process Information UI omits retrieval details.
 
 ## 7. Grounding: verifier, quality gate, confidence
 
@@ -279,7 +280,7 @@ Open `http://localhost:8000`.
   uses a simple progress flow; no model-call or council diagnostics are rendered. Coach prioritizes up to
   three high-impact missing facts.
 - **Expert:** adds Process Information for live activity and the retained calculation record, including
-  the spectral map, rules, retrieved evidence, model calls, and council details. Coach shows all missing facts.
+  stage activity, model calls, timings, and council details. Coach shows all missing facts.
 
 Both views currently share the same 11-section Result Assessment skeleton. It does not display the old
 General summary or full report; the existing generated report remains available through Markdown download.
@@ -344,10 +345,12 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   work are described in [frontend integration](docs/frontend-integration.md).
 - **General loading flow:** a simple list of steps with green completion dots and the current step.
   Model calls, council records, rule internals, and retrieval details are omitted.
-- **Process Information (Expert only):** current model activity, stage actors and timings, extracted
-  requirements, AFS rules and method screening, spectral coverage, retrieved evidence, premise checks,
-  model calls, and council results. Outputs arrive as their stages finish and remain available after the
-  run. The right-hand **Spectral coverage map** link opens the map within AFS rules and method screening.
+- **Process Information (Expert only):** current model activity, stage actors and timings, model calls,
+  and council results. Outputs arrive as their stages finish and remain available after the run.
+  Requirements read from the enquiry, AFS rules and method screening, evidence retrieval, and customer
+  premise-check panels and the spectral coverage map are removed from this tab, including retrieval-query
+  details inside the trace.
+  Their underlying data remains in the backend and saved runs. The seven calculation-stage markers remain.
   Open sections stay open during live updates. If processing fails, the partial record stays available
   here; Reading unlocks for retry while result tabs remain locked.
 - **Result Assessment:** a shared outline preview in General and Expert, with contents links for Decision
@@ -364,8 +367,9 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   verbatim, the page text with the passage marked, and the original PDF page with the passage highlighted.
 
 **Data retention:** frontend visibility does not change the backend schema, pipeline outputs, saved runs,
-or exports. Keep all backend fields, including data the current UI does not use, and preserve the existing
-expert Process Information content. Reorganizing the frontend does not require deleting backend data.
+or exports. Keep all backend fields, including data the current UI does not use. Explicitly requested panel
+removals affect presentation only. Update this README and [frontend integration](docs/frontend-integration.md)
+with every subsequent update.
 
 ## 11. Installation
 
@@ -578,8 +582,8 @@ afs-assistant/
   fix wording, not make an unsupported claim supported. Low-similarity quotes stay unverified.
 - **Council agreement** uses two model families (gpt-oss and qwen) on this key, so it is weaker evidence
   than fully independent models; the UI says so.
-- **Rules are deliberately conservative** and keyword-assisted; in Expert, review Process Information →
-  AFS rules and method screening for each case.
+- **Rules are deliberately conservative** and keyword-assisted; an expert should review the fired rules
+  in the saved run or Markdown export for each case. Rule details are not currently rendered in the UI.
 - **Free-tier latency** makes Council mode slow; Fast mode is the live-demo mode.
 
 ## 20. Future work
