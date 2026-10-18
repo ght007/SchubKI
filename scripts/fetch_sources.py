@@ -1,16 +1,22 @@
-"""Fetch the AFS source PDFs (S01-S05) for a hosted build. The PDFs are not in git.
+"""Fetch the source PDFs for a hosted build. The PDFs are not in git.
 
 Render runs:  python scripts/fetch_sources.py && python -m backend.app.kb.ingest
 
-SOURCES_URL is a private link (e.g. a Supabase Storage signed URL) to a .zip holding the PDFs named as in
-SOURCE_FILES (backend/app/config.py). Files are matched by file name; folders and other files in the zip
-are ignored. Without SOURCES_URL the script only checks that the PDFs are already in data/raw.
-Exit code 1 = a source is missing, so the build stops instead of deploying an empty knowledge base.
+SOURCES_URL is a private link (e.g. a Supabase Storage signed URL) to a .zip holding the files named as in
+data/kb/sources.json (PDFs, and the .xlsx method table T1, which git ignores). Files are matched by file name; folders and other files in the zip are ignored.
+Without SOURCES_URL the script only checks data/raw.
+
+Required (build fails without them, exit 1): the supplied AFS PDFs (S01-S05) and every PDF a curated claim
+cites (ingest checks each claim quote against its page, so it would fail anyway).
+Optional (warning only): every other registered file, e.g. T1 (the Knowledge base page refuses to save
+sources.json while a registered file is missing) and documents uploaded on the Knowledge base page, which
+live in Supabase (kb_files) and are pulled at startup (kb/files.py sync_from_db).
 The URL is a secret and is never printed.
 """
 from __future__ import annotations
 
 import io
+import json
 import os
 import sys
 import urllib.request
@@ -20,11 +26,34 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from backend.app.config import SOURCE_FILES, settings  # noqa: E402
+from backend.app.config import settings  # noqa: E402
+
+SUPPLIED = {"S01", "S02", "S03", "S04", "S05"}   # the AFS challenge materials
+
+
+def registered() -> dict[str, str]:
+    """{source id: file name} for every source in data/kb/sources.json that names a file (any type)."""
+    try:
+        reg = json.loads((settings.kb_dir / "sources.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {s["id"]: s["file"] for s in reg.get("sources", []) if s.get("id") and s.get("file")}
+
+
+def cited_sources() -> set[str]:
+    path = settings.kb_dir / "claims.jsonl"
+    if not path.exists():
+        return set()
+    return {json.loads(line)["source"] for line in path.read_text(encoding="utf-8").splitlines() if line.strip()}
 
 
 def required() -> list[str]:
-    return sorted(name for name in SOURCE_FILES.values() if name.lower().endswith(".pdf"))
+    need = SUPPLIED | cited_sources()
+    return sorted(name for sid, name in registered().items() if sid in need)
+
+
+def optional() -> list[str]:
+    return sorted(set(registered().values()) - set(required()))
 
 
 def missing(raw_dir: Path, names: Iterable[str]) -> list[str]:
@@ -55,21 +84,27 @@ def download(url: str, timeout: float = 120) -> bytes:
 
 
 def main() -> int:
-    names, raw_dir = required(), settings.raw_dir
+    raw_dir = settings.raw_dir
+    need, extra = required(), optional()
     url = os.getenv("SOURCES_URL", "").strip()
-    if url and missing(raw_dir, names):
+    if url and missing(raw_dir, need + extra):
         try:
-            got = extract(download(url), raw_dir, names)
+            got = extract(download(url), raw_dir, need + extra)
         except Exception as exc:  # noqa: BLE001
             print(f"fetch_sources: download failed ({type(exc).__name__}: {str(exc)[:200]})", file=sys.stderr)
             return 1
         print(f"fetch_sources: extracted {len(got)} file(s): {', '.join(got)}")
-    gaps = missing(raw_dir, names)
+    absent = missing(raw_dir, extra)
+    if absent:
+        print(f"fetch_sources: warning, not in the build: {', '.join(absent)}. Add them to the zip, or upload them "
+              f"on the Knowledge base page (pulled from Supabase at startup). Until then the Knowledge base page "
+              f"refuses to save sources.json.")
+    gaps = missing(raw_dir, need)
     if gaps:
         hint = "check the zip contents" if url else "set SOURCES_URL (see docs/DEPLOY.md)"
         print(f"fetch_sources: missing in {raw_dir}: {', '.join(gaps)}; {hint}", file=sys.stderr)
         return 1
-    print(f"fetch_sources: all {len(names)} source PDFs present")
+    print(f"fetch_sources: all {len(need)} required source files present")
     return 0
 
 
