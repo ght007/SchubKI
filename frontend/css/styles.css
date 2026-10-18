@@ -50,7 +50,8 @@ p { margin: .3rem 0 .6rem; }
 .small { font-size: .85rem; }
 
 /* ---------------------------------------------------------------- top bar */
-.app-header { position: sticky; top: 0; z-index: 20; background: var(--surface);
+body:has(> .app-header) { padding-top: var(--app-header-height); }
+.app-header { position: fixed; inset: 0 0 auto; z-index: 20; background: var(--surface);
   box-shadow: 0 6px 16px -14px rgba(21,35,46,.5); }
 .topbar {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;

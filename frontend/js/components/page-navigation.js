@@ -71,8 +71,7 @@ function trackContents(panel, content, tab) {
       }
     }
     // Account controls and status badges can wrap and change the pinned header's height.
-    const top = appHeader?.getBoundingClientRect().height || 0;
-    document.documentElement.style.setProperty("--app-header-height", `${top}px`);
+    const top = appHeader?.offsetHeight || 0;
     const offset = top + 16;
     layout.style.setProperty("--page-navigation-top", `${offset}px`);
     content.style.setProperty("--page-scroll-offset", `${offset}px`);

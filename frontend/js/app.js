@@ -16,6 +16,14 @@ import { renderQuerySidebar } from "./components/query-sidebar.js";
 import { isPro, mountAccountControls, openAccountMenu } from "./components/account-controls.js";
 
 const $ = (id) => document.getElementById(id);
+// Reserve the pinned header's actual height, including wrapped account controls and pipeline tabs.
+const appHeader = document.querySelector(".app-header");
+if (appHeader) {
+  const updateHeaderHeight = () => document.documentElement.style.setProperty(
+    "--app-header-height", `${appHeader.offsetHeight}px`);
+  updateHeaderHeight();
+  new ResizeObserver(updateHeaderHeight).observe(appHeader);
+}
 const localQueries = createLocalQueryRepository();
 let queryRepository = localQueries;   // swapped for the account store after login (boot)
 const compactSidebar = window.matchMedia("(max-width: 900px)");
