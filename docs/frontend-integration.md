@@ -4,6 +4,8 @@
 
 `frontend/js/components/page-navigation.js` wraps page content with a sticky navigation panel on the right.
 It owns the title, explanation, section links, and `aria-current="location"` tracking.
+Page runtime and Full run badges are not rendered here. Detailed stage timings remain in Process
+Information → Model calls and timing.
 Reading's link list deliberately excludes the scenario loader, assessment mode, and model choice;
 their form controls remain available. Other pages derive their links from content headings.
 Headings inside collapsed sections can opt into navigation with `data-page-toc`, as the spectral coverage
@@ -32,8 +34,24 @@ The spectrum line derives its columns, endpoint positions, colors, and progress 
   council diagnostics live in Process Information. Disclosure sections use stable `data-process-section`
   keys and heading IDs so open sections and contents links survive live updates.
 
+To open the spectral map: select **Expert → Process Information → Spectral coverage map** in the right-side
+navigation. This opens **AFS rules and method screening** and scrolls to `#spectral-coverage-map` while
+preserving the current `#run=<id>` URL. On a narrow screen, open “On this page” first.
+
 This distinction is a frontend presentation preference; account authorization remains separate.
 The existing RAG pipeline, stream payloads, saved run objects, and Markdown export are unchanged.
+
+## Data retention
+
+Preserve the existing content in Expert's Process Information tab when reorganizing the frontend.
+A field being hidden or unused in the UI does not authorize removing it from the backend schema,
+pipeline output, API response, stored run, or export. This includes requirements, rule hits, method scores,
+spectral and fiber coverage, retrieval, evidence, premises, paths, reports, verification, quality, confidence,
+coaching, council records, traces, timings, and what-if differences.
+
+The current result outline intentionally leaves some generated data unused. Keep the backend data and the
+original report/summary renderers available for future integration. The new outline slots are presentation
+hooks; defining them does not migrate or replace the existing backend response format.
 
 ## Result Assessment outline
 
@@ -94,6 +112,9 @@ the restored draft. Follow-up answers are supplied again when assessing.
 
 The future per-user chat implementation can replace the repository construction in `app.js` with its own
 provider. Conversation history and authentication remain the responsibility of that implementation.
+For integration with parallel account/chat work, review this branch with `git diff origin/main...HEAD`
+(the changes since the common ancestor). Preserve backend and database changes already on `main` while
+connecting the provider and account events; these frontend placeholders do not replace those services.
 
 ### Account entry points
 

@@ -25,6 +25,11 @@ It also offers:
 - **A traceable AFS pathway**: a sourced, deterministic suggestion of Path A / B / C; the expert and the customer
   can ask for paths, each gets a fit verdict, and premature paths get an "If you proceed anyway" plan.
 
+**Current frontend:** Result Assessment is an 11-section outline preview in both modes, awaiting the future
+RAG output format. The existing generated report is retained and downloadable as Markdown. General shows a
+simple calculation flow; Expert adds Process Information with the live and completed calculation record.
+See [The user interface](#10-the-user-interface) and [frontend integration](docs/frontend-integration.md).
+
 ---
 
 ## Contents
@@ -88,9 +93,9 @@ cited (and clearly labelled) assessment.
 
 ```
                           ┌─────────────────────────── Browser (frontend/, no build step) ───────────────────────────┐
-                          │ enquiry · numbered dots on a spectrum pipeline line · four tabs                         │
-                          │ Reading · Result Assessment (grounded sources) · Confidence · Coach                      │
-                          │ source drawer (PDF page with highlighted quote)                                          │
+                          │ enquiry · spectrum pipeline line · General: 4 tabs · Expert: 5 tabs                     │
+                          │ Reading · [Expert: Process Information] · Result outline · Confidence · Coach            │
+                          │ sticky right-side navigation · source drawer with highlighted PDF evidence               │
                           └──────────────────────────────────────┬───────────────────────────────────────────────────┘
                                                                  │ HTTP + SSE (stage, stage_result, result)
 ┌────────────────────────────────────────────────── FastAPI (backend/app) ──────────────────────────────────────────────┐
@@ -121,15 +126,16 @@ command. A separate vector service would add setup risk and no benefit at this s
 
 ## 4. The pipeline, stage by stage
 
-The four browser tabs are Reading, Result Assessment, Confidence and Verification, and Coach.
-A temporary loading screen shows the current model and rule tasks while the navigation line fills.
-Each underlying stage emits `stage` progress
-events and a `stage_result` containing its own output when done.
-The numbered dots in the top navigation bar follow the active step automatically. They stay hollow
-until their step completes, then fill with its visual-spectrum color; the connecting line keeps a color
-gradient. Navigation is locked during calculation; the final `result` opens Result Assessment
-(or Coach after a what-if re-run) and unlocks the tabs. It
-contains the complete run saved in SQLite.
+General has four browser tabs: Reading, Result Assessment, Confidence and Verification, and Coach.
+Expert adds Process Information between Reading and Result Assessment. During calculation, General shows
+only the simple stage flow with green completion dots; Expert stays on Process Information with live
+model, rule, retrieval, and council details.
+
+Each underlying stage emits `stage` progress events and a `stage_result` containing its output when done.
+The top navigation dots fill with their spectrum color as work completes, and the connecting line retains
+its gradient. Other tabs remain locked until the stream ends, including after the final `result` event.
+General then opens Result Assessment (Coach after a what-if re-run); Expert keeps Process Information open
+and unlocks the other tabs. The final event contains the complete run saved in SQLite.
 
 | # | Stage | Module | LLM? | Output |
 |---|---|---|---|---|
@@ -194,7 +200,7 @@ readiness claim, and the clinical-scope rule turns such requests into `outside_s
 6. **Pinned evidence:** cards on pages cited by blocking or warning rules are always included.
 7. **Token budget** (`MAX_EVIDENCE_TOKENS`, default 1800–2500) keeps prompts within the free tier.
 
-The Process tab shows the queries and the budget used for each run.
+In Expert mode, Process Information → Evidence retrieval shows the queries and passage budget for each run.
 
 ## 7. Grounding: verifier, quality gate, confidence
 
@@ -267,14 +273,17 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
 
 Open `http://localhost:8000`.
 
-**Two views** (toggle in the header; the browser remembers the choice). Both keep the same four tabs:
-Reading, Result Assessment, Confidence and Verification, and Coach.
+**Two views** (toggle in the app header; the browser remembers the choice):
 
-- **General (default)**, for internal non-experts such as sales or management: status and confidence in plain
-  words, the answer, *problems found in the request* (always shown), what to test first with a one-line plain
-  explanation of each method (sources behind "Show sources"), the top three questions, the first experiment,
-  and the next step with AFS including path verdicts. Domain terms have tooltips.
-- **Expert**: the full workbench described below.
+- **General (default):** Reading, Result Assessment, Confidence and Verification, and Coach. Calculation
+  uses a simple progress flow; no model-call or council diagnostics are rendered. Coach prioritizes up to
+  three high-impact missing facts.
+- **Expert:** adds Process Information for live activity and the retained calculation record, including
+  the spectral map, rules, retrieved evidence, model calls, and council details. Coach shows all missing facts.
+
+Both views currently share the same 11-section Result Assessment skeleton. It does not display the old
+General summary or full report; the existing generated report remains available through Markdown download.
+The sections below describe where each current feature is available.
 
 **Before you run it (pre-check)**: while the enquiry is typed, an instant keyword check (no AI) shows recognised
 terms (German aliases resolved, e.g. *Feuchte → moisture*, *Glasfaser → silica fiber*), vague words, early
@@ -321,7 +330,8 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   and vertical section links. The current section is accented automatically. Links open collapsed
   sections and preserve `#run=<id>` deep links. On smaller screens, the “On this page” button opens the panel
   from the right; selecting a section closes it. Reading omits scenario, assessment-mode, and model links
-  from navigation while keeping those controls in the form.
+  from navigation while keeping those controls in the form. Page runtime and Full run badges are removed
+  from these panels; detailed stage timings remain in Expert's Process Information.
 - **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
   optional Path A/B/C selection, the instant pre-check, and the reading confirmation with follow-up questions.
   Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
@@ -352,6 +362,10 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   Completed runs can be reopened with `#run=<id>`.
 - **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
   verbatim, the page text with the passage marked, and the original PDF page with the passage highlighted.
+
+**Data retention:** frontend visibility does not change the backend schema, pipeline outputs, saved runs,
+or exports. Keep all backend fields, including data the current UI does not use, and preserve the existing
+expert Process Information content. Reorganizing the frontend does not require deleting backend data.
 
 ## 11. Installation
 
@@ -521,10 +535,12 @@ afs-assistant/
 │  └─ render/markdown.py        run → Markdown
 ├─ frontend/
 │  ├─ index.html · css/styles.css
-│  └─ js/                       api.js · state.js · app.js · glossary.js · pipeline-steps.js (shared step model)
-│      └─ components/           pipeline.js (tab views and temporary loading screen) · page-navigation · header · enquiry · confirm ·
-│                               pathq · precheck · coach · summary · report · matrix · spectral-map ·
+│  └─ js/                       api.js · state.js · app.js · glossary.js · pipeline-steps.js · query-history.js
+│      └─ components/           pipeline.js (mode-specific views) · assessment-outline · page-navigation · header ·
+│                               enquiry · confirm · pathq · precheck · query-sidebar · account-controls · coach ·
+│                               summary · report (retained renderers) · matrix · spectral-map ·
 │                               evidence · quality · council · whatif · trace
+├─ docs/frontend-integration.md  page navigation, mode handling, result slots, data retention, query/account hooks
 ├─ eval/
 │  ├─ cases/                    final_cases.yaml (H01–H06 verbatim) · dev_cases.yaml (D01–D08 + worked answers) · adversarial_cases.yaml
 │  ├─ run_cases.py · summary.py · judge.py
@@ -545,7 +561,7 @@ afs-assistant/
 | Embedding download fails | Set `EMBED_BACKEND=hashing` (offline embedder), re-run ingest. |
 | Many `429 … waiting` lines | Free-tier per-minute limit; normal (section 15). Endless 30 s waits on one model usually mean its daily limit is used up. |
 | `413 Request too large` | One request exceeds the per-minute limit; lower `MAX_EVIDENCE_TOKENS`. |
-| Process shows "fallback" | That stage's LLM call failed; the rule-based version was used. The error text is in Process and in `outputs/*.json` (`trace`). |
+| Process Information shows "fallback" | That stage's LLM call failed; the rule-based version was used. In Expert, open Process Information → Model calls and timing for the error. It is also in `outputs/*.json` (`trace`). |
 | UI shows "Rule-only mode" | `LLM_MOCK=1` or no `GROQ_API_KEY` in `.env`. |
 | Citation drawer: "quote NOT found" | The model cited a passage that is not on that page; the claim is treated as unsupported and flagged by the quality gate. |
 
@@ -562,8 +578,8 @@ afs-assistant/
   fix wording, not make an unsupported claim supported. Low-similarity quotes stay unverified.
 - **Council agreement** uses two model families (gpt-oss and qwen) on this key, so it is weaker evidence
   than fully independent models; the UI says so.
-- **Rules are deliberately conservative** and keyword-assisted; an expert should review the fired rules
-  (Process tab) for each case.
+- **Rules are deliberately conservative** and keyword-assisted; in Expert, review Process Information →
+  AFS rules and method screening for each case.
 - **Free-tier latency** makes Council mode slow; Fast mode is the live-demo mode.
 
 ## 20. Future work
