@@ -2,11 +2,12 @@
 import { esc, getJSON, postJSON, stream } from "./api.js";
 import * as store from "./state.js";
 import { STEPS, LOADING_PAGE, canOpenStep, normalizeTab, stepStatus } from "./pipeline-steps.js";
-import { renderStatus, renderFiber } from "./components/header.js";
+import { renderStatus, renderFiber, renderBackNavigation } from "./components/header.js";
 import { renderPageNavigation } from "./components/page-navigation.js";
 import { renderEnquiry } from "./components/enquiry.js";
 import { hasStageData, renderPipelineStep, renderLoadingFlow, renderProcessInformation } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
+import { mountEvidenceSplit } from "./components/evidence-split.js";
 import { renderConfirm } from "./components/confirm.js";
 import { resetPrecheck } from "./components/precheck.js";
 import { activePathAnswers, loadPathQuestions, setDetected } from "./components/pathq.js";
@@ -16,6 +17,7 @@ import { renderQuerySidebar } from "./components/query-sidebar.js";
 import { isPro, mountAccountControls, openAccountMenu } from "./components/account-controls.js";
 
 const $ = (id) => document.getElementById(id);
+const evidenceSplit = mountEvidenceSplit(document.querySelector(".shell"), $("evidence-divider"));
 // Reserve the pinned header's actual height, including wrapped account controls and pipeline tabs.
 const appHeader = document.querySelector(".app-header");
 if (appHeader) {
@@ -339,6 +341,7 @@ function renderView(s) {
 let lastEvidence = null;
 function render(s) {
   renderStatus($("status"), s, actions);
+  renderBackNavigation($("nav-back"), s, actions.selectTab);
   renderFiber($("fiber"), s, actions.selectTab);
   const transientLoading = s.busy && s.view !== "expert";
   $("view").setAttribute("role", transientLoading ? "region" : "tabpanel");
@@ -350,6 +353,7 @@ function render(s) {
   const showEvidence = s.tab === "assessment" && !s.busy && !!s.evidence;
   $("drawer").hidden = !showEvidence;
   document.querySelector(".shell").classList.toggle("with-drawer", showEvidence);
+  evidenceSplit.update(showEvidence);
   if (s.evidence !== lastEvidence) {
     lastEvidence = s.evidence;
     renderEvidence($("drawer"), s.evidence, () => store.set({ evidence: null }));
@@ -361,6 +365,9 @@ document.addEventListener("click", (ev) => {
   const b = ev.target.closest(".cite");
   if (!b) return;
   store.set({ evidence: { source: b.dataset.src, page: +b.dataset.page, quote: b.dataset.quote, status: b.dataset.status } });
+  if (!$("drawer").hidden && window.matchMedia("(max-width: 760px)").matches) {
+    $("drawer").scrollIntoView({ block: "start" });
+  }
 });
 document.addEventListener("keydown", (ev) => {
   if (ev.key === "Escape" && !$("drawer").hidden && store.get().evidence && !document.querySelector(".page-navigation:popover-open")) store.set({ evidence: null });

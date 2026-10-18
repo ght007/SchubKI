@@ -23,6 +23,30 @@ On viewports up to 1100px, or when the content area is narrower than 740px (for 
 drawer), the panel uses a native popover opened by “On this page”. Section selection closes the popover.
 Observers and global listeners are cleaned up when the view is rebuilt.
 
+## Back navigation and resizable evidence
+
+The persistent `#nav-back` button sits to the left of the tab list. `previousStep(state)` selects the
+previous available step from `visibleSteps(state)`, so General skips Expert-only tabs. The button's
+tooltip and accessible name identify the destination; it is disabled on Customer Enquiry and while
+`busy` or `reading`. It uses the existing tab-selection action, retaining the current enquiry, run and
+source selection rather than navigating away from the application.
+
+`components/evidence-split.js` mounts once on `.shell` and `#evidence-divider`. When the source viewer
+is visible, CSS grid gives the source and assessment equal tracks by default with a divider between them.
+Pointer capture keeps dragging active outside the handle. ArrowLeft/ArrowRight adjust the split by five
+percentage points, Home/End select the current bounds, and Enter or a double-click restores 50/50.
+The focusable separator exposes its orientation, controlled pane, bounds and current percentage to
+assistive technology. The split stays between 25% and 75%, with tighter bounds when needed to keep both
+panes at least about 280px wide on smaller desktops.
+
+Resizing changes only CSS tracks and separator metadata; it does not update application state, rebuild
+the report or reload the source page. `afs.evidenceSplit` stores the preferred ratio in localStorage.
+Viewport changes temporarily constrain the applied ratio without overwriting that preference. The source
+body scrolls independently under a fixed viewer heading. Leaving Result Assessment hides the source and
+divider while retaining the selected page and scroll position. At 760px and below, the divider is hidden
+and the source stacks above the report, taking up to half the viewport height. Selecting a citation on
+these screens scrolls the source viewer below the pinned app header.
+
 ## Reading review dialog
 
 `frontend/index.html` owns the persistent native `dialog#reading-review`, outside the tab content.

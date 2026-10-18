@@ -47,6 +47,6 @@ export function set(patch) {
 
 export function subscribe(fn) { subs.add(fn); return () => subs.delete(fn); }
 
-const memo = { tab: "afs.tab", mode: "afs.mode", modelChoice: "afs.modelChoice", view: "afs.view", confirm: "afs.confirm" };
+const memo = { tab: "afs.tab", mode: "afs.mode", modelChoice: "afs.modelChoice", view: "afs.view", confirm: "afs.confirm", evidenceSplit: "afs.evidenceSplit" };
 export function remember(key, value) { try { localStorage.setItem(memo[key], value); } catch (_) { /* private mode */ } }
 export function recall(key, fallback) { try { return localStorage.getItem(memo[key]) || fallback; } catch (_) { return fallback; } }

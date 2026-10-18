@@ -30,12 +30,19 @@
     </div>
   </header>
 
-  <nav id="fiber" class="fiber" role="tablist" aria-label="Pipeline steps"></nav>
+  <div class="pipeline-navigation">
+    <button type="button" class="pipeline-back" id="nav-back" aria-label="Back. Already on Customer Enquiry" title="Already on Customer Enquiry" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h15"/></svg>
+      <span>Back</span>
+    </button>
+    <nav id="fiber" class="fiber" role="tablist" aria-label="Pipeline steps"></nav>
+  </div>
   </div>
 
   <main class="shell">
     <aside class="drawer" id="drawer" aria-label="Source viewer" hidden></aside>
-    <section class="center">
+    <div id="evidence-divider" class="evidence-divider" role="separator" tabindex="0" aria-label="Resize evidence viewer" aria-orientation="vertical" aria-controls="drawer" aria-valuemin="25" aria-valuemax="75" aria-valuenow="50" title="Drag to resize. Use arrow keys to adjust; double-click or press Enter to reset to 50/50." hidden></div>
+    <section class="center" id="assessment-pane">
       <div id="view" class="view" role="tabpanel"></div>
     </section>
 

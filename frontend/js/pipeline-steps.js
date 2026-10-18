@@ -57,6 +57,13 @@ export function canOpenStep(s, id) {
   return !s.busy && (id === "reading" || processComplete(s));
 }
 
+export function previousStep(s) {
+  if (s.busy || s.reading) return null;
+  const steps = visibleSteps(s);
+  const index = steps.findIndex((step) => step.id === s.tab);
+  return index > 0 ? steps.slice(0, index).reverse().find((step) => canOpenStep(s, step.id)) || null : null;
+}
+
 export function stepStatus(s, id) {
   if (id === "loading") return s.busy ? "active" : "pending";
   if (id === "process") return s.busy ? "active" : s.run?.error ? "error" : processComplete(s) ? "done" : "pending";

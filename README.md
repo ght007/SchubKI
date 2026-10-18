@@ -355,6 +355,9 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
 - **Pinned app header:** the AFS logo/title, account/login and plan controls, view toggle, status badges,
   and pipeline navigation stay visible together at the top while scrolling, before, during, and after a run.
   Section jumps and the sidebars account for the header's actual height, including wrapped rows on small screens.
+- **Back navigation:** the left-arrow **Back** button beside the pipeline tabs returns to the previous
+  available step in the current General or Expert view. Its tooltip names the destination. It is disabled
+  on Customer Enquiry and while reading or processing an enquiry.
 - **Top pipeline navigation:** General has three tabs: Reading → Result Assessment → Confidence and
   Verification. Expert adds **Process Information** between Reading and Result Assessment, and **Coach** at the end.
   One continuous gradient line connects the numbered dots, which fill with their spectrum color as work
@@ -401,8 +404,12 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   and the quality gate. Calculation internals are kept in Expert's Process Information tab.
 - **Coach (Expert only):** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
   Completed runs can be reopened with `#run=<id>`.
-- **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
-  verbatim, the page text with the passage marked, and the original PDF page with the passage highlighted.
+- **Source drawer:** click a citation in Result Assessment to open the cited PDF page with passage
+  highlighting and page/line information. Text sources show the document with the cited passage marked.
+  On desktop, the source viewer and assessment initially share the available width equally. Drag the divider
+  to resize them; arrow keys adjust it, Home/End select the limits, and Enter or a double-click restores 50/50.
+  The preferred split is saved in the browser. On narrow screens the source stacks above the report with
+  its own scroll area and comes into view when a citation is selected.
 
 **Data retention:** frontend visibility does not change the backend schema, pipeline outputs, saved runs,
 or exports. Keep all backend fields, including data the current UI does not use. Explicitly requested panel

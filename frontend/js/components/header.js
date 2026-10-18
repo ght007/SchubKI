@@ -1,7 +1,7 @@
 // Summary badges and the navigable spectrum line with completion dots.
 import { esc } from "../api.js";
 import { isPro } from "./account-controls.js";
-import { STATUS_LABELS, activeStep, canOpenStep, pipelineProgress, stepStatus, visibleSteps } from "../pipeline-steps.js";
+import { STATUS_LABELS, activeStep, canOpenStep, pipelineProgress, previousStep, stepStatus, visibleSteps } from "../pipeline-steps.js";
 
 const STATUS = {
   provisional_assessment: ["Provisional assessment", "core"],
@@ -67,6 +67,19 @@ export function renderStatus(el, s, actions) {
     ${v ? `<span class="pill ${v.n_verified === v.n_sourced ? "ok" : "warn"}">${v.n_verified}/${v.n_sourced} claims verified</span>
            <span class="pill ${v.n_unsupported_numbers ? "block" : "ok"}">${v.n_unsupported_numbers} unsupported numbers</span>` : ""}`;
   wire();
+}
+
+export function renderBackNavigation(button, s, onSelect) {
+  const previous = previousStep(s);
+  button.disabled = !previous;
+  button.title = previous ? `Back to ${previous.label}` : s.busy || s.reading
+    ? "Back is available after processing" : "Already on Customer Enquiry";
+  button.setAttribute("aria-label", previous ? button.title : `Back. ${button.title}`);
+  button.onclick = () => {
+    if (!previous) return;
+    onSelect(previous.id);
+    window.scrollTo(0, 0);
+  };
 }
 
 export function renderFiber(el, s, onSelect) {
