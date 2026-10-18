@@ -30,10 +30,13 @@ Do not commit `sources.zip`.
 
 ## 2. Render (backend)
 
-1. Render → **New → Blueprint** → repo `ght007/SchubKI`, branch `feature/deploy` (later `main`).
+1. Render → **New → Blueprint** → repo `ght007/SchubKI` (not a fork: a fork only deploys when it is synced),
+   the same branch Vercel deploys (`main`).
 2. Fill in the secret env vars it asks for:
    - `GROQ_API_KEY`
    - `SUPABASE_DB_URL`: the **Session pooler** URI from Supabase → Connect (the direct host is IPv6-only).
+     Paste only the value (`postgresql://…`), not the `SUPABASE_DB_URL=` part of the .env line: that gives
+     `invalid connection option "SUPABASE_DB_URL"` in `/api/health` and everything stays local.
      Without it, accounts and runs live in the instance's SQLite and are lost whenever it sleeps or redeploys.
    - `SOURCES_URL`: the signed URL from step 1.
    - `GOOGLE_CLIENT_ID`: optional.
@@ -53,7 +56,9 @@ model are in place before the server starts. A missing PDF fails the build on pu
 ## 4. Google sign-in (only if `GOOGLE_CLIENT_ID` is set)
 
 Google Cloud Console → the OAuth client → *Authorized JavaScript origins*: add the Vercel URL
-(e.g. `https://schubki.vercel.app`) and the Render URL.
+(e.g. `https://schubki.vercel.app`) and the Render URL. Exact origins, `https://`, no trailing slash.
+Google Auth Platform → **Audience**: while the app is in *Testing*, only the listed test users can sign in.
+Publish it (sign-in uses only the basic openid/email/profile scopes) or add every account that must log in.
 
 ## Known limits
 

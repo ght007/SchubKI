@@ -34,11 +34,27 @@ def test_vercel_proxies_api_to_an_https_backend():
     assert re.fullmatch(r"https://[\w.-]+/api/:path\*", api[0]["destination"])
 
 
+def _server_pages() -> dict[str, str]:
+    """{route: html file} for every page route in backend/app/main.py (except "/", which redirects)."""
+    src = (ROOT / "backend" / "app" / "main.py").read_text(encoding="utf-8")
+    pages = {}
+    for block in re.split(r"\n(?=@app\.)", src):
+        route = re.match(r'@app\.get\("(/[^"]*)"', block)
+        html = re.findall(r'frontend_dir / "([\w-]+\.html)"', block)
+        if route and html and route.group(1) != "/":
+            pages[route.group(1)] = html[-1]
+    return pages
+
+
+def test_server_page_routes_are_found():
+    assert {"/app", "/login", "/pricing"} <= set(_server_pages())
+
+
 def test_vercel_serves_every_page_route_of_the_server():
     rewrites = {r["source"]: r["destination"] for r in _vercel()["rewrites"]}
-    for route in ("/app", "/login", "/pricing"):          # FileResponse routes in backend/app/main.py
-        target = rewrites[route]
-        assert (FRONTEND / target.lstrip("/")).is_file(), f"{route} -> {target} does not exist"
+    for route, html in _server_pages().items():
+        assert rewrites.get(route) == f"/{html}", f"frontend/vercel.json has no rewrite {route} -> /{html}"
+        assert (FRONTEND / html).is_file(), f"{route} -> {html} does not exist"
     assert rewrites["/static/:path*"] == "/:path*"
     assert {"source": "/", "destination": "/login", "permanent": False} in _vercel()["redirects"]
 
@@ -87,9 +103,20 @@ def _zip(files: dict[str, bytes]) -> bytes:
     return buf.getvalue()
 
 
-def test_required_sources_are_the_pdfs():
-    assert fetch.required() == sorted(f"{n}" for n in fetch.SOURCE_FILES.values() if n.endswith(".pdf"))
-    assert len(fetch.required()) == 5
+def test_required_sources_are_the_supplied_and_cited_pdfs():
+    reg = fetch.registered()
+    assert all(name.lower().endswith(".pdf") for name in reg.values())
+    need = fetch.required()
+    for sid in fetch.SUPPLIED | fetch.cited_sources():
+        if sid in reg:
+            assert reg[sid] in need
+    assert len([s for s in fetch.SUPPLIED if s in reg]) == 5
+
+
+def test_uploaded_documents_are_optional_for_the_build():
+    # documents added on the Knowledge base page come from Supabase at startup, not from the zip
+    assert not set(fetch.required()) & set(fetch.optional())
+    assert set(fetch.required()) | set(fetch.optional()) == set(fetch.registered().values())
 
 
 def test_extract_takes_wanted_files_by_name_only(tmp_path):

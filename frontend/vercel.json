@@ -8,7 +8,8 @@
     { "source": "/static/:path*", "destination": "/:path*" },
     { "source": "/app", "destination": "/index.html" },
     { "source": "/login", "destination": "/login.html" },
-    { "source": "/pricing", "destination": "/pricing.html" }
+    { "source": "/pricing", "destination": "/pricing.html" },
+    { "source": "/kb", "destination": "/kb.html" }
   ],
   "headers": [
     { "source": "/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0" }] },
