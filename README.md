@@ -710,7 +710,9 @@ they were checked against expected outcomes (dev and adversarial cases), not fit
 4. Status *insufficient information* or *outside supported scope* → confidence insufficient.
 
 Client premises are shown but do not lower the level: a wrong customer premise is a finding, not
-uncertainty in the answer. Per method: lead = overall, candidate = one level lower, weak / not supported =
+uncertainty in the answer. 
+
+Per method: lead = overall, candidate = one level lower, weak / not supported =
 insufficient. "What would raise confidence" = the top three unknown, high-impact coach questions.
 
 ### Other numbers
