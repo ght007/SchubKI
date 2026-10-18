@@ -30,10 +30,10 @@ const state = {
   evidence: null,       // {source, page, quote, verified}
   answers: {},          // pending what-if answers
   paths: [],            // AFS paths chosen by the expert (multi-select A/B/C; empty = Auto)
-  understand: null,     // "Is this what you mean?" card data (step 1 of a run), null when closed
-  rejected: [],         // requirement fields marked as misread on that card
+  understand: null,     // "Is this what you mean?" dialog data (step 1 of a run), null when closed
+  rejected: [],         // requirement fields marked as misread in that dialog
   reading: false,       // step 1 in progress
-  confirm: true,        // show the card before every run (remembered)
+  confirm: true,        // show the review dialog before every run (remembered)
 };
 
 const subs = new Set();

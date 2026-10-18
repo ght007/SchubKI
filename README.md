@@ -317,12 +317,11 @@ The sections below describe where each current feature is available.
 terms (German aliases resolved, e.g. *Feuchte → moisture*, *Glasfaser → silica fiber*), vague words, early
 warnings from blocking rules, and missing key facts. It is informational; the questions are asked on the next step.
 
-**"Is this what you mean?" (in Reading, on by default)**: *Check and assess* first reads the enquiry
-with the extraction model (the run's own first stage), then scrolls to and focuses the review card.
-The card explains that assessment has not started yet and points to the final actions. A pending-review
-notice and **Start assessment · Next** shortcut appear in the right-side navigation (under “On this page”
-on smaller screens). The enquiry button becomes **Continue review ↓** so returning to the form still gives
-a way forward. The review contains:
+**"Is this what you mean?" (Customer Enquiry dialog, on by default)**: *Check and assess* first reads the enquiry
+with the extraction model (the run's own first stage), then opens a modal review without expanding the page.
+The reading and follow-up questions scroll inside the dialog, with **Yes, assess** always available
+in its footer. Questions can be left unanswered. Escape or the close button returns to editing the original
+enquiry without starting an assessment. The review contains:
 - **We understood**: the structured readings that drive the rules (what to measure, sample form, optics, methods
   asked for, equipment they have, path they ask for, ...). Each has ✓ / ✗; a ✗ resets that reading to *unknown* for
   the run (e.g. "it is **not clear** yet" misread as *optics: clear*), so no rule fires on it. Glossary translations
@@ -331,11 +330,10 @@ a way forward. The review contains:
 - **Open questions, one list without repeats**: vague words, missing key facts, and the questions of every chosen
   or found path. A path question that covers a missing fact replaces it (Path A "reference values?" replaces the
   general reference question). Answers the text already gives are **pre-filled and tagged "from your text"**.
-- **Ready to start the assessment?**: a highlighted action block with **Yes, assess** (with the answers given),
-  **Skip questions and assess** (without those answers), and **Edit enquiry**. A shortcut at the top of the
-  review jumps here without starting a run. *Show this step before
-  every run* can be unticked (remembered), then *Assess enquiry* runs straight away. Path questions remain
-  available in Reading when the confirmation card is disabled.
+- **Assessment action**: **Yes, assess** includes any answers given and retains readings marked as unknown.
+  Unanswered questions are optional. *Show this dialog before every run* can be unticked
+  (remembered), then *Assess enquiry* runs straight away. Path questions remain available in Customer Enquiry
+  when the review dialog is disabled.
 
 The customer's text is never rewritten: corrections travel as `rejected` fields, answers as a separate block.
 Because path answers and ✗ corrections are kept out of the extraction prompt, confirming **reuses the cached
@@ -345,7 +343,7 @@ API directly and never see this step.
 **Preferred AFS path (multi-select, shown with full names)**: A *Chemometric model for process automation*,
 B *Multi-spectral system for your R&D lab*, C *Low-cost spectral sensor(s)*; none chosen = Auto. Paths the
 customer seems to ask for are marked *in the enquiry* by the pre-check. Each path has three one-click questions
-(for example *Has a lab trial already shown which wavelengths matter?*), asked on the confirmation card.
+(for example *Has a lab trial already shown which wavelengths matter?*), asked in the review dialog.
 **Everything is optional**: unanswered questions are not sent and the run simply proceeds without them. Some
 answers carry a sourced effect on that path's verdict (e.g. C + "No" → *premature*, S01 p.9; B + "In production"
 → *conflicts*, S02 p.20); the rest is context for the report. Path answers travel as
