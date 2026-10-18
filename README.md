@@ -501,6 +501,7 @@ All settings are read from `.env` (`backend/app/config.py`).
 | `DB_PATH`, `RAW_DIR`, `KB_DIR` | `data/cache/afs.db`, `data/raw`, `data/kb` | paths |
 | `SUPABASE_DB_URL` | empty | Supabase Postgres URI (Session pooler). Set = Supabase is the main database (see "Where the data lives") |
 | `DB_BACKEND` | `supabase` | `sqlite` = ignore Supabase and run on the local file only |
+| `KB_EDIT` | `pro` | Knowledge-base editor (`/kb`): `pro` = logged-in Pro users, `open` = anyone (local demo), `off` = switched off |
 
 ## 15. Groq free tier: what to expect
 
@@ -549,6 +550,11 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 | `GET/POST /api/me/queries` · `DELETE /api/me/queries/{id}` | The user's saved enquiries (sidebar) |
 | `GET /api/me/runs?view=general\|expert` | The user's run history; results via `/api/runs/{id}` |
 | `GET/POST /api/me/projects` | The user's projects (saved enquiries can belong to one) |
+| `GET /api/kb/files` · `GET /api/kb/files/{kb\|raw}/{name}` | Editable knowledge files and uploaded documents (Pro, see `KB_EDIT`) |
+| `POST /api/kb/files/kb/{name}/preview` · `PUT /api/kb/files/kb/{name}` | Check a change (problems, warnings, diff) / save it as a new version, then rebuild and publish |
+| `GET /api/kb/files/{area}/{name}/history` · `POST …/restore` | Versions with author, time and comment / restore one (saved as a new version) |
+| `POST /api/kb/upload` · `POST /api/kb/sources` | Upload a document (base64 JSON, PDF/TXT/MD/DOCX, max 15 MB) / register it as a source with an evidence scope |
+| `GET /api/kb/status` | Rebuild and publish progress |
 | `GET /api/billing/plans` · `POST /api/billing/checkout` | Plans with prices and views, current plan; choose a plan (demo mode switches at once) |
 
 ## 17. Repository layout
@@ -566,18 +572,18 @@ afs-assistant/
 │  ├─ main.py                   FastAPI app, static frontend, startup ingest and model check
 │  ├─ config.py                 settings from .env, source file names
 │  ├─ schemas.py                all Pydantic models (LLM contracts and run objects)
-│  ├─ api/                      assess.py (SSE, what-if) · sources.py (page text/images) · runs.py (runs, export, health, examples, feedback)
+│  ├─ api/                      assess.py (SSE, what-if) · sources.py (page text/images) · runs.py (runs, export, health, examples, feedback) · kb_admin.py (knowledge-base editor)
 │  ├─ llm/
 │  │  ├─ client.py              Groq client: JSON schema, validation, 429/413, cache, fallback, trace
 │  │  ├─ models.py              model roles, council list, availability check
 │  │  └─ prompts/               extract · premise · report · repair · judge · coach (.md)
-│  ├─ kb/                       pages.py (page text, normaliser) · store.py (SQLite) · embed.py · ingest.py · retrieve.py
+│  ├─ kb/                       pages.py (page text, normaliser) · store.py (SQLite) · embed.py · ingest.py · retrieve.py · files.py (KB editor: checks, versions, rebuild, sync)
 │  ├─ engine/                   extract · understand · paths · glossary · precheck · rules · coverage · screen ·
 │  │                            context · premise · report · council ·
 │  │                            verify · quality · confidence · coach · whatif · pipeline (stage_result SSE)
 │  └─ render/markdown.py        run → Markdown
 ├─ frontend/
-│  ├─ index.html · css/styles.css
+│  ├─ index.html · css/styles.css · kb.html + js/kb.js + css/kb.css (knowledge-base editor, Pro)
 │  └─ js/                       api.js · state.js · app.js · glossary.js · pipeline-steps.js (shared step model)
 │      └─ components/           pipeline.js (tab views and temporary loading screen) · page-navigation · header · enquiry · confirm ·
 │                               pathq · precheck · coach · summary · report · matrix · spectral-map ·
@@ -737,8 +743,9 @@ review by an AFS expert.
 
 | Layer | Process |
 |---|---|
-| **Searchable text** (automatic once registered) | Add the file to `SOURCE_FILES` (`config.py`) and to `sources.json` with an evidence scope, re-run ingest. Its pages become retrievable and citable; the verifier checks quotes from them like any other. Planned: auto-discovery of new PDFs with scope "unreviewed", which can never raise confidence. |
+| **Searchable text** (automatic once registered) | Upload the document on the Knowledge base page (`/kb`, Pro) and register it with an evidence scope; it gets the next source id (S07, …), its pages become retrievable and citable, and the verifier checks quotes from it like any other. Readable types: PDF with a text layer, TXT, MD, DOCX (split into 400-word pages). The registry is `data/kb/sources.json`; `config.source_files()` reads it. |
 | **Curated cards and rules** (human-approved by design) | The model proposes candidate cards from a new document; only cards whose quote passes the on-page check are kept; an AFS expert approves them into `claims.jsonl`. Rules are written or approved by experts; expert feedback is already stored per run (`/api/feedback`) as input for new rules. |
+| **Editing in the app** | The Knowledge base page edits the curated files directly. Every save is checked first (JSON/YAML parses; card quotes are on their page; rules name known sources and use valid conditions; sources still cited cannot be removed) and refused with the exact line if it fails. Each version is stored with author, time and comment (`kb_files` table, SQLite and Supabase) and can be restored. After a save the index is rebuilt in the background (assessments wait for it), caches are cleared and the KB is published to Supabase; other machines pull the newer files at startup and rebuild. The evaluation case file can never be uploaded or registered. |
 | **Regression after every change** | `pytest` (every quote on its page, every rule sourced) and `python -m eval.run_cases --set dev` / `--set adversarial` (expectation column must read OK). The knowledge base is versioned in git. |
 
 ---

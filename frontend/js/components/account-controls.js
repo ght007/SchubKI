@@ -51,6 +51,7 @@ export function openAccountMenu(anchor, user, { openRun }) {
       <span class="pill ${pro ? "core" : ""}">${esc(planName(user))}</span></div>
     ${pro ? "" : `<a role="menuitem" class="account-menu-item upgrade" href="/pricing">Upgrade to Pro<span>Unlock the Expert view</span></a>`}
     <button role="menuitem" type="button" class="account-menu-item" data-act="history">Run history</button>
+    ${pro ? '<a role="menuitem" class="account-menu-item" href="/kb">Knowledge base<span>Edit evidence, rules and documents</span></a>' : ""}
     <a role="menuitem" class="account-menu-item" href="/pricing">Plans and pricing</a>
     <div class="account-menu-sep"></div>
     <button role="menuitem" type="button" class="account-menu-item" data-act="logout">Log out</button>`;
