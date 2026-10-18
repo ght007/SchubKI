@@ -1,5 +1,11 @@
 # AFS Fiberwise
 
+> ### Live app for reviewers: **[schubki-frontend-livid.vercel.app](https://schubki-frontend-livid.vercel.app/)**
+> Open the link, sign in (or *Create account* / *Continue as guest* on the sign-in page), load a scenario such as
+> H04 or type your own enquiry, and press **Check and assess**. Fast mode takes about 10–20 s per run; if the first
+> request is slow, the server may still be waking up, so wait a moment and try again. The six final answers
+> (H01–H06) are in [`presentations/resultAssessments/`](presentations/resultAssessments/).
+
 **An AI assistant for the first technical assessment of in-line spectroscopy enquiries.**
 Built for the Art Fiber Systems (AFS) challenge, *National AI Hackathon 2026 by SchubKI*.
 
