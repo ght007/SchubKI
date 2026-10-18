@@ -14,6 +14,9 @@ export function renderEnquiry(el, s, actions) {
     .filter(Boolean))].map((id) => ({ id, note: "" }));
   const chosen = models.find((m) => m.id === s.modelChoice);
   const defaults = s.modelList?.defaults || configured;
+  const defaultModels = defaults.fast && defaults.main
+    ? defaults.fast === defaults.main ? defaults.main : `${defaults.fast} for intake; ${defaults.main} for report`
+    : defaults.main || defaults.fast || "loading model configuration…";
   const modelNote = chosen
     ? `${chosen.note}. Used for every step of this run${s.mode === "council" ? "; Council drafts still compare several models" : ""}.`
     : `Server default: ${defaults.fast || "fast model"} reads the enquiry and checks claims, ${defaults.main || "main model"} writes the assessment.`;
@@ -47,7 +50,7 @@ export function renderEnquiry(el, s, actions) {
       <div class="enquiry-option">
         <label class="enquiry-option-label" for="model-choice">LLM model</label>
         <select id="model-choice" ${s.busy || s.reading ? "disabled" : ""}>
-          <option value="auto" ${s.modelChoice === "auto" ? "selected" : ""}>Server default (recommended)</option>
+          <option value="auto" ${s.modelChoice === "auto" ? "selected" : ""}>Server default (${esc(defaultModels)})</option>
           ${models.map((m) => `<option value="${esc(m.id)}" ${s.modelChoice === m.id ? "selected" : ""}>${esc(m.id)}${m.tested === false ? " (not tested)" : ""}</option>`).join("")}
         </select>
       </div>

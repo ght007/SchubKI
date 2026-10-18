@@ -22,8 +22,20 @@ from ..schemas import ClaimCheck, Evidence, NumberCheck, Report, Statement, Veri
 READINESS = re.compile(r"\b(ready|proven|validated|clinical(ly)?|in vivo|surgery|surgical|guarantee[sd]?|"
                        r"production[- ]ready|approved)\b", re.I)
 NEGATION = re.compile(r"\b(not|no|cannot|can't|never|without|outside|insufficient|does not|is not)\b", re.I)
-LIMITED_SCOPE = {"S03": "in-vitro proof of concept", "S04": "lab demonstration on model tissue",
-                 "S05": "business flyer", "S06": "business link"}
+# Evidence levels that can never support a readiness claim (from data/kb/sources.json, so a document
+# registered later in the knowledge-base editor is covered too).
+LIMITED_LEVELS = {"proof_of_concept_in_vitro": "in-vitro proof of concept", "lab_demonstration": "lab demonstration",
+                  "business": "business material"}
+
+
+@lru_cache(maxsize=1)
+def limited_scope() -> dict[str, str]:
+    try:
+        reg = json.loads((settings.kb_dir / "sources.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {s["id"]: s.get("scope_label") or LIMITED_LEVELS[s["evidence_level"]]
+            for s in reg.get("sources", []) if s.get("evidence_level") in LIMITED_LEVELS}
 NUM = re.compile(r"(?<![\w.])(\d+(?:[.,]\d+)?)(?:\s*(?:-|–|to)\s*(\d+(?:[.,]\d+)?))?\s*"
                  r"(%|nm|µm|μm|um|cm-1|cm⁻¹|cm\^-1|mm|m\b|°c|ppm|ppb|mm\b|nM|µM|mM|s\b|ms\b|min\b|h\b|bar|w\b|mw)",
                  re.I)
@@ -122,10 +134,11 @@ def check_statement(loc: str, s: Statement) -> ClaimCheck:
                 statuses.append("unverified")
                 details.append(f"{c.source} p.{c.page}: quote not on page ({score:.0f})")
     status = "verified" if "verified" in statuses else "fuzzy" if "fuzzy" in statuses else "unverified"
-    limited = [c for c in s.citations if c.source in LIMITED_SCOPE]
+    scope = limited_scope()
+    limited = [c for c in s.citations if c.source in scope]
     if status != "unverified" and limited and READINESS.search(s.text) and not NEGATION.search(s.text):
         status = "scope_warning"
-        details.append(f"{limited[0].source} is {LIMITED_SCOPE[limited[0].source]}; it cannot support a readiness claim")
+        details.append(f"{limited[0].source} is {scope[limited[0].source]}; it cannot support a readiness claim")
     return ClaimCheck(location=loc, text=s.text, kind=s.kind, status=status, detail="; ".join(details), citations=s.citations)
 
 

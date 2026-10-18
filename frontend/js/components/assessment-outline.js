@@ -19,12 +19,12 @@ const SECTIONS = [
   ["risks_and_uncertainty", "Risks and uncertainty", "Limitations, assumptions, and factors that could change the decision."],
   ["decision_basis", "Decision basis", "Client-agreed acceptance criteria for choosing an approach after the study."],
   ["sources", "Sources", "Supporting AFS materials, with quoted passages for any external sources."],
-  ["first_feasibility_experiment_prototype", "First feasibility experiment prototype", ""],
+  ["first_feasibility_experiment_prototype", "First feasibility experiment", "Samples, reference measurements, comparisons, and steps for the first experiment."],
 ];
 const KIND = { client_fact: "client fact", sourced: "sourced", assumption: "assumption", proposal: "proposal" };
 const STATUS_PILL = { provisional_assessment: "core", insufficient_information: "warn", outside_supported_scope: "block" };
 const CONF_PILL = { high: "ok", medium: "core", low: "warn", insufficient: "block" };
-const WHO = { expert: "chosen in Reading", enquiry: "asked for by the customer", both: "asked for by customer and in Reading" };
+const WHO = { expert: "chosen in Customer Enquiry", enquiry: "asked for by the customer", both: "asked for by customer and in Customer Enquiry" };
 
 const list = (items, tag = "ul") => items.length ? `<${tag} class="outline-list">${items.map((x) => `<li>${annotate(x)}</li>`).join("")}</${tag}>` : none();
 const none = () => `<p class="muted small">Nothing reported for this section.</p>`;
@@ -64,7 +64,7 @@ const RENDER = {
       aria-label="Open source ${esc(s.source)} page ${s.page}"><span class="v"></span>${esc(s.source)} p.${s.page}</button>
     <span>${esc(s.title)}</span>${s.scope ? ` <span class="tag">${esc(s.scope)}</span>` : ""}
     ${s.quotes.map((q) => `<blockquote class="${esc(q.check)}">${esc(q.quote)}</blockquote>`).join("")}</li>`).join("")}</ul>` : none(),
-  first_feasibility_experiment_prototype: (c, run) => {
+  first_feasibility_experiment_prototype: (c) => {
     const plan = c.plan, pw = c.pathway;
     const block = (title, items, tag) => `<div class="outline-plan-block"><h3 class="outline-sub">${title}</h3>${list(items, tag)}</div>`;
     return `<div class="outline-plan">
@@ -76,8 +76,7 @@ const RENDER = {
     ${pw.requested.map((f) => `<p class="small"><b>Path ${esc(f.path)}, ${esc(f.verdict)}</b> (${WHO[f.requested_by] || ""}): ${esc(f.reason)} <span class="muted">[${srcs(f.sources)}]</span></p>`).join("")}
     ${pw.proceed_anyway.map((p) => `<details class="proceed"><summary><b>If you proceed anyway with Path ${esc(p.path)}</b></summary>
       <p class="small">${esc(p.caveat)}</p><ol>${p.steps.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>
-      <p class="small muted">Sources: ${srcs(p.sources)}</p></details>`).join("")}
-    <h3 class="outline-sub">Proposed setup</h3>${projectSetupHTML(run)}`;
+      <p class="small muted">Sources: ${srcs(p.sources)}</p></details>`).join("")}`;
   },
 };
 
@@ -91,18 +90,20 @@ export function renderAssessmentOutline(el, run = {}) {
   <article class="assessment-document${ready ? " filled" : ""}" aria-label="Result assessment">
     ${SECTIONS.map(([key, title, description], index) => {
       const id = `assessment-${key.replaceAll("_", "-")}`;
-      const diagram = key === "first_feasibility_experiment_prototype";
       const content = filled[key];
       let body;
-      if (content) body = RENDER[key](content, run);
-      else if (diagram) body = projectSetupHTML(run);
+      if (content) body = RENDER[key](content);
       else body = `<p class="assessment-placeholder-copy">${esc(description)}</p>
           <div class="assessment-placeholder-lines" aria-hidden="true"><span></span><span></span></div>`;
-      return `<section class="assessment-section${diagram ? " assessment-diagram" : ""}" data-assessment-field="${key}" aria-labelledby="${id}">
+      return `<section class="assessment-section" data-assessment-field="${key}" aria-labelledby="${id}">
         <div class="assessment-section-heading"><span class="assessment-section-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span>
           <h2 id="${id}">${esc(title)}</h2></div>
         <div class="assessment-field-content" id="${id}-content">${body}</div>
       </section>`;
     }).join("")}
-  </article>`;
+  </article>
+  <section class="section setup-overview" aria-labelledby="setup-overview-title">
+    <h2 id="setup-overview-title">Setup Overview</h2>
+    ${projectSetupHTML(run)}
+  </section>`;
 }

@@ -227,7 +227,7 @@ def online() -> bool:
 
 
 # ------------------------------------------------------------------ knowledge base
-def kb_ready(local_embed_backend: str, local_ingested_at: str = "") -> bool:
+def kb_ready(local_embed_backend: str, local_ingested_at: str = "", local_hash: str = "") -> bool:
     """Use the hosted knowledge base only if it exists, matches the local embedding backend (query vectors
     are made locally; a 384-d bge query cannot search 1024-d hashing vectors) and comes from the same ingest
     as the local copy (chunk ids must match, so a fallback mid-run never mixes two different indexes)."""
@@ -243,8 +243,9 @@ def kb_ready(local_embed_backend: str, local_ingested_at: str = "") -> bool:
             return "missing"
         n = c.execute("select count(*) from public.chunks").fetchone()[0]
         nv = c.execute("select count(*) from public.vectors").fetchone()[0]
-        meta = dict(c.execute("select key, value from public.meta where key in ('embed_backend', 'ingested_at')").fetchall())
-        return n, nv, meta.get("embed_backend", ""), meta.get("ingested_at", "")
+        meta = dict(c.execute("select key, value from public.meta "
+                              "where key in ('embed_backend', 'ingested_at', 'kb_hash')").fetchall())
+        return n, nv, meta.get("embed_backend", ""), meta.get("ingested_at", ""), meta.get("kb_hash", "")
 
     res = _run(check)
     if res is None:                      # offline
@@ -253,15 +254,18 @@ def kb_ready(local_embed_backend: str, local_ingested_at: str = "") -> bool:
         _state.update(kb=False, kb_reason="no knowledge base online yet: run scripts/push_to_supabase.py")
         log.warning("Using the local knowledge base: %s", _state["kb_reason"])
         return False
-    n, nv, backend, ingested = res
+    n, nv, backend, ingested, online_hash = res
+    # same content fingerprint = same index, even if built at another time on another machine
+    same_build = (online_hash == local_hash) if (online_hash and local_hash) else \
+        not (local_ingested_at and ingested and ingested != local_ingested_at)
     if n == 0 or nv == 0:
         _state.update(kb=False, kb_reason="knowledge base online is empty: run scripts/push_to_supabase.py")
     elif backend and backend != local_embed_backend:
         _state.update(kb=False, kb_reason=f"online knowledge base uses '{backend}' embeddings, this machine "
                                           f"'{local_embed_backend}': re-ingest and push again")
-    elif local_ingested_at and ingested and ingested != local_ingested_at:
-        _state.update(kb=False, kb_reason=f"online knowledge base is from another ingest ({ingested}, local {local_ingested_at}): "
-                                          "run scripts/push_to_supabase.py")
+    elif not same_build:
+        _state.update(kb=False, kb_reason=f"online knowledge base differs from this machine's files ({ingested}, local "
+                                          f"{local_ingested_at}): it is republished automatically, or run scripts/push_to_supabase.py")
     else:
         _state.update(kb=True, kb_reason="")
     if not _state["kb"]:
@@ -462,14 +466,14 @@ def forget_kb_check() -> None:
     _state["kb"] = None
 
 
-def status(local_embed_backend: str = "", local_ingested_at: str = "") -> dict:
+def status(local_embed_backend: str = "", local_ingested_at: str = "", local_hash: str = "") -> dict:
     """For /api/health and the header chip."""
     if not url():
         return {"mode": "local", "detail": "Local SQLite (SUPABASE_DB_URL not set)"}
     if not enabled():
         return {"mode": "local", "detail": "Local SQLite (DB_BACKEND=sqlite)", "target": target()}
     online()
-    kb = kb_ready(local_embed_backend, local_ingested_at) if local_embed_backend else bool(_state["kb"])
+    kb = kb_ready(local_embed_backend, local_ingested_at, local_hash) if local_embed_backend else bool(_state["kb"])
     if _state["status"] != "online":
         return {"mode": "offline", "target": target(), "kb": "local", "pending": _state["pending"],
                 "detail": f"Supabase offline, saving locally ({_state['error']}); sync later with scripts/push_to_supabase.py"}

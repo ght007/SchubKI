@@ -1,7 +1,7 @@
 // General has three tabs; Expert adds Process Information and Coach.
 export const PIPELINE_STAGES = ["extract", "rules", "retrieve", "premise", "report", "verify", "coach"];
 export const STEPS = [
-  { id: "reading", short: "Reading", label: "Reading", color: "#6d28d9", description: "Enter the customer's enquiry and choose how to assess it.", stages: ["extract"] },
+  { id: "reading", short: "Customer Enquiry", label: "Customer Enquiry", color: "#6d28d9", description: "Enter the customer's enquiry and choose how to assess it.", stages: ["extract"] },
   { id: "process", short: "Process Information", label: "Process Information", color: "#2563eb", description: "Follow model and rule tasks, then review the complete calculation record.", stages: PIPELINE_STAGES, expertOnly: true },
   { id: "assessment", short: "Result Assessment", label: "Result Assessment", color: "#15803d", description: "Review the decision, requirements, recommended methods, and feasibility-study plan.", stages: ["report"] },
   { id: "verification", short: "Confidence & Verification", label: "Confidence and Verification", color: "#c2410c", description: "Review confidence signals, source checks, and quality metrics.", stages: ["verify"] },

@@ -112,12 +112,14 @@ def kb_online() -> bool:
     if not remote.enabled():
         return False
     from . import embed
-    return remote.kb_ready(_local_meta("embed_backend") or embed.backend(), _local_meta("ingested_at"))
+    return remote.kb_ready(_local_meta("embed_backend") or embed.backend(), _local_meta("ingested_at"),
+                           _local_meta("kb_hash"))
 
 
 def db_status() -> dict:
     from . import embed
-    return remote.status(_local_meta("embed_backend") or embed.backend(), _local_meta("ingested_at"))
+    return remote.status(_local_meta("embed_backend") or embed.backend(), _local_meta("ingested_at"),
+                         _local_meta("kb_hash"))
 
 
 # ------------------------------------------------------------------ knowledge base: writes (always local; push publishes)

@@ -10,7 +10,8 @@ Section scroll offsets, the right-side panel, the Reading query sidebar, and the
 height so they remain below the pinned controls as account/status rows wrap or change. On narrow screens
 the source drawer is capped to the space below the header and scrolls as one panel.
 
-`frontend/js/components/page-navigation.js` wraps page content with a sticky navigation panel on the right.
+`frontend/js/components/page-navigation.js` wraps page content with a sticky sidebar on the right.
+The `.page-sidebar` wrapper inherits `--page-navigation-top` from the layout, measured from the pinned header.
 It owns the title, explanation, section links, and `aria-current="location"` tracking.
 Page runtime and Full run badges are not rendered here. Detailed stage timings remain in Process
 Information → Model calls and timing.
@@ -45,7 +46,7 @@ using their `expertOnly` flag. `canOpenStep` also rejects these tabs in General.
 Verification in General, including a stored Coach/what-if tab or switching away from an open Coach page.
 The spectrum line derives its columns, endpoint positions, colors, and progress from the visible steps.
 
-- General: three tabs (Reading, Result Assessment, Confidence and Verification) and a temporary
+- General: three tabs (Customer Enquiry, Result Assessment, Confidence and Verification) and a temporary
   `renderLoadingFlow` screen containing only the simple stage flow. No process-detail or Coach markup is rendered.
   A successful run opens Result Assessment. If a what-if starts in Expert and switches to General while busy,
   completion opens Confidence and Verification instead of the hidden Coach tab.
@@ -109,16 +110,16 @@ headings, so section jumps and the current-section accent work without a separat
 | `risks_and_uncertainty` | Risks and uncertainty |
 | `decision_basis` | Decision basis |
 | `sources` | Sources |
-| `first_feasibility_experiment_prototype` | First feasibility experiment prototype |
+| `first_feasibility_experiment_prototype` | First feasibility experiment |
 
 Each section has `data-assessment-field="<slot>"`, a heading ID `assessment-<slot-with-hyphens>`, and a content
 container with that ID plus `-content`. Keys and ordering match `backend/app/render/outline.py`, which builds
 the outline from the existing assessment data. The presenter accepts the run payload and renders its outline
 without inventing claims. Grounded statements reuse the citation/source drawer components and show quotes.
-The final section includes the proposed setup diagrams from `project-setup.js`.
+The proposed setup diagrams from `project-setup.js` appear in a separate Setup Overview after the 11 sections.
 
 `pipeline.js` shows the outline after the report stage completes and keeps the Markdown download available
-above it. Saved runs without an outline show placeholders. Existing report/summary renderers remain intact.
+above and below it. Saved runs without an outline show placeholders. Existing report/summary renderers remain intact.
 Confidence and Verification, Coach, Reading, and processing behavior continue using their existing data.
 
 ## Query sidebar and account controls
