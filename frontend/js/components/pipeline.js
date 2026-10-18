@@ -202,39 +202,6 @@ export function renderProcessInformation(el, run, state, actions) {
     }).join("")}</ol>
   </section>`;
   if (!run) return;
-  if (run.requirements) {
-    const requirements = document.createElement("details");
-    requirements.className = "section";
-    requirements.dataset.processSection = "requirements";
-    requirements.innerHTML = `<summary id="process-requirements">Requirements read from the enquiry</summary><div></div>`;
-    el.appendChild(requirements);
-    renderExtract(requirements.querySelector("div"), run);
-  }
-
-  if (hasStageData(run, "rules")) {
-    const rules = document.createElement("details");
-    rules.className = "section";
-    rules.dataset.processSection = "rules";
-    rules.innerHTML = `<summary id="process-rules">AFS rules and method screening</summary><div></div>`;
-    el.appendChild(rules);
-    renderRules(rules.querySelector("div"), run);
-  }
-  if (hasStageData(run, "retrieve")) {
-    const retrieval = document.createElement("details");
-    retrieval.className = "section";
-    retrieval.dataset.processSection = "retrieval";
-    retrieval.innerHTML = `<summary id="process-retrieval">Evidence retrieval</summary><div></div>`;
-    el.appendChild(retrieval);
-    renderRetrieve(retrieval.querySelector("div"), run);
-  }
-  if (hasStageData(run, "premise")) {
-    const premises = document.createElement("details");
-    premises.className = "section";
-    premises.dataset.processSection = "premises";
-    premises.innerHTML = `<summary id="process-premises">Customer premise checks</summary><div></div>`;
-    el.appendChild(premises);
-    renderPremise(premises.querySelector("div"), run);
-  }
   const trace = document.createElement("details");
   trace.className = "section";
   trace.dataset.processSection = "trace";

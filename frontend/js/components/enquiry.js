@@ -2,6 +2,7 @@
 import { esc } from "../api.js";
 import { runPrecheck, schedulePrecheck } from "./precheck.js";
 import { renderPathPicker } from "./pathq.js";
+import { focusReadingReview } from "./confirm.js";
 
 export function renderEnquiry(el, s, actions) {
   const groups = {};
@@ -56,7 +57,7 @@ export function renderEnquiry(el, s, actions) {
     </div>
     <p class="small muted model-note" aria-live="polite">${esc(modelNote)}${s.modelList?.mock ? " Rule-only mode: no model is called." : ""}</p>
     <label class="small confirm-choice"><input type="checkbox" id="confirm-choice" ${s.confirm ? "checked" : ""} ${s.busy || s.reading ? "disabled" : ""}> Review the reading and follow-up questions before assessing</label>
-    <div class="enquiry-actions"><button type="button" class="btn primary" id="go" ${locked ? "disabled" : ""}>${s.reading ? "Reading…" : s.busy ? "Assessing…" : s.confirm ? "Check and assess" : "Assess enquiry"}</button></div>
+    <div class="enquiry-actions"><button type="button" class="btn primary" id="go" ${s.busy || s.reading ? "disabled" : ""}>${s.reading ? "Reading…" : s.busy ? "Assessing…" : s.understand ? "Continue review ↓" : s.confirm ? "Check and assess" : "Assess enquiry"}</button></div>
     ${s.error ? `<div class="err">${esc(s.error)}</div>` : ""}
   </section>
   <section id="precheck" class="panel precheck reading-support" hidden aria-live="polite"></section>
@@ -84,5 +85,5 @@ export function renderEnquiry(el, s, actions) {
     (button.onclick = () => actions.setMode(button.dataset.mode)));
   el.querySelector("#model-choice").onchange = (event) => actions.setModelChoice(event.target.value);
   el.querySelector("#confirm-choice").onchange = (event) => actions.setConfirm(event.target.checked);
-  el.querySelector("#go").onclick = () => actions.assess(textarea.value);
+  el.querySelector("#go").onclick = () => s.understand ? focusReadingReview() : actions.assess(textarea.value);
 }

@@ -4,7 +4,10 @@ import { latestStageEvent } from "../pipeline-steps.js";
 
 let cleanupNavigation = () => {};
 
-const contentsLinks = (links) => links.map(([label, id]) => `<a href="#${id}">${esc(label)}</a>`).join("");
+const contentsLinks = (links) => links.map(([label, id]) => {
+  const next = id === "reading-assess-title";
+  return `<a href="#${id}"${next ? ' class="page-toc-next"' : ""}>${esc(label)}${next ? '<span class="page-next-label">Next</span>' : ""}</a>`;
+}).join("");
 
 function contents(content, tab) {
   if (tab === "reading") return [
@@ -13,6 +16,7 @@ function contents(content, tab) {
     ["Review the reading", "reading-confirm-title"],
     ["Follow-up questions", "reading-questions"],
     ["Path follow-up questions", "path-questions"],
+    ["Start assessment", "reading-assess-title"],
   ].filter(([, id]) => content.querySelector(`#${id}`));
 
   const headings = [...content.querySelectorAll("h2, h3, summary")].filter((node) => {
@@ -34,7 +38,7 @@ function trackContents(panel, content, tab) {
   const toc = panel.querySelector(".page-toc-links");
   const toggle = layout.querySelector(".page-navigation-toggle");
   const compact = window.matchMedia("(max-width: 1100px)");
-  const loadingBar = document.querySelector(".fiber.running");
+  const appHeader = document.querySelector(".app-header");
   let frame = 0;
   let refresh = true;
   let signature = "";
@@ -66,9 +70,11 @@ function trackContents(panel, content, tab) {
         activeId = "";
       }
     }
-    const top = loadingBar?.getBoundingClientRect().height || 0;
+    // Account controls and status badges can wrap and change the pinned header's height.
+    const top = appHeader?.getBoundingClientRect().height || 0;
+    document.documentElement.style.setProperty("--app-header-height", `${top}px`);
     const offset = top + 16;
-    layout.style.setProperty("--page-navigation-top", `${top + 16}px`);
+    layout.style.setProperty("--page-navigation-top", `${offset}px`);
     content.style.setProperty("--page-scroll-offset", `${offset}px`);
     // Resolve IDs again: follow-up answers can replace their own DOM without a page render.
     const visible = entries.map((entry) => {
@@ -112,7 +118,7 @@ function trackContents(panel, content, tab) {
   const mutations = new MutationObserver(() => { refresh = true; schedule(); });
   mutations.observe(content, { childList: true, subtree: true });
   const sizes = new ResizeObserver(schedule);
-  [layout, panel, content, loadingBar].filter(Boolean).forEach((node) => sizes.observe(node));
+  [layout, panel, content, appHeader].filter(Boolean).forEach((node) => sizes.observe(node));
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule);
   content.addEventListener("toggle", schedule, true);
@@ -155,7 +161,6 @@ export function renderPageNavigation(content, s, step) {
     (step.id !== "loading" || item.stage === event?.stage));
   const detailParts = s.view === "expert" && step.id === "process" ? [event?.detail?.replaceAll("_", " "), detail?.detail]
     .filter(Boolean) : [];
-
   const links = contents(content, step.id);
   const panel = document.createElement("aside");
   panel.id = "page-navigation";
@@ -165,6 +170,7 @@ export function renderPageNavigation(content, s, step) {
   panel.innerHTML = `<button type="button" class="page-navigation-close" popovertarget="page-navigation" popovertargetaction="hide" aria-label="Close page navigation" autofocus>Close ×</button>
     <div class="page-navigation-copy"><h1 id="page-title-${step.id}">${esc(step.label)}</h1><p>${esc(step.description)}</p></div>
   ${detailParts.length ? `<p class="page-detail">${detailParts.map(esc).join(" · ")}</p>` : ""}
+  ${step.id === "reading" && s.understand && !s.reading ? `<p class="page-review-status" role="status"><strong>Awaiting your review</strong>Check the reading and questions, then start the assessment below.</p>` : ""}
   <nav class="page-toc" aria-label="Contents of ${esc(step.label)}">
     <span class="page-toc-label">On this page</span>
     <div class="page-toc-links">${contentsLinks(links)}</div>

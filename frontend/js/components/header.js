@@ -25,7 +25,7 @@ function viewToggle(s) {
   return `<div class="seg view-toggle" role="group" aria-label="View">
     <button data-view="general" aria-pressed="${s.view === "general"}" title="Simple progress and assessment views">General</button>
     <button data-view="expert" aria-pressed="${s.view === "expert"}" class="${pro ? "" : "locked"}"
-      title="${pro ? "Includes Process Information: models, rules, evidence, and trace" : "Expert view is part of the Pro plan"}">${pro ? "" : LOCK}Expert</button></div>`;
+      title="${pro ? "Includes Process Information and Coach: model activity, timings, and follow-up questions" : "Expert view is part of the Pro plan"}">${pro ? "" : LOCK}Expert</button></div>`;
 }
 
 // Where data lives: Supabase (online), offline fallback to the local file, or local only.

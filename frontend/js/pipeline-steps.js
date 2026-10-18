@@ -1,11 +1,11 @@
-// General has four tabs; Expert adds the live and recorded Process Information tab.
+// General has three tabs; Expert adds Process Information and Coach.
 export const PIPELINE_STAGES = ["extract", "rules", "retrieve", "premise", "report", "verify", "coach"];
 export const STEPS = [
   { id: "reading", short: "Customer Enquiry", label: "Customer Enquiry", color: "#6d28d9", description: "Enter the customer's enquiry and choose how to assess it.", stages: ["extract"] },
   { id: "process", short: "Process Information", label: "Process Information", color: "#2563eb", description: "Follow model and rule tasks, then review the complete calculation record.", stages: PIPELINE_STAGES, expertOnly: true },
   { id: "assessment", short: "Result Assessment", label: "Result Assessment", color: "#15803d", description: "Review the decision, requirements, recommended methods, and feasibility-study plan.", stages: ["report"] },
   { id: "verification", short: "Confidence & Verification", label: "Confidence and Verification", color: "#c2410c", description: "Review confidence signals, source checks, and quality metrics.", stages: ["verify"] },
-  { id: "coach", short: "Coach", label: "Coach", color: "#b91c1c", description: "Fill the important gaps and re-run with customer answers.", stages: ["coach"] },
+  { id: "coach", short: "Coach", label: "Coach", color: "#b91c1c", description: "Fill the important gaps and re-run with customer answers.", stages: ["coach"], expertOnly: true },
 ];
 export const LOADING_PAGE = { id: "loading", label: "Calculating your assessment", color: "#2563eb",
   description: "Follow each step as your assessment is prepared. Your results will open when it is ready.", stages: PIPELINE_STAGES };
@@ -22,7 +22,7 @@ export function visibleSteps(s) { return STEPS.filter((step) => !step.expertOnly
 export function isStep(id) { return STEP_IDS.has(id); }
 export function normalizeTab(id, view = "general") {
   const tab = LEGACY_TABS[id] || (isStep(id) ? id : "reading");
-  return tab === "process" && view !== "expert" ? "verification" : tab;
+  return STEPS.find((step) => step.id === tab)?.expertOnly && view !== "expert" ? "verification" : tab;
 }
 export function canonicalStage(id) {
   return { extract: "reading", rules: "reading", retrieve: "reading", premise: "reading",
@@ -75,7 +75,7 @@ export function stepStatus(s, id) {
 export function activeStep(s) {
   if (s.busy && s.view === "expert") return "process";
   const event = [...s.stages].reverse().find((item) => item.status === "start");
-  return s.busy ? canonicalStage(event?.stage) || "reading" : s.reading ? "reading" : null;
+  return s.busy ? normalizeTab(canonicalStage(event?.stage), s.view) : s.reading ? "reading" : null;
 }
 
 export function pipelineProgress(s) {
@@ -91,7 +91,8 @@ export function pipelineProgress(s) {
     if (completed === 0) return 0;
     return position("process") + (completed - 1) / 4 * (position("assessment") - position("process"));
   }
-  return completed === 6 ? position("verification") : 99;
+  // Verification is General's last tab; reserve 100% for the end of the stream.
+  return completed === 6 ? Math.min(position("verification"), 99) : 99;
 }
 
 export const STATUS_LABELS = { pending: "Waiting", active: "Now", done: "Done", error: "Stopped" };
