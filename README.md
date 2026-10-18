@@ -134,7 +134,10 @@ stage activity, model calls, timings, and council details.
 
 Each underlying stage emits `stage` progress events and a `stage_result` containing its output when done.
 The top navigation dots fill with their spectrum color as work completes, and the connecting line retains
-its gradient. Other tabs remain locked until the stream ends, including after the final `result` event.
+its gradient. A bright light rests on the current tab and glides along the line when the tab changes,
+carrying a soft background glow through the fixed spectrum. While reading or calculating, smaller light
+pulses travel from Customer Enquiry towards the active step. Reduced-motion mode keeps a stationary glow.
+Other tabs remain locked until the stream ends, including after the final `result` event.
 General then opens Result Assessment (Confidence and Verification if a what-if switches to General);
 Expert keeps Process Information open and unlocks the other tabs. The final event contains the complete
 run saved in SQLite.
@@ -365,7 +368,9 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
 - **Top pipeline navigation:** General has three tabs: Reading → Result Assessment → Confidence and
   Verification. Expert adds **Process Information** between Reading and Result Assessment, and **Coach** at the end.
   One continuous gradient line connects the numbered dots, which fill with their spectrum color as work
-  completes. During calculation, General shows a temporary progress screen; Expert stays on Process
+  completes. The active dot shines like a light source; it and its background glow move smoothly on tab
+  changes, with the glow retaining the spectrum's correct colors along the bar. Reading and processing
+  send gentle light pulses along the line. During calculation, General shows a temporary progress screen; Expert stays on Process
   Information. Other tabs stay locked until processing ends. General then opens Result Assessment;
   Expert stays on the completed process record with the other tabs unlocked. Switching from Coach to
   General opens Confidence and Verification, including after a what-if re-run switched to General while busy.

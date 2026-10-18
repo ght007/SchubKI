@@ -1,4 +1,4 @@
-// Summary badges and the navigable spectrum line with completion dots.
+// Summary badges and the optical pipeline: a docked beacon and processing light pulses.
 import { esc } from "../api.js";
 import { isPro } from "./account-controls.js";
 import { STATUS_LABELS, activeStep, canOpenStep, nextStep, pipelineProgress, previousStep, stepStatus, visibleSteps } from "../pipeline-steps.js";
@@ -104,19 +104,29 @@ export function renderFiber(el, s, onSelect) {
   const progress = pipelineProgress(s);
   const stops = steps.flatMap((step, index) => {
     const position = index / (steps.length - 1) * 100;
-    const colors = [`${step.color} ${position.toFixed(2)}%`];
-    if (step.id === "reading" && steps[index + 1]?.id !== "process") colors.push(`#2563eb ${(position + 50 / (steps.length - 1)).toFixed(2)}%`);
-    if (step.id === "assessment") colors.push(`#eab308 ${(position + 50 / (steps.length - 1)).toFixed(2)}%`);
+    const colors = [[step.color, position]];
+    if (step.id === "reading" && steps[index + 1]?.id !== "process") colors.push(["#2563eb", position + 50 / (steps.length - 1)]);
+    if (step.id === "assessment") colors.push(["#eab308", position + 50 / (steps.length - 1)]);
     return colors;
   });
-  const spectrum = `linear-gradient(90deg, ${stops.join(", ")})`;
+  const spectrum = `linear-gradient(90deg, ${stops.map(([color, position]) => `${color} ${position.toFixed(2)}%`).join(", ")})`;
+  // Paint the same fixed spectrum across the whole rail, including the space outside the line endpoints.
+  const railSpectrum = `linear-gradient(90deg, ${stops.map(([color, position]) =>
+    `${color} calc(var(--track-inset) + (100% - var(--track-inset) * 2) * ${position / 100})`).join(", ")})`;
   el.classList.toggle("running", s.busy);
+  el.classList.toggle("transmitting", s.busy || s.reading);
   const stepKey = steps.map((step) => step.id).join(",");
   if (el.dataset.steps !== stepKey) {
     el.dataset.steps = stepKey;
-    el.innerHTML = `<div class="fiber-rail" style="--step-count:${steps.length};--half-step:${50 / steps.length}%;--edge-factor:${1 - 1 / steps.length};--spectrum:${spectrum};--progress:0%">
+    el.innerHTML = `<div class="fiber-rail" style="--step-count:${steps.length};--half-step:${50 / steps.length}%;--edge-factor:${1 - 1 / steps.length};--spectrum:${spectrum};--rail-spectrum:${railSpectrum};--progress:0%">
+      <div class="fiber-aura" aria-hidden="true"></div>
+      <div class="fiber-halo" aria-hidden="true"></div>
       <div class="fiber-track" aria-hidden="true"></div>
       <div class="fiber-lit" role="progressbar" aria-label="Assessment calculation" aria-valuemin="0" aria-valuemax="100"></div>
+      <div class="fiber-optics" aria-hidden="true">
+        <span class="fiber-signal"><span class="fiber-photon"></span></span>
+        <span class="fiber-light"></span>
+      </div>
       ${steps.map((step, index) => `<button type="button" id="tab-${step.id}" role="tab" aria-controls="view"
         class="fiber-node" style="--step-color:${step.color}"
         data-step="${step.id}"><span class="step-count">Step ${index + 1} of ${steps.length}</span>
@@ -127,6 +137,14 @@ export function renderFiber(el, s, onSelect) {
     };
   }
   const rail = el.querySelector(".fiber-rail");
+  const lightStep = (s.busy || s.reading ? current : s.tab) || "reading";
+  const lightIndex = Math.max(0, steps.findIndex((step) => step.id === lightStep));
+  // While reading, send light towards the next step; otherwise send it to the active stage.
+  const signalIndex = Math.max(1, lightIndex);
+  rail.style.setProperty("--fiber-position", String(lightIndex / (steps.length - 1) * 100));
+  rail.style.setProperty("--signal-end", String(signalIndex / (steps.length - 1) * 100));
+  rail.style.setProperty("--signal-color", steps[signalIndex].color);
+  rail.dataset.lightStep = steps[lightIndex].id;
   el.querySelectorAll("[data-step]").forEach((button) => {
       const step = steps.find((item) => item.id === button.dataset.step);
       const index = steps.indexOf(step);
@@ -134,7 +152,7 @@ export function renderFiber(el, s, onSelect) {
       const available = canOpenStep(s, step.id);
       const selected = s.tab === step.id && (!s.busy || step.id === "process");
       button.disabled = !available;
-      button.className = `fiber-node ${status} ${selected ? "selected" : ""}`;
+      button.className = `fiber-node ${status} ${selected ? "selected" : ""}${step.id === lightStep ? " illuminated" : ""}`;
       button.tabIndex = available && focusable === step.id ? 0 : -1;
       button.setAttribute("aria-selected", String(selected));
       button.setAttribute("aria-current", current === step.id ? "step" : "false");

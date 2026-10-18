@@ -33,6 +33,22 @@ tabs. Each button's tooltip and accessible name identify its destination. Both a
 `busy` or `reading`; a button is also disabled when no available step exists in its direction. They use
 the existing tab-selection action, retaining the current enquiry, run and source selection.
 
+The pipeline rail contains decorative optics, halo and background aura layers. A registered numeric CSS
+property, `--fiber-position`, moves the beacon and the background glow together in 700ms when the active
+tab changes. Idle selection follows `state.tab`; reading/processing follows `activeStep(state)`. The
+line and background use the same spectrum stops, aligned to the tab centers. The background spectrum
+stays fixed while radial masks for the background and beacon halo move through it, so their hues remain
+correct throughout the transition, including intermediate colors between tabs.
+The stronger rectangular selected-tab fill is replaced by this shared moving glow.
+
+During `busy` or `reading`, `.transmitting` adds a smaller light pulse with a soft trail towards the
+active step (or the next step while still at Customer Enquiry). The beacon stays docked at the active
+tab. Pulse DOM persists across streaming updates, so new stage events do not restart its animation.
+These effects are `aria-hidden`; the existing progress bar still reports actual pipeline progress.
+Reduced-motion mode disables travel and transitions but retains the active glow. Forced-colors mode
+uses a plain outline on the active node. The layers share the rail's endpoint geometry, including on
+small screens with horizontal tab scrolling and when General/Expert changes the number of tabs.
+
 `components/evidence-split.js` mounts once on `.shell` and `#evidence-divider`. When the source viewer
 opens, CSS grid gives the source and assessment equal tracks with a divider between them. Each citation
 selection or reopening resets the ratio to 50/50, including returning to Result Assessment with a source selected.
