@@ -319,8 +319,8 @@ warnings from blocking rules, and missing key facts. It is informational; the qu
 
 **"Is this what you mean?" (Customer Enquiry dialog, on by default)**: *Check and assess* first reads the enquiry
 with the extraction model (the run's own first stage), then opens a modal review without expanding the page.
-The reading and follow-up questions scroll inside the dialog, with **Skip questions and assess** and
-**Yes, assess** always available in its footer. Escape or the close button returns to editing the original
+The reading and follow-up questions scroll inside the dialog, with **Yes, assess** always available
+in its footer. Questions can be left unanswered. Escape or the close button returns to editing the original
 enquiry without starting an assessment. The review contains:
 - **We understood**: the structured readings that drive the rules (what to measure, sample form, optics, methods
   asked for, equipment they have, path they ask for, ...). Each has ✓ / ✗; a ✗ resets that reading to *unknown* for
@@ -330,8 +330,8 @@ enquiry without starting an assessment. The review contains:
 - **Open questions, one list without repeats**: vague words, missing key facts, and the questions of every chosen
   or found path. A path question that covers a missing fact replaces it (Path A "reference values?" replaces the
   general reference question). Answers the text already gives are **pre-filled and tagged "from your text"**.
-- **Assessment actions**: **Yes, assess** includes the answers given; **Skip questions and assess** continues
-  without them. Both retain readings marked as unknown. *Show this dialog before every run* can be unticked
+- **Assessment action**: **Yes, assess** includes any answers given and retains readings marked as unknown.
+  Unanswered questions are optional. *Show this dialog before every run* can be unticked
   (remembered), then *Assess enquiry* runs straight away. Path questions remain available in Customer Enquiry
   when the review dialog is disabled.
 

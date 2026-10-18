@@ -177,16 +177,15 @@ const actions = {
     store.set({ understand: null, rejected: [], reading: false });
     $("enq")?.focus({ preventScroll: true });
   },
-  async confirmRun(withAnswers) {
+  async confirmRun() {
     const s = store.get();
     const u = s.understand;
     if (!u || s.busy || s.reading || s.savingQuery) return;
     const shown = new Set([...u.paths.chosen, ...u.paths.detected]);
-    const keys = new Set(u.questions.map((q) => q.key));
     const answers = Object.fromEntries(Object.entries(s.answers).filter(([key, value]) => {
       if (!value.trim()) return false;
       const path = key.match(/^Path ([ABC]) - /);
-      return withAnswers ? !path || shown.has(path[1]) : !keys.has(key) && !path;
+      return !path || shown.has(path[1]);
     }));
     await actions.saveQuery({ silent: true });
     if (store.get().understand !== u || store.get().busy) return;

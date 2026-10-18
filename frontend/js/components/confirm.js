@@ -1,7 +1,7 @@
 // "Is this what you mean?" dialog: step 1 of a run.
 // Shows what the assistant read (each reading can be marked wrong), glossary translations, the AFS paths,
 // early warnings and ONE de-duplicated list of open questions. Everything is optional: the user can assess
-// with the answers given, or skip the questions. The customer's text is never rewritten.
+// with the answers given or leave questions unanswered. The customer's text is never rewritten.
 // The dialog lives outside the tab content so page updates do not interrupt review or typing.
 import { esc } from "../api.js";
 import * as store from "../state.js";
@@ -40,7 +40,7 @@ export function renderConfirm(container, s, acts) {
     view = s.view;
   }
   el.querySelector("#cf-always").checked = s.confirm;
-  el.querySelectorAll("#cf-skip, #cf-go").forEach((button) => { button.disabled = s.savingQuery; });
+  el.querySelector("#cf-go").disabled = s.savingQuery;
   if (!el.open) focusReadingReview();
 }
 
@@ -104,7 +104,6 @@ function draw() {
   </div>
     <footer class="cf-actions" aria-label="Assessment actions">
       <div class="cf-action-buttons">
-        <button type="button" class="btn" id="cf-skip" title="Run now without these answers (rejected readings still apply)">Skip questions and assess</button>
         <button type="button" class="btn primary" id="cf-go">Yes, assess</button>
       </div>
       <label class="small cf-always"><input type="checkbox" id="cf-always" ${s.confirm ? "checked" : ""}> Show this dialog before every run</label>
@@ -124,8 +123,7 @@ function draw() {
   el.querySelectorAll("[data-t]").forEach((inp) => (inp.oninput = () => { store.get().answers[inp.dataset.t] = inp.value; }));
   el.querySelector("#cf-always").onchange = (ev) => actions.setConfirm(ev.target.checked);
   el.querySelector("#cf-back").onclick = () => actions.closeConfirm();
-  el.querySelector("#cf-skip").onclick = () => actions.confirmRun(false);
-  el.querySelector("#cf-go").onclick = () => actions.confirmRun(true);
+  el.querySelector("#cf-go").onclick = () => actions.confirmRun();
   el.querySelectorAll("details[id]").forEach((node) => {
     if (disclosures.has(node.id)) node.open = disclosures.get(node.id);
   });

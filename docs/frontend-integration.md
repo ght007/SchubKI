@@ -30,9 +30,9 @@ After `actions.understand` succeeds, `renderConfirm()` opens it with `showModal(
 `#reading-confirm-title`. The background becomes inert and stops scrolling. Pending or failed reading
 requests do not open the dialog or append a review panel to Customer Enquiry.
 
-The reading and follow-up questions scroll in `.cf-dialog-body`. The footer keeps **Yes, assess** and
-**Skip questions and assess** visible on desktop and mobile. Yes includes optional answers; Skip omits
-them. Both preserve rejected readings. Escape or the close button calls `actions.closeConfirm()` and
+The reading and follow-up questions scroll in `.cf-dialog-body`. The footer keeps **Yes, assess** visible
+on desktop and mobile. It includes any answers given and preserves rejected readings; questions may be
+left unanswered. Escape or the close button calls `actions.closeConfirm()` and
 returns focus to the enquiry field without assessing. Starting a run closes the dialog.
 
 The dialog stays mounted across page updates. Text input does not redraw it; choice and correction
@@ -120,6 +120,8 @@ container with that ID plus `-content`. Keys and ordering match `backend/app/ren
 the outline from the existing assessment data. The presenter accepts the run payload and renders its outline
 without inventing claims. Grounded statements reuse the citation/source drawer components and show quotes.
 The proposed setup diagrams from `project-setup.js` appear in a separate Setup Overview after the 11 sections.
+Feasibility steps use the list's own numbering. The page and Markdown export remove an existing numeric
+step prefix (including an escaped Markdown period) when rendering; saved step text stays unchanged.
 
 `pipeline.js` shows the outline after the report stage completes and keeps the Markdown download available
 above and below it. Saved runs without an outline show placeholders. Existing report/summary renderers remain intact.

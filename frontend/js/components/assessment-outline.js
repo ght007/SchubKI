@@ -26,7 +26,9 @@ const STATUS_PILL = { provisional_assessment: "core", insufficient_information: 
 const CONF_PILL = { high: "ok", medium: "core", low: "warn", insufficient: "block" };
 const WHO = { expert: "chosen in Customer Enquiry", enquiry: "asked for by the customer", both: "asked for by customer and in Customer Enquiry" };
 
-const list = (items, tag = "ul") => items.length ? `<${tag} class="outline-list">${items.map((x) => `<li>${annotate(x)}</li>`).join("")}</${tag}>` : none();
+// Generated steps can already start with a list marker, including Markdown's escaped period.
+const stepText = (text) => text.replace(/^\s*\d+\\?[.)]\s+/, "");
+const list = (items, tag = "ul") => items.length ? `<${tag} class="outline-list">${items.map((x) => `<li>${annotate(tag === "ol" ? stepText(x) : x)}</li>`).join("")}</${tag}>` : none();
 const none = () => `<p class="muted small">Nothing reported for this section.</p>`;
 const srcs = (xs) => xs.map((x) => `${esc(x.source)} p.${x.page}`).join(", ");
 
@@ -75,7 +77,7 @@ const RENDER = {
     <p class="small">${pw.likely_path === "undecided" ? "Path to be decided after the lab trial." : `Likely path: <b>${esc(pw.likely_path)}</b>`}${pw.why ? ` · ${esc(pw.why)}` : ""}</p>
     ${pw.requested.map((f) => `<p class="small"><b>Path ${esc(f.path)}, ${esc(f.verdict)}</b> (${WHO[f.requested_by] || ""}): ${esc(f.reason)} <span class="muted">[${srcs(f.sources)}]</span></p>`).join("")}
     ${pw.proceed_anyway.map((p) => `<details class="proceed"><summary><b>If you proceed anyway with Path ${esc(p.path)}</b></summary>
-      <p class="small">${esc(p.caveat)}</p><ol>${p.steps.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>
+      <p class="small">${esc(p.caveat)}</p><ol>${p.steps.map((x) => `<li>${esc(stepText(x))}</li>`).join("")}</ol>
       <p class="small muted">Sources: ${srcs(p.sources)}</p></details>`).join("")}`;
   },
 };
