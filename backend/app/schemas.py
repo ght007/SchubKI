@@ -397,6 +397,7 @@ class AssessRequest(BaseModel):
     mode: Literal["fast", "council"] = "fast"
     preferred_paths: list[Literal["A", "B", "C"]] = Field(default_factory=list, description="Paths chosen by the expert")
     rejected: list[str] = Field(default_factory=list, description="Requirement fields the user marked as misread (reset to unknown)")
+    model: Optional[str] = Field(default=None, description="One Groq model for every stage; None or 'auto' = server defaults")
     parent_run_id: Optional[str] = None
 
 
@@ -408,6 +409,7 @@ class RunResult(BaseModel):
     answers: dict[str, str] = Field(default_factory=dict)
     preferred_paths: list[str] = Field(default_factory=list)
     rejected: list[str] = Field(default_factory=list)
+    model_choice: str = ""            # model chosen for this run ("" = server defaults per stage)
     parent_run_id: Optional[str] = None
     requirements: Optional[Requirements] = None
     paths: Optional[PathAnalysis] = None
@@ -425,6 +427,7 @@ class RunResult(BaseModel):
     council: Optional[Council] = None
     coach: Optional[Coach] = None
     diff: list[WhatIfDiff] = Field(default_factory=list)
+    outline: dict = Field(default_factory=dict)   # 11-section output format, built by render/outline.py
     trace: list[TraceItem] = Field(default_factory=list)
     timings_ms: dict[str, int] = Field(default_factory=dict)
     error: str = ""

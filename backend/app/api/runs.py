@@ -63,6 +63,9 @@ def run_detail(run_id: str):
     run = store.get_run(run_id)
     if not run:
         raise HTTPException(404, "Run not found")
+    if not run.get("outline") and run.get("report"):          # runs saved before the 11-section format
+        from ..render import outline as outline_mod
+        run["outline"] = outline_mod.build(RunResult.model_validate(run))
     return run
 
 

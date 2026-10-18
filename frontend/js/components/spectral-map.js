@@ -49,7 +49,7 @@ export function renderSpectral(el, run) {
 
   el.innerHTML = `
     ${blocked.map((b) => `<div class="alert block">${esc(b.asset_check)}</div>`).join("")}
-    <section class="section"><h2>Spectral coverage map <small>wavelength in µm, log scale</small></h2>
+    <section class="section"><h2 id="spectral-coverage-map" data-page-toc>Spectral coverage map <small>wavelength in µm, log scale</small></h2>
       <p class="map-note">Where the analyte absorbs, what each method covers, and which fibers can carry that light to the probe.
       ${leadIds.length ? `Lead method${leadIds.length > 1 ? "s" : ""} highlighted.` : ""} Nominal ranges, not the usable range of a specific instrument or probe.</p>
       <svg class="specmap" viewBox="0 0 ${W} ${H}" role="img" aria-label="Spectral coverage map">

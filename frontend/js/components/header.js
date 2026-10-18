@@ -1,7 +1,7 @@
 // Summary badges and the navigable spectrum line with completion dots.
 import { esc } from "../api.js";
 import { isPro } from "./account-controls.js";
-import { STEPS, STATUS_LABELS, activeStep, canOpenStep, isStep, pipelineProgress, stepStatus } from "../pipeline-steps.js";
+import { STATUS_LABELS, activeStep, canOpenStep, pipelineProgress, stepStatus, visibleSteps } from "../pipeline-steps.js";
 
 const STATUS = {
   provisional_assessment: ["Provisional assessment", "core"],
@@ -23,9 +23,9 @@ const LOCK = `<svg class="lock" viewBox="0 0 20 20" fill="none" stroke="currentC
 function viewToggle(s) {
   const pro = isPro(s.user);   // Basic plan: General only; the Expert button leads to /pricing
   return `<div class="seg view-toggle" role="group" aria-label="View">
-    <button data-view="general" aria-pressed="${s.view === "general"}" title="Compact summary for non-experts">General</button>
+    <button data-view="general" aria-pressed="${s.view === "general"}" title="Simple progress and assessment views">General</button>
     <button data-view="expert" aria-pressed="${s.view === "expert"}" class="${pro ? "" : "locked"}"
-      title="${pro ? "Full workbench: matrix, evidence, checks, trace" : "Expert view is part of the Pro plan"}">${pro ? "" : LOCK}Expert</button></div>`;
+      title="${pro ? "Includes Process Information: models, rules, evidence, and trace" : "Expert view is part of the Pro plan"}">${pro ? "" : LOCK}Expert</button></div>`;
 }
 
 // Where data lives: Supabase (online), offline fallback to the local file, or local only.
@@ -39,6 +39,11 @@ function dbPill(db) {
 export function renderStatus(el, s, actions) {
   const r = s.busy ? s.liveRun : s.run;
   const wire = () => el.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => actions.setView(b.dataset.view)));
+  if (s.busy && s.view === "general") {
+    el.innerHTML = viewToggle(s);
+    wire();
+    return;
+  }
   if (!r || !r.report) {
     const h = s.health;
     el.innerHTML = (h ? `<span class="pill ${h.mock || !h.has_key ? "warn" : "ok"}"><span class="dot"></span>${
@@ -65,22 +70,29 @@ export function renderStatus(el, s, actions) {
 }
 
 export function renderFiber(el, s, onSelect) {
+  const steps = visibleSteps(s);
   const focused = el.contains(document.activeElement) ? document.activeElement.dataset.step : null;
   const current = activeStep(s);
-  const focusable = isStep(s.tab) ? s.tab : "reading";
+  const focusable = steps.some((step) => step.id === s.tab) ? s.tab : "reading";
   const progress = pipelineProgress(s);
-  const stops = STEPS.map((step, index) => `${step.color} ${(index / (STEPS.length - 1) * 100).toFixed(2)}%`);
-  stops.splice(1, 0, "#2563eb 16.67%");
-  stops.splice(3, 0, "#eab308 55%");
+  const stops = steps.flatMap((step, index) => {
+    const position = index / (steps.length - 1) * 100;
+    const colors = [`${step.color} ${position.toFixed(2)}%`];
+    if (step.id === "reading" && steps[index + 1]?.id !== "process") colors.push(`#2563eb ${(position + 50 / (steps.length - 1)).toFixed(2)}%`);
+    if (step.id === "assessment") colors.push(`#eab308 ${(position + 50 / (steps.length - 1)).toFixed(2)}%`);
+    return colors;
+  });
   const spectrum = `linear-gradient(90deg, ${stops.join(", ")})`;
   el.classList.toggle("running", s.busy);
-  if (!el.querySelector(".fiber-rail")) {
-    el.innerHTML = `<div class="fiber-rail" style="--spectrum:${spectrum};--progress:0%">
+  const stepKey = steps.map((step) => step.id).join(",");
+  if (el.dataset.steps !== stepKey) {
+    el.dataset.steps = stepKey;
+    el.innerHTML = `<div class="fiber-rail" style="--step-count:${steps.length};--half-step:${50 / steps.length}%;--edge-factor:${1 - 1 / steps.length};--spectrum:${spectrum};--progress:0%">
       <div class="fiber-track" aria-hidden="true"></div>
       <div class="fiber-lit" role="progressbar" aria-label="Assessment calculation" aria-valuemin="0" aria-valuemax="100"></div>
-      ${STEPS.map((step, index) => `<button type="button" id="tab-${step.id}" role="tab" aria-controls="view"
+      ${steps.map((step, index) => `<button type="button" id="tab-${step.id}" role="tab" aria-controls="view"
         class="fiber-node" style="--step-color:${step.color}"
-        data-step="${step.id}"><span class="step-count">Step ${index + 1} of ${STEPS.length}</span>
+        data-step="${step.id}"><span class="step-count">Step ${index + 1} of ${steps.length}</span>
         <span class="step-name">${step.short}</span></button>`).join("")}</div>`;
     el.onclick = (event) => {
       const button = event.target.closest("[data-step]");
@@ -89,28 +101,28 @@ export function renderFiber(el, s, onSelect) {
   }
   const rail = el.querySelector(".fiber-rail");
   el.querySelectorAll("[data-step]").forEach((button) => {
-      const step = STEPS.find((item) => item.id === button.dataset.step);
-      const index = STEPS.indexOf(step);
+      const step = steps.find((item) => item.id === button.dataset.step);
+      const index = steps.indexOf(step);
       const status = stepStatus(s, step.id);
       const available = canOpenStep(s, step.id);
-      const selected = !s.busy && s.tab === step.id;
+      const selected = s.tab === step.id && (!s.busy || step.id === "process");
       button.disabled = !available;
       button.className = `fiber-node ${status} ${selected ? "selected" : ""}`;
-      button.tabIndex = !s.busy && focusable === step.id ? 0 : -1;
+      button.tabIndex = available && focusable === step.id ? 0 : -1;
       button.setAttribute("aria-selected", String(selected));
       button.setAttribute("aria-current", current === step.id ? "step" : "false");
       button.setAttribute("aria-disabled", String(!available));
-      button.setAttribute("aria-label", `Step ${index + 1} of ${STEPS.length}: ${step.label}. ${STATUS_LABELS[status]}${available ? "" : ". Available after processing"}`);
+      button.setAttribute("aria-label", `Step ${index + 1} of ${steps.length}: ${step.label}. ${STATUS_LABELS[status]}${available ? "" : ". Available after processing"}`);
       button.title = available ? "" : "Available after processing";
   });
   rail.style.setProperty("--progress", `${progress.toFixed(2)}%`);
   const progressbar = rail.querySelector("[role=progressbar]");
   progressbar.setAttribute("aria-hidden", String(!s.busy));
   progressbar.setAttribute("aria-valuenow", String(Math.round(progress)));
-  progressbar.setAttribute("aria-valuetext", `${Math.round(progress)}%${current ? `; ${STEPS.find((step) => step.id === current).label}` : ""}`);
+  progressbar.setAttribute("aria-valuetext", `${Math.round(progress)}%${current ? `; ${steps.find((step) => step.id === current).label}` : ""}`);
   el.onkeydown = (ev) => {
     if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(ev.key)) return;
-    const available = STEPS.filter((step) => canOpenStep(s, step.id));
+    const available = steps.filter((step) => canOpenStep(s, step.id));
     const index = available.findIndex((step) => step.id === ev.target.dataset.step);
     if (index < 0) return;
     ev.preventDefault();
@@ -123,6 +135,6 @@ export function renderFiber(el, s, onSelect) {
   };
   if (focused) el.querySelector(`[data-step="${focused}"]`)?.focus({ preventScroll: true });
   const visibleStep = s.busy ? current : s.tab;
-  if (visibleStep !== lastSelectedStep && isStep(visibleStep)) revealStep(el, el.querySelector(`[data-step="${visibleStep}"]`));
+  if (visibleStep !== lastSelectedStep && steps.some((step) => step.id === visibleStep)) revealStep(el, el.querySelector(`[data-step="${visibleStep}"]`));
   lastSelectedStep = visibleStep;
 }

@@ -236,6 +236,29 @@ then **capped** by rules (e.g. silica link for MIR → low; undefined target →
 level for weak verification or council disagreement. Also shown: client-premise and model-agreement signals,
 per-method confidence and the questions that would raise it.
 
+### The output format (11 sections)
+
+Every assessment is presented in one 11-section structure, the same on the Result Assessment page, in the
+Markdown download and in `outputs/H0x.md`: 01 Decision Status · 02 Requirements stated · 03 Key unknowns ·
+04 Clarification questions · 05 Recommendation · 06 Measurement concept · 07 Spectral range · 08 Risks and
+uncertainty · 09 Decision basis · 10 Sources · 11 First feasibility experiment prototype (plan, next step with
+AFS, project setup diagram). Built once by `backend/app/render/outline.py` (`run.outline`) from the report; it
+reorganises, never rewrites, so citations and verifier flags are kept. Details: `docs/frontend-integration.md`.
+
+### Choosing the LLM
+
+The **LLM model** dropdown on Reading lists the chat models this Groq key can use (`GET /api/models`; speech,
+voice and guard models are never offered; a model we have not tested is marked "not tested").
+- **Server default (recommended):** the fast model reads the enquiry, checks claims, repairs and coaches; the
+  main model writes the report. Two models = two free-tier budgets, so fewer `429` waits.
+- **A chosen model** runs **every stage** of that run, including the "Is this what you mean?" reading (so the
+  run still reuses that cached reading). In **Council** mode the drafts and judges still compare the council
+  models; every other stage uses the choice. One model = one budget: expect more `429` waits, especially with
+  `gpt-oss-120b`.
+- The server validates the choice (400 for a model the key cannot use), stores it on the run (`model_choice`),
+  what-if re-runs keep it unless changed, the trace shows every call's model, and the Markdown export names it.
+  The choice is remembered in the browser and in saved queries. Available to every user.
+
 ## 8. Council mode (multi-model)
 
 1. Each model in `COUNCIL_MODELS` (default `openai/gpt-oss-120b`, `qwen/qwen3.8-27b`, `openai/gpt-oss-20b`)
@@ -311,18 +334,17 @@ extraction prompt so they cannot be misread as other facts. Change paths in Read
 to re-assess. Answers for a removed path are excluded unless the customer asked for that path in the enquiry.
 
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
-- **Top pipeline navigation:** One gradient line connects four numbered dots: Reading →
-  Result Assessment → Confidence and Verification → Coach. Dots stay hollow until their tab's work
-  completes, then fill with that
-  step's spectrum color. The gradient line stays continuous through the brighter, gradient-backed selected step.
-  Submitting an enquiry opens a temporary calculation screen. The gradient line advances as stages finish,
-  and navigation stays locked until the complete result arrives. The loading screen then closes and
-  Result Assessment opens automatically (Coach after a what-if re-run).
-- **Page headers:** each tab starts with a dark, color-tinted header containing a short explanation,
-  its measured runtime (and the full run time when available), and links to the sections on that page.
-  The header stays at the top while scrolling, and the current section's link is accented automatically.
-  Links open collapsed sections, keep their target below the pinned header, and preserve `#run=<id>` deep links.
-  On small screens the section links scroll horizontally to leave room for the page content.
+- **Top pipeline navigation:** General has four tabs: Reading → Result Assessment → Confidence and
+  Verification → Coach. Expert adds **Process Information** between Reading and Result Assessment.
+  One continuous gradient line connects the numbered dots, which fill with their spectrum color as work
+  completes. During calculation, General shows a temporary progress screen; Expert stays on Process
+  Information. Other tabs stay locked until processing ends. General then opens Result Assessment (Coach
+  after a what-if re-run); Expert stays on the completed process record with the other tabs unlocked.
+- **Right-side page navigation:** a sticky, color-tinted panel contains each page's title, short explanation,
+  runtime, and vertical section links. The current section is accented automatically. Links open collapsed
+  sections and preserve `#run=<id>` deep links. On smaller screens, the “On this page” button opens the panel
+  from the right; selecting a section closes it. Reading omits scenario, assessment-mode, and model links
+  from navigation while keeping those controls in the form.
 - **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
   optional Path A/B/C selection, the instant pre-check, and the reading confirmation with follow-up questions.
   Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
@@ -333,16 +355,21 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
 - **Account controls:** Log in and Subscribe to Expert are available throughout the app. Their dialogs are
   placeholders; they collect no credentials or payments. Integration points for the separate account/chat
   work are described in [frontend integration](docs/frontend-integration.md).
-- **Temporary loading screen:** the current model task, stage completion, an updating model trace,
-  council activity, and timings. It appears during calculation only; detailed outputs are kept in the
-  completed calculation record.
-- **Result Assessment:** compact summary in General, full report in Expert, with glossary tooltips, path
-  verdicts, and sourced plans for a requested path that is premature or conflicting. Sourced statements are
-  highlighted; selecting a citation opens its supporting quote highlighted in the knowledge base page and
-  original PDF. Both views export the complete Markdown run, including appendices A–M.
+- **General loading flow:** a simple list of steps with green completion dots and the current step.
+  Model calls, council records, rule internals, and retrieval details are omitted.
+- **Process Information (Expert only):** current model activity, stage actors and timings, extracted
+  requirements, AFS rules and method screening, spectral coverage, retrieved evidence, premise checks,
+  model calls, and council results. Outputs arrive as their stages finish and remain available after the
+  run. Open sections stay open during live updates. If processing fails, the partial record stays available
+  here; Reading unlocks for retry while result tabs remain locked.
+- **Result Assessment:** a shared outline preview in General and Expert, with contents links for Decision
+  Status, Requirements stated, Key unknowns, Clarification questions, Recommendation, Measurement concept,
+  Spectral range, Risks and uncertainty, First feasibility experiment, Decision basis, and Sources.
+  These are placeholder sections for the next assessment format; current RAG fields are not mapped into them.
+  Existing run data is retained, and the complete generated Markdown report (including appendices A–M)
+  remains available to download. Frontend slots are described in [frontend integration](docs/frontend-integration.md).
 - **Confidence and Verification:** computed confidence, citation checks, number and client-fact checks,
-  and the quality gate. The complete calculation record, model trace, and council results are available
-  in a collapsed details section.
+  and the quality gate. Calculation internals are kept in Expert's Process Information tab.
 - **Coach:** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
   Completed runs can be reopened with `#run=<id>`.
 - **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
@@ -497,7 +524,8 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 | Method & path | Purpose |
 |---|---|
 | `POST /api/understand` | Reading confirmation: structured readings, glossary translations, paths, warnings, and one list of questions with pre-fills. Body: `{enquiry, answers?, preferred_paths?}` |
-| `POST /api/assess` | Run the pipeline; SSE stream (`stage`, `stage_result`, `detail`, `error`, `result`). Each `stage_result` contains that stage's fields and the current trace; `result` contains the complete saved run. Body: `{enquiry, answers?, mode: fast|council, preferred_paths?: ["A","B","C"], rejected?: ["optical_behavior", ...]}` |
+| `POST /api/assess` | Run the pipeline; SSE stream (`stage`, `stage_result`, `detail`, `error`, `result`). Each `stage_result` contains that stage's fields and the current trace; `result` contains the complete saved run. Body: `{enquiry, answers?, mode: fast|council, preferred_paths?: ["A","B","C"], rejected?: ["optical_behavior", ...], model?: "qwen/qwen3.8-27b"}` |
+| `GET /api/models` | Models a user may choose (chat models this key can use; speech, voice and guard models filtered out), with a note each, plus the server defaults |
 | `POST /api/assess/sync` | Same, returns the run JSON (scripts, curl) |
 | `POST /api/whatif` | Re-run a saved run with answers; same SSE events. Body: `{run_id, answers, mode?, preferred_paths?}` |
 | `GET /api/coach/{run_id}` | Coach result of a run |
@@ -551,7 +579,7 @@ afs-assistant/
 ├─ frontend/
 │  ├─ index.html · css/styles.css
 │  └─ js/                       api.js · state.js · app.js · glossary.js · pipeline-steps.js (shared step model)
-│      └─ components/           pipeline.js (tab views and temporary loading screen) · page-header · header · enquiry · confirm ·
+│      └─ components/           pipeline.js (tab views and temporary loading screen) · page-navigation · header · enquiry · confirm ·
 │                               pathq · precheck · coach · summary · report · matrix · spectral-map ·
 │                               evidence · quality · council · whatif · trace
 ├─ eval/
