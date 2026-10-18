@@ -66,8 +66,8 @@ function trackContents(panel, content, tab) {
       }
     }
     const top = loadingBar?.getBoundingClientRect().height || 0;
-    const offset = top + 16;
-    panel.style.setProperty("--page-navigation-top", `${offset}px`);
+    const offset = top + 16 + (content.querySelector(".assessment-export")?.offsetHeight || 0);
+    panel.style.setProperty("--page-navigation-top", `${top + 16}px`);
     content.style.setProperty("--page-scroll-offset", `${offset}px`);
     // Resolve IDs again: follow-up answers can replace their own DOM without a page render.
     const visible = entries.map((entry) => {

@@ -362,9 +362,13 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 .assessment-placeholder-lines span { height: .4rem; border-radius: 999px; background: var(--line-soft); max-width: 38rem; }
 .assessment-placeholder-lines span:last-child { width: 65%; }
 .assessment-export { display: flex; align-items: center; justify-content: space-between; gap: .75rem 1.5rem; flex-wrap: wrap;
-  padding: 1rem 0; }
+  position: sticky; top: 1rem; z-index: 3; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-m); box-shadow: var(--shadow); padding: .65rem; margin-bottom: 1rem; }
 .assessment-export p { margin: 0; }
 .assessment-export .btn { text-decoration: none; color: var(--ink); }
+.assessment-section.assessment-diagram { display: block; }
+.assessment-diagram .assessment-section-heading { margin-bottom: 1rem; }
+.assessment-diagram .assessment-field-content { padding: 0; border: 0; }
 @media (max-width: 760px) {
   .assessment-section { grid-template-columns: minmax(0, 1fr); gap: .8rem; }
 }
@@ -621,7 +625,8 @@ details.proceed summary { cursor: pointer; }
 .prototype-cell { position: relative; padding: .8rem; display: flex; background: var(--core-soft); border-radius: var(--radius-m); }
 .prototype-cell:not(:last-child)::after { content: "↔"; position: absolute; z-index: 1; left: 100%; top: 50%; transform: translateY(-50%); width: var(--lane-gap); text-align: center; color: var(--core); font-size: 1.5rem; }
 .prototype-box { width: 100%; min-width: 0; padding: .85rem; border: 1px solid var(--line); border-radius: var(--radius-m); background: var(--surface); overflow-wrap: anywhere; box-shadow: var(--shadow); }
-.prototype-box h4 { margin: 0 0 .75rem; font-size: .85rem; text-align: center; color: var(--graphite); }
+.prototype-box h4 { margin: 0 0 .75rem; font-size: .85rem; display: flex; align-items: center; justify-content: center; gap: .4rem; color: var(--graphite); }
+.prototype-icon { width: 1.25rem; height: 1.25rem; flex: none; color: var(--core); }
 .prototype-box ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
 .prototype-box li { padding: .5rem; border: 1px solid var(--line); border-radius: var(--radius-s); text-align: center; font-size: .8rem; }
 .prototype-output { margin: .6rem 0 0; font-size: .78rem; color: var(--core); text-align: center; }

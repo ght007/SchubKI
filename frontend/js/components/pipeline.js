@@ -3,7 +3,6 @@ import { esc } from "../api.js";
 import { renderMatrix } from "./matrix.js";
 import { renderSpectral } from "./spectral-map.js";
 import { renderAssessmentOutline } from "./assessment-outline.js";
-import { projectSetupHTML } from "./project-setup.js";
 import { renderCouncil } from "./council.js";
 import { renderQuality } from "./quality.js";
 import { renderCoach } from "./coach.js";
@@ -122,13 +121,11 @@ function renderPremise(el, run) {
 }
 
 function renderAssessment(el, run, state) {
-  renderAssessmentOutline(el);
+  renderAssessmentOutline(el, run);
   // Preserve access to the existing generated report while the new presentation is a skeleton.
-  if (!state.busy && run.id) el.insertAdjacentHTML("beforeend", `<div class="assessment-export">
-    <p class="small muted">The current generated report is still available to download.</p>
+  if (!state.busy && run.id) el.insertAdjacentHTML("afterbegin", `<div class="assessment-export">
     <a class="btn" href="/api/runs/${encodeURIComponent(run.id)}/export.md" download>Download current report (Markdown)</a>
   </div>`);
-  el.insertAdjacentHTML("beforeend", projectSetupHTML(run));
 }
 
 function renderCoachStep(el, run, state, actions) {
