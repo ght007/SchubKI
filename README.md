@@ -126,16 +126,17 @@ command. A separate vector service would add setup risk and no benefit at this s
 
 ## 4. The pipeline, stage by stage
 
-General has four browser tabs: Reading, Result Assessment, Confidence and Verification, and Coach.
-Expert adds Process Information between Reading and Result Assessment. During calculation, General shows
+General has three browser tabs: Reading, Result Assessment, and Confidence and Verification.
+Expert adds Process Information between Reading and Result Assessment, plus Coach at the end. During calculation, General shows
 only the simple stage flow with green completion dots; Expert stays on Process Information with live
-model, rule, retrieval, and council details.
+stage activity, model calls, timings, and council details.
 
 Each underlying stage emits `stage` progress events and a `stage_result` containing its output when done.
 The top navigation dots fill with their spectrum color as work completes, and the connecting line retains
 its gradient. Other tabs remain locked until the stream ends, including after the final `result` event.
-General then opens Result Assessment (Coach after a what-if re-run); Expert keeps Process Information open
-and unlocks the other tabs. The final event contains the complete run saved in SQLite.
+General then opens Result Assessment (Confidence and Verification if a what-if switches to General);
+Expert keeps Process Information open and unlocks the other tabs. The final event contains the complete
+run saved in SQLite.
 
 | # | Stage | Module | LLM? | Output |
 |---|---|---|---|---|
@@ -266,7 +267,7 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
   accuracy, process conditions, installation, measuring points, response time) are marked stated /
   inferred / unknown and ranked by impact. It also writes an **improved enquiry template** to send to the
   customer, with `[blanks]` for missing facts. It never fills a blank; a template without blanks is rejected.
-- **What-if:** type the customer's answers in Coach and re-run. The answers are
+- **What-if (Expert mode):** type the customer's answers in Coach and re-run. The answers are
   added as stated facts, the whole pipeline runs again, and a before/after diff shows what changed
   (status, confidence, lead methods, ranking, completeness, AFS path, quality).
 
@@ -276,11 +277,10 @@ Open `http://localhost:8000`.
 
 **Two views** (toggle in the app header; the browser remembers the choice):
 
-- **General (default):** Reading, Result Assessment, Confidence and Verification, and Coach. Calculation
-  uses a simple progress flow; no model-call or council diagnostics are rendered. Coach prioritizes up to
-  three high-impact missing facts.
+- **General (default):** Reading, Result Assessment, and Confidence and Verification. Calculation
+  uses a simple progress flow; no model-call or council diagnostics are rendered.
 - **Expert:** adds Process Information for live activity and the retained calculation record, including
-  stage activity, model calls, timings, and council details. Coach shows all missing facts.
+  stage activity, model calls, timings, and council details, plus Coach for all missing facts and what-if re-runs.
 
 Both views currently share the same 11-section Result Assessment skeleton. It does not display the old
 General summary or full report; the existing generated report remains available through Markdown download.
@@ -321,12 +321,13 @@ extraction prompt so they cannot be misread as other facts. Change paths in Read
 to re-assess. Answers for a removed path are excluded unless the customer asked for that path in the enquiry.
 
 - **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
-- **Top pipeline navigation:** General has four tabs: Reading → Result Assessment → Confidence and
-  Verification → Coach. Expert adds **Process Information** between Reading and Result Assessment.
+- **Top pipeline navigation:** General has three tabs: Reading → Result Assessment → Confidence and
+  Verification. Expert adds **Process Information** between Reading and Result Assessment, and **Coach** at the end.
   One continuous gradient line connects the numbered dots, which fill with their spectrum color as work
   completes. During calculation, General shows a temporary progress screen; Expert stays on Process
-  Information. Other tabs stay locked until processing ends. General then opens Result Assessment (Coach
-  after a what-if re-run); Expert stays on the completed process record with the other tabs unlocked.
+  Information. Other tabs stay locked until processing ends. General then opens Result Assessment;
+  Expert stays on the completed process record with the other tabs unlocked. Switching from Coach to
+  General opens Confidence and Verification, including after a what-if re-run switched to General while busy.
 - **Right-side page navigation:** a sticky, color-tinted panel contains each page's title, short explanation,
   and vertical section links. The current section is accented automatically. Links open collapsed
   sections and preserve `#run=<id>` deep links. On smaller screens, the “On this page” button opens the panel
@@ -361,7 +362,7 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   remains available to download. Frontend slots are described in [frontend integration](docs/frontend-integration.md).
 - **Confidence and Verification:** computed confidence, citation checks, number and client-fact checks,
   and the quality gate. Calculation internals are kept in Expert's Process Information tab.
-- **Coach:** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
+- **Coach (Expert only):** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
   Completed runs can be reopened with `#run=<id>`.
 - **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
   verbatim, the page text with the passage marked, and the original PDF page with the passage highlighted.

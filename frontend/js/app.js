@@ -203,7 +203,7 @@ async function run(url, body) {
       } else if (e.type === "result") {
         receivedResult = true;
         const answers = Object.fromEntries(Object.entries(e.run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key)));
-        const tab = s.view === "expert" ? "process" : e.run.error ? "reading" : completionTab;
+        const tab = s.view === "expert" ? "process" : e.run.error ? "reading" : normalizeTab(completionTab, s.view);
         store.remember("tab", tab);
         setDetected(e.run.requirements?.preferred_paths || []);
         store.set({ run: e.run, liveRun: e.run, tab,
@@ -220,7 +220,7 @@ async function run(url, body) {
         liveRun: null, busy: false, tab: s.view === "expert" ? "process" : "reading" });
     } else {
       const s = store.get();
-      const tab = s.view === "expert" ? "process" : s.run?.error ? "reading" : completionTab;
+      const tab = s.view === "expert" ? "process" : s.run?.error ? "reading" : normalizeTab(completionTab, s.view);
       store.remember("tab", tab);
       store.set({ liveRun: null, busy: false, tab });
     }

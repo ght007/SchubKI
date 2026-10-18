@@ -16,13 +16,17 @@ Observers and global listeners are cleaned up when the view is rebuilt.
 
 ## General and Expert processing
 
-`pipeline-steps.js` defines all five tabs; `visibleSteps(state)` excludes Process Information in General.
-`normalizeTab(id, view)` also handles stored legacy tab names without exposing the process tab in General.
+`pipeline-steps.js` defines all five tabs; `visibleSteps(state)` excludes Process Information and Coach in General
+using their `expertOnly` flag. `canOpenStep` also rejects these tabs in General.
+`normalizeTab(id, view)` handles stored legacy tab names and maps Expert-only tabs to Confidence and
+Verification in General, including a stored Coach/what-if tab or switching away from an open Coach page.
 The spectrum line derives its columns, endpoint positions, colors, and progress from the visible steps.
 
-- General: four tabs and a temporary `renderLoadingFlow` screen containing only the simple stage flow.
-  No process-detail markup is rendered. A successful run opens Result Assessment (Coach after a what-if).
-- Expert: five tabs, with `process` labeled **Process Information**. Starting a run selects this tab.
+- General: three tabs (Reading, Result Assessment, Confidence and Verification) and a temporary
+  `renderLoadingFlow` screen containing only the simple stage flow. No process-detail or Coach markup is rendered.
+  A successful run opens Result Assessment. If a what-if starts in Expert and switches to General while busy,
+  completion opens Confidence and Verification instead of the hidden Coach tab.
+- Expert: five tabs, including **Coach** and `process` labeled **Process Information**. Starting a run selects Process Information.
   `renderProcessInformation` renders live stage outputs and the completed record. It remains selected when
   processing finishes, and is available whenever a run or partial failed run exists.
 - While busy, only Expert's process tab is available; other navigation remains locked until the stream ends.
@@ -30,6 +34,8 @@ The spectrum line derives its columns, endpoint positions, colors, and progress 
   available, while result tabs remain locked.
 - Switching display mode during calculation immediately switches between the simple flow and the expert
   record, using the same in-memory run. It neither restarts nor changes the backend request.
+  The coaching stage still runs in both modes to compute confidence. General maps its active navigation
+  marker to Confidence and Verification; progress remains below 100% until the stream ends.
 - Confidence and Verification contains evaluation outputs only. Process Information shows live activity,
   the seven calculation stages, model calls, stage timings, and council records. The requirements,
   rule/method-screening, evidence-retrieval, customer-premise, and spectral-map panels are not mounted

@@ -20,7 +20,7 @@ function revealStep(nav, button) {
 function viewToggle(s) {
   return `<div class="seg view-toggle" role="group" aria-label="View">
     <button data-view="general" aria-pressed="${s.view === "general"}" title="Simple progress and assessment views">General</button>
-    <button data-view="expert" aria-pressed="${s.view === "expert"}" title="Includes Process Information: models, rules, evidence, and trace">Expert</button></div>`;
+    <button data-view="expert" aria-pressed="${s.view === "expert"}" title="Includes Process Information and Coach: model activity, timings, and follow-up questions">Expert</button></div>`;
 }
 
 export function renderStatus(el, s, actions) {
