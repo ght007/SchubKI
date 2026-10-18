@@ -3,7 +3,7 @@ import { esc, getJSON, postJSON, stream } from "./api.js";
 import * as store from "./state.js";
 import { STEPS, LOADING_PAGE, canOpenStep, normalizeTab, stepStatus } from "./pipeline-steps.js";
 import { renderStatus, renderFiber } from "./components/header.js";
-import { renderPageHeader } from "./components/page-header.js";
+import { renderPageNavigation } from "./components/page-navigation.js";
 import { renderEnquiry } from "./components/enquiry.js";
 import { hasStageData, renderPipelineStep, renderProcess } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
@@ -250,7 +250,7 @@ function renderView(s) {
         `<div class="err">${esc(s.error || run.error)}</div>` : ""}</div>`;
     }
   }
-  renderPageHeader(readingPage ? $("reading-main") : el, content, s, step, run);
+  renderPageNavigation(content, s, step, run);
 }
 
 let lastEvidence = null;
@@ -274,7 +274,9 @@ document.addEventListener("click", (ev) => {
   if (!b) return;
   store.set({ evidence: { source: b.dataset.src, page: +b.dataset.page, quote: b.dataset.quote, status: b.dataset.status } });
 });
-document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && store.get().evidence) store.set({ evidence: null }); });
+document.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape" && store.get().evidence && !document.querySelector(".page-navigation:popover-open")) store.set({ evidence: null });
+});
 
 store.subscribe(render);
 mountAccountControls($("account-actions"), { previewExpert: () => actions.setView("expert") });

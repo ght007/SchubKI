@@ -318,11 +318,11 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   Submitting an enquiry opens a temporary calculation screen. The gradient line advances as stages finish,
   and navigation stays locked until the complete result arrives. The loading screen then closes and
   Result Assessment opens automatically (Coach after a what-if re-run).
-- **Page headers:** each tab starts with a dark, color-tinted header containing a short explanation,
-  its measured runtime (and the full run time when available), and links to the sections on that page.
-  The header stays at the top while scrolling, and the current section's link is accented automatically.
-  Links open collapsed sections, keep their target below the pinned header, and preserve `#run=<id>` deep links.
-  On small screens the section links scroll horizontally to leave room for the page content.
+- **Right-side page navigation:** a sticky, color-tinted panel contains each page's title, short explanation,
+  runtime, and vertical section links. The current section is accented automatically. Links open collapsed
+  sections and preserve `#run=<id>` deep links. On smaller screens, the “On this page” button opens the panel
+  from the right; selecting a section closes it. Reading omits scenario, assessment-mode, and model links
+  from navigation while keeping those controls in the form.
 - **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
   optional Path A/B/C selection, the instant pre-check, and the reading confirmation with follow-up questions.
   Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
@@ -519,7 +519,7 @@ afs-assistant/
 ├─ frontend/
 │  ├─ index.html · css/styles.css
 │  └─ js/                       api.js · state.js · app.js · glossary.js · pipeline-steps.js (shared step model)
-│      └─ components/           pipeline.js (tab views and temporary loading screen) · page-header · header · enquiry · confirm ·
+│      └─ components/           pipeline.js (tab views and temporary loading screen) · page-navigation · header · enquiry · confirm ·
 │                               pathq · precheck · coach · summary · report · matrix · spectral-map ·
 │                               evidence · quality · council · whatif · trace
 ├─ eval/

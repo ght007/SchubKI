@@ -1,9 +1,19 @@
 # Frontend integration
 
+## Page navigation
+
+`frontend/js/components/page-navigation.js` wraps page content with a sticky navigation panel on the right.
+It owns the title, explanation, runtime stats, section links, and `aria-current="location"` tracking.
+Reading's link list deliberately excludes the scenario loader, assessment mode, and model choice;
+their form controls remain available. Other pages derive their links from content headings.
+On viewports up to 1100px, or when the content area is narrower than 740px (for example beside the source
+drawer), the panel uses a native popover opened by “On this page”. Section selection closes the popover.
+Observers and global listeners are cleaned up when the view is rebuilt.
+
 ## Result Assessment outline
 
 `frontend/js/components/assessment-outline.js` owns the new result outline. General and Expert show the same
-11 placeholder sections, in the order below. The sticky page header builds its contents links from their
+11 placeholder sections, in the order below. The sticky right-side navigation builds its contents links from their
 headings, so section jumps and the current-section accent work without a separate navigation definition.
 
 | Frontend slot | Heading |

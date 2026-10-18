@@ -1,4 +1,4 @@
-// A distinct page header with live timing and links into the rendered content.
+// A sticky navigation panel to the right of each page, with live timings and section tracking.
 import { esc } from "../api.js";
 import { STEPS, activeStep, latestStageEvent, stepStatus } from "../pipeline-steps.js";
 
@@ -10,10 +10,7 @@ const contentsLinks = (links) => links.map(([label, id]) => `<a href="#${id}">${
 function contents(content, tab) {
   if (tab === "reading") return [
     ["Customer enquiry", "enq"],
-    ["Load a scenario", "example"],
     ["Preferred AFS path", "pathpick"],
-    ["Assessment mode", "mode-label"],
-    ["LLM model", "model-choice"],
     ["Review the reading", "reading-confirm-title"],
     ["Follow-up questions", "reading-questions"],
     ["Path follow-up questions", "path-questions"],
@@ -41,8 +38,11 @@ function stageTime(s, run, id) {
   return event?.ms;
 }
 
-function trackContents(header, content, tab) {
-  const toc = header.querySelector(".page-toc-links");
+function trackContents(panel, content, tab) {
+  const layout = panel.parentElement;
+  const toc = panel.querySelector(".page-toc-links");
+  const toggle = layout.querySelector(".page-navigation-toggle");
+  const compact = window.matchMedia("(max-width: 1100px)");
   const loadingBar = document.querySelector(".fiber.running");
   let frame = 0;
   let refresh = true;
@@ -53,6 +53,17 @@ function trackContents(header, content, tab) {
 
   function update() {
     frame = 0;
+    // A source drawer or Reading's query sidebar can also reduce the available width.
+    const collapsed = compact.matches || layout.clientWidth < 740;
+    if (collapsed !== layout.classList.contains("compact-navigation")) {
+      layout.classList.toggle("compact-navigation", collapsed);
+      if (collapsed) panel.setAttribute("popover", "auto");
+      else {
+        if (panel.matches(":popover-open")) panel.hidePopover();
+        panel.removeAttribute("popover");
+      }
+      activeId = "";
+    }
     if (refresh) {
       refresh = false;
       const links = contents(content, tab);
@@ -65,8 +76,8 @@ function trackContents(header, content, tab) {
       }
     }
     const top = loadingBar?.getBoundingClientRect().height || 0;
-    header.style.setProperty("--page-header-top", `${top}px`);
-    const offset = top + header.getBoundingClientRect().height + 16;
+    const offset = top + 16;
+    panel.style.setProperty("--page-navigation-top", `${offset}px`);
     content.style.setProperty("--page-scroll-offset", `${offset}px`);
     // Resolve IDs again: follow-up answers can replace their own DOM without a page render.
     const visible = entries.map((entry) => {
@@ -87,22 +98,30 @@ function trackContents(header, content, tab) {
       if (entry.id === current?.id) entry.link.setAttribute("aria-current", "location");
       else entry.link.removeAttribute("aria-current");
     }
-    if (current && current.id !== activeId) {
+    if (current && current.id !== activeId && panel.checkVisibility()) {
       activeId = current.id;
-      // Keep the current pill visible on narrow screens without moving the page vertically.
+      // Scroll long navigation lists internally without moving the page.
       const link = current.link.getBoundingClientRect();
-      const bounds = toc.getBoundingClientRect();
-      if (link.left < bounds.left) toc.scrollLeft -= bounds.left - link.left;
-      else if (link.right > bounds.right) toc.scrollLeft += link.right - bounds.right;
+      const bounds = panel.getBoundingClientRect();
+      if (link.top < bounds.top + 12) panel.scrollTop -= bounds.top + 12 - link.top;
+      else if (link.bottom > bounds.bottom - 12) panel.scrollTop += link.bottom - bounds.bottom + 12;
     }
   }
   function schedule() {
     if (!frame) frame = requestAnimationFrame(update);
   }
+  panel.addEventListener("beforetoggle", (event) => {
+    toggle.setAttribute("aria-expanded", String(event.newState === "open"));
+  });
+  panel.addEventListener("toggle", () => {
+    activeId = "";
+    schedule();
+  });
+  compact.addEventListener("change", schedule);
   const mutations = new MutationObserver(() => { refresh = true; schedule(); });
   mutations.observe(content, { childList: true, subtree: true });
   const sizes = new ResizeObserver(schedule);
-  [header, content, loadingBar].filter(Boolean).forEach((node) => sizes.observe(node));
+  [layout, panel, content, loadingBar].filter(Boolean).forEach((node) => sizes.observe(node));
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule);
   content.addEventListener("toggle", schedule, true);
@@ -112,6 +131,7 @@ function trackContents(header, content, tab) {
     event.preventDefault(); // Preserve #run=<id> deep links when jumping within a page.
     const target = content.querySelector(link.hash);
     if (!target) return;
+    if (panel.matches(":popover-open")) panel.hidePopover();
     let disclosure = target.closest("details");
     while (disclosure) {
       disclosure.open = true;
@@ -129,13 +149,14 @@ function trackContents(header, content, tab) {
     cancelAnimationFrame(frame);
     mutations.disconnect();
     sizes.disconnect();
+    compact.removeEventListener("change", schedule);
     window.removeEventListener("scroll", schedule);
     window.removeEventListener("resize", schedule);
     content.removeEventListener("toggle", schedule, true);
   };
 }
 
-export function renderPageHeader(view, content, s, step, run) {
+export function renderPageNavigation(content, s, step, run) {
   cleanupNavigation();
   const status = stepStatus(s, step.id);
   const current = activeStep(s);
@@ -150,22 +171,28 @@ export function renderPageHeader(view, content, s, step, run) {
     s.busy && current && current !== step.id ? `Current stage: ${STEPS.find((item) => item.id === current)?.label || current}` : ""]
     .filter(Boolean);
   const links = contents(content, step.id);
-  const header = document.createElement("header");
-  header.className = "page-header";
-  header.style.setProperty("--page-accent", step.color);
-  header.innerHTML = `<div class="page-header-main">
-    <div class="page-header-copy"><h1 id="page-title-${step.id}">${esc(step.label)}</h1><p>${esc(step.description)}</p></div>
+  const panel = document.createElement("aside");
+  panel.id = "page-navigation";
+  panel.className = "page-navigation";
+  panel.setAttribute("aria-label", `${step.label} page navigation`);
+  panel.style.setProperty("--page-accent", step.color);
+  panel.innerHTML = `<button type="button" class="page-navigation-close" popovertarget="page-navigation" popovertargetaction="hide" aria-label="Close page navigation" autofocus>Close ×</button>
+    <div class="page-navigation-copy"><h1 id="page-title-${step.id}">${esc(step.label)}</h1><p>${esc(step.description)}</p></div>
     <div class="page-runtime" aria-label="Runtime statistics">
       <span class="page-stat">${stageTimes.length ? `${status === "active" ? "Runtime so far" : "Page runtime"}: <b>${formatTime(runtime)}</b>` :
         s.busy || (s.reading && current === step.id) ? "Running…" : "Runtime: awaiting assessment"}</span>
       ${Number.isFinite(total) ? `<span class="page-stat">Full run: <b>${formatTime(total)}</b></span>` : ""}
     </div>
-  </div>
   ${detailParts.length ? `<p class="page-detail">${detailParts.map(esc).join(" · ")}</p>` : ""}
   <nav class="page-toc" aria-label="Contents of ${esc(step.label)}">
     <span class="page-toc-label">On this page</span>
     <div class="page-toc-links">${contentsLinks(links)}</div>
   </nav>`;
-  view.prepend(header);
-  cleanupNavigation = trackContents(header, content, step.id);
+  const layout = document.createElement("div");
+  layout.className = "page-layout";
+  content.before(layout);
+  layout.append(panel, content);
+  layout.insertAdjacentHTML("beforeend", `<button type="button" class="page-navigation-toggle" popovertarget="page-navigation" aria-controls="page-navigation" aria-expanded="false">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 5h10M7 10h10M7 15h10M2 5h1M2 10h1M2 15h1"/></svg>On this page</button>`);
+  cleanupNavigation = trackContents(panel, content, step.id);
 }
