@@ -321,6 +321,8 @@ The sections below describe where each current feature is available.
 **Before you run it (pre-check)**: while the enquiry is typed, an instant keyword check (no AI) shows recognised
 terms (German aliases resolved, e.g. *Feuchte → moisture*, *Glasfaser → silica fiber*), vague words, early
 warnings from blocking rules, and missing key facts. It is informational; the questions are asked on the next step.
+The *Check and assess* button sits below this panel (directly below the enquiry form while the panel is hidden),
+so the check is read before a run starts.
 
 **"Is this what you mean?" (Customer Enquiry dialog)**: *Check and assess* first reads the enquiry
 with the extraction model (the run's own first stage), then opens a modal review without expanding the page.

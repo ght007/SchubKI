@@ -86,7 +86,8 @@ The dialog stays mounted across page updates. Text input does not redraw it; cho
 updates preserve keyboard focus, scroll position, answers, and expanded disclosures. The dialog footer
 contains only **Yes, assess**. Each new enquiry assessment goes through this dialog. Both preference
 checkboxes and the `confirm` state have been removed; legacy `afs.confirm=off` browser preferences are
-ignored. The enquiry button stays **Check and assess**. Path and pre-check follow-up answers are collected
+ignored. The enquiry button stays **Check and assess**; it is rendered after the pre-check panel (`.enquiry-submit`),
+so it moves below *Before you run it* once that panel appears. Path and pre-check follow-up answers are collected
 inside the dialog. Page navigation links to the enquiry form, rather than into the modal.
 The existing submission, optional-question, reading-correction, and backend contracts are unchanged.
 

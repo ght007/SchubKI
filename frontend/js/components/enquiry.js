@@ -1,4 +1,5 @@
 // The Read step owns the customer enquiry, the intake options and the LLM choice for the run.
+// Check and assess sits after the pre-check panel, so the instant check is seen before a run starts.
 import { esc } from "../api.js";
 import { runPrecheck, schedulePrecheck } from "./precheck.js";
 import { renderPathPicker } from "./pathq.js";
@@ -56,10 +57,12 @@ export function renderEnquiry(el, s, actions) {
       </div>
     </div>
     <p class="small muted model-note" aria-live="polite">${esc(modelNote)}${s.modelList?.mock ? " Rule-only mode: no model is called." : ""}</p>
+  </section>
+  <section id="precheck" class="panel precheck reading-support" hidden aria-live="polite"></section>
+  <div class="enquiry-submit">
     <div class="enquiry-actions"><button type="button" class="btn primary" id="go" ${s.busy || s.reading ? "disabled" : ""} aria-live="polite">${s.reading ? "Reading…" : s.busy ? "Assessing…" : s.understand ? "Review reading" : "Check and assess"}</button></div>
     ${s.error ? `<div class="err">${esc(s.error)}</div>` : ""}
-  </section>
-  <section id="precheck" class="panel precheck reading-support" hidden aria-live="polite"></section>`;
+  </div>`;
 
   renderPathPicker(el.querySelector("#pathpick"), s, actions);
   const precheck = el.querySelector("#precheck");

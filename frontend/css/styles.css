@@ -297,6 +297,9 @@ textarea.enq {
 .enquiry-actions { display: flex; justify-content: flex-end; margin-top: 1.3rem; }
 .enquiry-paths { margin-top: 1.5rem; }
 .reading-support { width: min(100%, 880px); margin: 1rem auto 0; }
+.enquiry-submit { width: min(100%, 880px); margin: 1rem auto 0; }
+.enquiry-submit .enquiry-actions { margin-top: 0; }
+.enquiry-submit .err { margin-top: .75rem; }
 .enq:disabled { opacity: .8; }
 @media (max-width: 600px) {
   .enquiry-stage { margin-top: .5rem; }
