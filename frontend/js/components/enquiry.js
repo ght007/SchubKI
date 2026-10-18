@@ -57,11 +57,10 @@ export function renderEnquiry(el, s, actions) {
     </div>
     <p class="small muted model-note" aria-live="polite">${esc(modelNote)}${s.modelList?.mock ? " Rule-only mode: no model is called." : ""}</p>
     <label class="small confirm-choice"><input type="checkbox" id="confirm-choice" ${s.confirm ? "checked" : ""} ${s.busy || s.reading ? "disabled" : ""}> Review the reading and follow-up questions before assessing</label>
-    <div class="enquiry-actions"><button type="button" class="btn primary" id="go" ${s.busy || s.reading ? "disabled" : ""}>${s.reading ? "Reading…" : s.busy ? "Assessing…" : s.understand ? "Continue review ↓" : s.confirm ? "Check and assess" : "Assess enquiry"}</button></div>
+    <div class="enquiry-actions"><button type="button" class="btn primary" id="go" ${s.busy || s.reading ? "disabled" : ""} aria-live="polite">${s.reading ? "Reading…" : s.busy ? "Assessing…" : s.understand ? "Review reading" : s.confirm ? "Check and assess" : "Assess enquiry"}</button></div>
     ${s.error ? `<div class="err">${esc(s.error)}</div>` : ""}
   </section>
-  <section id="precheck" class="panel precheck reading-support" hidden aria-live="polite"></section>
-  <div id="reading-confirm" class="reading-support">${s.reading ? '<section class="section"><h2 id="reading-confirm-title">Reading your enquiry…</h2><p>Preparing the reading and follow-up questions.</p></section>' : ""}</div>`;
+  <section id="precheck" class="panel precheck reading-support" hidden aria-live="polite"></section>`;
 
   renderPathPicker(el.querySelector("#pathpick"), s, actions);
   const precheck = el.querySelector("#precheck");

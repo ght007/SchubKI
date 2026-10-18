@@ -1,6 +1,8 @@
 """Report JSON -> Markdown (outputs/ and export)."""
 from __future__ import annotations
 
+import re
+
 from ..schemas import RunResult, Statement
 
 KIND_TAG = {"client_fact": "client fact", "sourced": "sourced", "assumption": "assumption", "proposal": "proposal"}
@@ -20,6 +22,10 @@ def _stmt(s: Statement) -> str:
 
 def _q(c: dict) -> str:
     return f"[{c['source']} p.{c['page']}]"
+
+
+def _step_text(text: str) -> str:
+    return re.sub(r"^\s*\d+\\?[.)]\s+", "", text, count=1)
 
 
 def _st(s: dict) -> str:
@@ -123,7 +129,7 @@ def render(run: RunResult, title: str = "") -> str:
     for name, key in (("Samples", "samples"), ("Reference measurements", "reference"), ("Comparison", "comparison")):
         L += [f"**{name}**"] + ([f"- {x}" for x in fx["plan"][key]] or none)
     if fx["plan"]["steps"]:
-        L += ["**Steps**"] + [f"{i}. {x}" for i, x in enumerate(fx["plan"]["steps"], 1)]
+        L += ["**Steps**"] + [f"{i}. {_step_text(x)}" for i, x in enumerate(fx["plan"]["steps"], 1)]
     pw = fx["pathway"]
     L += ["", "**Next step with AFS**", f"- {pw['next_step']}",
           f"- Likely path: {pw['likely_path']}" + (f" - {pw['why']}" if pw["why"] else "")]
@@ -133,7 +139,7 @@ def render(run: RunResult, title: str = "") -> str:
           for f in pw["requested"]]
     for pa in pw["proceed_anyway"]:
         L += ["", f"**If you proceed anyway with Path {pa['path']}** ({pa['caveat']})"]
-        L += [f"{i}. {x}" for i, x in enumerate(pa["steps"], 1)] + [f"_Sources: {src(pa['sources'])}_"]
+        L += [f"{i}. {_step_text(x)}" for i, x in enumerate(pa["steps"], 1)] + [f"_Sources: {src(pa['sources'])}_"]
     setup = fx["setup"]
     if setup["paths"] and setup["systems"]:
         L += ["", "**Proposed setup** (ranked by recommendation; validate in a lab trial)", "",

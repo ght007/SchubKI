@@ -29,13 +29,13 @@ def main() -> int:
     for ref in re.findall(r'(?:src|href)="/static/([^"]+)"', html):
         if not (ROOT / ref).exists():
             problems.append(f"index.html refers to frontend/{ref}, which does not exist")
-    for ident in ("status", "fiber", "view", "drawer", "account-actions"):
+    for ident in ("status", "fiber", "view", "drawer", "account-actions", "reading-review"):
         if f'id="{ident}"' not in html:
             problems.append(f'index.html has no element id="{ident}"')
 
-    # Intake and follow-up containers are rendered inside Reading in the mode-aware shell.
+    # The enquiry stays in the page; the reading review has a persistent dialog outside the tab content.
     enquiry = (ROOT / "js/components/enquiry.js").read_text(encoding="utf-8")
-    for ident in ("precheck", "pathpick", "reading-confirm", "enq"):
+    for ident in ("precheck", "pathpick", "enq"):
         if f'id="{ident}"' not in enquiry:
             problems.append(f'Reading has no element id="{ident}"')
 
