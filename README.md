@@ -136,7 +136,8 @@ Each underlying stage emits `stage` progress events and a `stage_result` contain
 The top navigation dots fill with their spectrum color as work completes, and the connecting line retains
 its gradient. A bright light rests on the current tab and glides along the line when the tab changes,
 carrying a soft background glow through the fixed spectrum. While reading or calculating, smaller light
-pulses travel from Customer Enquiry towards the active step. Reduced-motion mode keeps a stationary glow.
+pulses travel from Customer Enquiry towards the active step, changing hue with the spectrum beneath them.
+Reduced-motion mode keeps a stationary glow.
 Other tabs remain locked until the stream ends, including after the final `result` event.
 General then opens Result Assessment (Confidence and Verification if a what-if switches to General);
 Expert keeps Process Information open and unlocks the other tabs. The final event contains the complete

@@ -143,7 +143,6 @@ export function renderFiber(el, s, onSelect) {
   const signalIndex = Math.max(1, lightIndex);
   rail.style.setProperty("--fiber-position", String(lightIndex / (steps.length - 1) * 100));
   rail.style.setProperty("--signal-end", String(signalIndex / (steps.length - 1) * 100));
-  rail.style.setProperty("--signal-color", steps[signalIndex].color);
   rail.dataset.lightStep = steps[lightIndex].id;
   el.querySelectorAll("[data-step]").forEach((button) => {
       const step = steps.find((item) => item.id === button.dataset.step);

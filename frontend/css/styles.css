@@ -82,6 +82,8 @@ body:has(> .app-header) { padding-top: var(--app-header-height); }
 
 /* ---------------------------------------------------------------- navigable pipeline */
 @property --fiber-position { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --fiber-pulse-phase { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --signal-end { syntax: "<number>"; inherits: true; initial-value: 0; }
 .pipeline-navigation { display: grid; grid-template-columns: 76px minmax(0, 1fr) 76px auto; border-bottom: 1px solid var(--line); }
 .pipeline-direction { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2rem;
   border: 0; background: var(--surface); color: var(--core); cursor: pointer;
@@ -107,7 +109,7 @@ body:has(> .app-header) { padding-top: var(--app-header-height); }
   --beacon-position: calc(var(--track-inset) + (100% - var(--track-inset) * 2) * var(--fiber-position) / 100);
   position: relative; display: grid; grid-template-columns: repeat(var(--step-count, 4), minmax(0, 1fr));
   width: max(100%, calc(var(--step-count, 4) * 180px)); min-height: 84px; padding: 0 var(--rail-padding);
-  transition: --fiber-position .7s cubic-bezier(.22, .68, 0, 1);
+  transition: --fiber-position .7s cubic-bezier(.22, .68, 0, 1), --signal-end .7s ease;
 }
 .fiber-aura { position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background: var(--rail-spectrum); opacity: .18;
@@ -137,22 +139,25 @@ body:has(> .app-header) { padding-top: var(--app-header-height); }
   width: 12px; height: 12px; border-radius: 50%; transform: translate(-50%, -50%);
   background: radial-gradient(circle, #fff 0 28%, #fffc 45%, #fff0 75%);
   box-shadow: 0 0 4px 1px #fff9; }
-.fiber-signal { position: absolute; left: 0; top: 0; height: 0; width: calc(var(--signal-end, 0) * 1%);
-  color: var(--signal-color, #2563eb); transition: width .7s ease, color .7s ease; }
-.fiber-photon { position: absolute; left: 0; top: 0; width: 6px; height: 6px; border-radius: 50%; opacity: 0;
+.fiber-signal { --pulse-position: calc(var(--signal-end) * var(--fiber-pulse-phase));
+  position: absolute; left: 0; top: -14px; height: 28px; width: 100%; opacity: 0; }
+.fiber-signal::before, .fiber-signal::after { content: ""; position: absolute; inset: 0;
+  background: var(--spectrum); }
+.fiber-signal::before { filter: blur(3px); opacity: .75;
+  mask-image: radial-gradient(ellipse 42px 12px at calc(var(--pulse-position) * 1%) 50%, #000 10%, transparent 75%); }
+.fiber-signal::after { top: 13px; height: 2px;
+  mask-image: linear-gradient(90deg, transparent calc(var(--pulse-position) * 1% - 56px),
+    #000 calc(var(--pulse-position) * 1%), transparent calc(var(--pulse-position) * 1%)); }
+.fiber-photon { position: absolute; z-index: 1; left: calc(var(--pulse-position) * 1%); top: 14px;
+  width: 6px; height: 6px; border-radius: 50%;
   transform: translate(-50%, -50%); background: #fff;
-  box-shadow: 0 0 4px 2px currentColor, 0 0 12px 4px color-mix(in srgb, currentColor 50%, transparent); }
-.fiber-photon::before { content: ""; position: absolute; right: 50%; top: 2px; width: 56px; height: 2px;
-  background: linear-gradient(90deg, transparent, currentColor); }
-.fiber-photon::after { content: ""; position: absolute; left: 50%; top: 50%; width: 84px; height: 24px;
-  transform: translate(-50%, -50%); background: radial-gradient(ellipse, currentColor, transparent 70%);
-  filter: blur(3px); opacity: .4; }
-.fiber.transmitting .fiber-photon { animation: fiber-transmit 2.8s cubic-bezier(.35, 0, .65, 1) infinite; }
+  box-shadow: 0 0 4px 1px #fff9; }
+.fiber.transmitting .fiber-signal { animation: fiber-transmit 2.8s cubic-bezier(.35, 0, .65, 1) infinite; }
 .fiber.transmitting .fiber-halo { animation: fiber-glow 2.8s ease-in-out infinite; }
 @keyframes fiber-transmit {
-  0% { left: 0; opacity: 0; }
+  0% { --fiber-pulse-phase: 0; opacity: 0; }
   12%, 82% { opacity: 1; }
-  100% { left: 100%; opacity: 0; }
+  100% { --fiber-pulse-phase: 1; opacity: 0; }
 }
 @keyframes fiber-glow { 0%, 100% { opacity: .45; } 50% { opacity: .75; } }
 .fiber-node {
@@ -187,7 +192,7 @@ body:has(> .app-header) { padding-top: var(--app-header-height); }
 .fiber-node:focus-visible { outline: 2px solid var(--core); outline-offset: -3px; }
 @media (prefers-reduced-motion: reduce) {
   .fiber-rail, .fiber-node, .fiber-node::before, .fiber-lit, .fiber-light, .fiber-signal { transition: none; }
-  .fiber.transmitting .fiber-photon { display: none; animation: none; }
+  .fiber.transmitting .fiber-signal { display: none; animation: none; }
   .fiber.transmitting .fiber-halo { animation: none; }
 }
 @media (forced-colors: active) {

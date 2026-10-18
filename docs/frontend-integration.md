@@ -44,6 +44,9 @@ The stronger rectangular selected-tab fill is replaced by this shared moving glo
 During `busy` or `reading`, `.transmitting` adds a smaller light pulse with a soft trail towards the
 active step (or the next step while still at Customer Enquiry). The beacon stays docked at the active
 tab. Pulse DOM persists across streaming updates, so new stage events do not restart its animation.
+The pulse's core, trail and halo share an animated `--fiber-pulse-phase`. Its colored layers sample the
+fixed line spectrum through moving masks, so they change hue with their position instead of starting in
+the destination tab's color. `--signal-end` transitions the travel endpoint smoothly between stages.
 These effects are `aria-hidden`; the existing progress bar still reports actual pipeline progress.
 Reduced-motion mode disables travel and transitions but retains the active glow. Forced-colors mode
 uses a plain outline on the active node. The layers share the rail's endpoint geometry, including on
