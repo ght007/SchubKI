@@ -8,3 +8,5 @@ data/raw/*.pdf
 data/raw/*.docx
 data/raw/*.xlsx
 .DS_Store
+.venv312/
+.vscode/
