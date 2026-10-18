@@ -10,14 +10,12 @@ function contents(content, tab) {
   if (tab === "reading") return [
     ["Customer enquiry", "enq"],
     ["Preferred AFS path", "pathpick"],
-    ["Review the reading", "reading-confirm-title"],
-    ["Follow-up questions", "reading-questions"],
     ["Path follow-up questions", "path-questions"],
   ].filter(([, id]) => content.querySelector(`#${id}`));
 
   const headings = [...content.querySelectorAll("h2, h3, summary")].filter((node) => {
     if (node.tagName === "SUMMARY" && node.parentElement.classList.contains("srcs")) return false;
-    if (node.tagName === "SUMMARY" && node.closest(".assessment-document")) return false;   // only the 11 section headings
+    if (node.tagName === "SUMMARY" && node.closest(".assessment-document")) return false;   // only section headings
     if (node.tagName === "H3" && (tab !== "coach" || !node.textContent.includes("Improved enquiry"))) return false;
     return node.tagName === "SUMMARY" || !node.closest("details") || node.hasAttribute("data-page-toc");
   });
@@ -30,11 +28,11 @@ function contents(content, tab) {
 }
 
 function trackContents(panel, content, tab) {
-  const layout = panel.parentElement;
+  const layout = panel.closest(".page-layout");
   const toc = panel.querySelector(".page-toc-links");
   const toggle = layout.querySelector(".page-navigation-toggle");
   const compact = window.matchMedia("(max-width: 1100px)");
-  const loadingBar = document.querySelector(".fiber.running");
+  const appHeader = document.querySelector(".app-header");
   let frame = 0;
   let refresh = true;
   let signature = "";
@@ -66,9 +64,10 @@ function trackContents(panel, content, tab) {
         activeId = "";
       }
     }
-    const top = loadingBar?.getBoundingClientRect().height || 0;
-    const offset = top + 16 + (content.querySelector(".assessment-export")?.offsetHeight || 0);
-    panel.style.setProperty("--page-navigation-top", `${top + 16}px`);
+    // Account controls and status badges can wrap and change the pinned header's height.
+    const top = appHeader?.offsetHeight || 0;
+    const offset = top + 16;
+    layout.style.setProperty("--page-navigation-top", `${offset}px`);
     content.style.setProperty("--page-scroll-offset", `${offset}px`);
     // Resolve IDs again: follow-up answers can replace their own DOM without a page render.
     const visible = entries.map((entry) => {
@@ -112,7 +111,7 @@ function trackContents(panel, content, tab) {
   const mutations = new MutationObserver(() => { refresh = true; schedule(); });
   mutations.observe(content, { childList: true, subtree: true });
   const sizes = new ResizeObserver(schedule);
-  [layout, panel, content, loadingBar].filter(Boolean).forEach((node) => sizes.observe(node));
+  [layout, panel, content, appHeader].filter(Boolean).forEach((node) => sizes.observe(node));
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule);
   content.addEventListener("toggle", schedule, true);
@@ -155,7 +154,6 @@ export function renderPageNavigation(content, s, step) {
     (step.id !== "loading" || item.stage === event?.stage));
   const detailParts = s.view === "expert" && step.id === "process" ? [event?.detail?.replaceAll("_", " "), detail?.detail]
     .filter(Boolean) : [];
-
   const links = contents(content, step.id);
   const panel = document.createElement("aside");
   panel.id = "page-navigation";
@@ -172,7 +170,10 @@ export function renderPageNavigation(content, s, step) {
   const layout = document.createElement("div");
   layout.className = "page-layout";
   content.before(layout);
-  layout.append(panel, content);
+  const sidebar = document.createElement("div");
+  sidebar.className = "page-sidebar";
+  sidebar.append(panel);
+  layout.append(sidebar, content);
   layout.insertAdjacentHTML("beforeend", `<button type="button" class="page-navigation-toggle" popovertarget="page-navigation" aria-controls="page-navigation" aria-expanded="false">
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 5h10M7 10h10M7 15h10M2 5h1M2 10h1M2 15h1"/></svg>On this page</button>`);
   cleanupNavigation = trackContents(panel, content, step.id);

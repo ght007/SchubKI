@@ -1,10 +1,9 @@
-// LLM calls: model, tokens, latency + retrieval internals.
+// LLM calls: model, tokens, latency, and stage timings.
 import { esc } from "../api.js";
 
 export function renderTrace(el, run) {
   const t = run.trace || [];
   const tok = t.reduce((a, x) => a + x.prompt_tokens + x.completion_tokens, 0);
-  const rd = run.retrieval || {};
   const total = run.timings_ms?.total;
   el.innerHTML = `
     <section class="section"><h2>LLM calls <small>${t.length} calls · ${tok.toLocaleString()} tokens${total == null ? " · running" : ` · total ${(total / 1000).toFixed(1)} s`}</small></h2>
@@ -17,10 +16,5 @@ export function renderTrace(el, run) {
     </section>
     <section class="section"><h2>Stage timings</h2>
       <table class="data"><tbody>${Object.entries(run.timings_ms || {}).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v} ms</td></tr>`).join("")}</tbody></table>
-    </section>
-    <section class="section"><h2>Retrieval</h2>
-      <p class="small">Queries built from the extracted requirements:</p>
-      <ul class="plain small">${(rd.queries || []).map((q) => `<li>${esc(q)}</li>`).join("")}</ul>
-      <p class="small muted">Each query is ranked by SQLite FTS5 BM25 and by dense cosine similarity; all rankings are fused with Reciprocal Rank Fusion (k = 60), then Maximal Marginal Relevance (λ = 0.7) selects diverse passages within a ${rd.used_tokens ?? "?"}-token budget. Claims on pages cited by blocking or warning rules are pinned.</p>
     </section>`;
 }

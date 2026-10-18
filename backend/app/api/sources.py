@@ -7,7 +7,7 @@ import re
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
-from ..config import SOURCE_FILES, settings
+from ..config import settings, source_files
 from ..kb.pages import load_pages, normalize, quote_on_page
 
 router = APIRouter(prefix="/api/source")
@@ -23,7 +23,7 @@ def list_sources():
     pages = load_pages()
     reg = _registry()
     out = []
-    for sid in SOURCE_FILES:
+    for sid in source_files():
         n = sum(1 for (s, _) in pages if s == sid)
         out.append({**reg.get(sid, {"id": sid}), "pages_loaded": n})
     return out
@@ -52,14 +52,15 @@ def _fragments(quote: str) -> list[str]:
 
 @router.get("/{doc}/{page}/image")
 def page_image(doc: str, page: int, q: str = Query("", max_length=600), zoom: float = 1.6):
-    if doc not in SOURCE_FILES or not SOURCE_FILES[doc].endswith(".pdf"):
+    files = source_files()
+    if doc not in files or not files[doc].lower().endswith(".pdf"):
         raise HTTPException(404, "No page image for this source")
     key = (doc, page, q, zoom)
     if key in _IMG_CACHE:
         return Response(_IMG_CACHE[key], media_type="image/png")
     import pymupdf
 
-    path = settings.raw_dir / SOURCE_FILES[doc]
+    path = settings.raw_dir / files[doc]
     with pymupdf.open(path) as pdf:
         if not 1 <= page <= len(pdf):
             raise HTTPException(404, "Page out of range")

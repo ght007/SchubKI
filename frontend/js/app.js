@@ -11,11 +11,19 @@ import { renderConfirm } from "./components/confirm.js";
 import { resetPrecheck } from "./components/precheck.js";
 import { activePathAnswers, loadPathQuestions, setDetected } from "./components/pathq.js";
 import { loadGlossary } from "./glossary.js";
-import { createLocalQueryRepository, createServerQueryRepository, importLocalDrafts } from "./query-history.js";
+import { createLocalQueryRepository, createServerQueryRepository, importLocalDrafts, runSummary } from "./query-history.js";
 import { renderQuerySidebar } from "./components/query-sidebar.js";
 import { isPro, mountAccountControls, openAccountMenu } from "./components/account-controls.js";
 
 const $ = (id) => document.getElementById(id);
+// Reserve the pinned header's actual height, including wrapped account controls and pipeline tabs.
+const appHeader = document.querySelector(".app-header");
+if (appHeader) {
+  const updateHeaderHeight = () => document.documentElement.style.setProperty(
+    "--app-header-height", `${appHeader.offsetHeight}px`);
+  updateHeaderHeight();
+  new ResizeObserver(updateHeaderHeight).observe(appHeader);
+}
 const localQueries = createLocalQueryRepository();
 let queryRepository = localQueries;   // swapped for the account store after login (boot)
 const compactSidebar = window.matchMedia("(max-width: 900px)");
@@ -31,9 +39,18 @@ function openReadingDraft(query = null) {
     understand: null, reading: false, rejected: [], answers: {}, evidence: null, selectedExample: "",
     draftEnquiry: query?.enquiry || "", activeQueryId: query?.id || null, paths: query?.paths || [],
     mode: query?.mode || store.get().mode, modelChoice: query?.modelChoice || store.get().modelChoice,
-    querySidebarOpen: !compactSidebar.matches, queryNotice: "", skipQueryAutosave: false });
+    querySidebarOpen: !compactSidebar.matches, queryNotice: "", skipQueryAutosave: false, queryRuns: null });
   window.scrollTo(0, 0);
   $("enq")?.focus({ preventScroll: true });
+}
+
+// Every result generated for a saved query (newest first) -> s.queryRuns, listed under it in the sidebar.
+async function loadQueryRuns(queryId) {
+  if (!queryId) { store.set({ queryRuns: null }); return []; }
+  let runs = [];
+  try { runs = await queryRepository.runsFor(queryId); } catch (_) { /* list stays empty */ }
+  if (store.get().activeQueryId === queryId) store.set({ queryRuns: { queryId, runs } });
+  return runs;
 }
 
 const actions = {
@@ -46,7 +63,7 @@ const actions = {
       canOpenStep({ ...s, view }, preferred) ? preferred : "reading";
     store.remember("view", view);
     store.remember("tab", tab);
-    store.set({ view, tab, evidence: null });
+    store.set({ view, tab });
   },
   openAccountMenu(anchor) { openAccountMenu(anchor, store.get().user, { openRun: (id) => actions.openRun(id) }); },
   setConfirm(confirm) { store.remember("confirm", confirm ? "on" : "off"); store.set({ confirm }); },
@@ -92,26 +109,32 @@ const actions = {
     if (store.get().busy) return;
     if (!store.get().skipQueryAutosave) await actions.saveQuery({ silent: true });
     const query = (await queryRepository.list()).find((item) => item.id === id);
-    if (query) openReadingDraft(query);
+    if (!query) return;
+    openReadingDraft(query);
+    const runs = await loadQueryRuns(id);
+    if (runs.length && store.get().activeQueryId === id) await actions.openRun(runs[0].runId, id);  // latest result
   },
   async removeQuery(id) {
     await queryRepository.remove(id);
     store.set({ savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent,
       ...(store.get().activeQueryId === id ? { activeQueryId: null, skipQueryAutosave: true } : {}), queryNotice: "Query removed." });
   },
-  async openRun(id) {
+  async openRun(id, queryId = null) {
     if (store.get().busy) return;
     try {
       const run = await getJSON(`/api/runs/${encodeURIComponent(id)}`);
       setDetected(run.requirements?.preferred_paths || []);
       const tab = run.error ? "reading" : "assessment";
+      const activeQueryId = queryId || store.get().savedQueries.find((q) => q.lastRunId === id)?.id || null;
       store.remember("tab", tab);
+      if (activeQueryId !== store.get().queryRuns?.queryId) store.set({ queryRuns: null });
       store.set({ run, previous: null, liveRun: null, error: "", understand: null, evidence: null, tab,
-        draftEnquiry: null, activeQueryId: store.get().savedQueries.find((q) => q.lastRunId === id)?.id || null,
+        draftEnquiry: null, activeQueryId,
         paths: run.preferred_paths || [], rejected: [],
         answers: Object.fromEntries(Object.entries(run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key))) });
       history.replaceState(null, "", `#run=${id}`);
       window.scrollTo(0, 0);
+      if (activeQueryId && store.get().queryRuns?.queryId !== activeQueryId) loadQueryRuns(activeQueryId);
     } catch (err) {
       store.set({ queryNotice: "Could not open that result.", error: `Could not open the saved result: ${err.message}` });
     }
@@ -144,20 +167,25 @@ const actions = {
     } catch (err) {
       if (request === readingRequest) store.set({ error: `Could not read the enquiry: ${err.message}` });
     } finally {
-      if (request === readingRequest) store.set({ reading: false });
+      if (request === readingRequest) {
+        store.set({ reading: false });
+      }
     }
   },
-  closeConfirm() { ++readingRequest; store.set({ understand: null, rejected: [], reading: false }); },
-  async confirmRun(withAnswers) {
+  closeConfirm() {
+    ++readingRequest;
+    store.set({ understand: null, rejected: [], reading: false });
+    $("enq")?.focus({ preventScroll: true });
+  },
+  async confirmRun() {
     const s = store.get();
     const u = s.understand;
-    if (!u || s.busy || s.reading) return;
+    if (!u || s.busy || s.reading || s.savingQuery) return;
     const shown = new Set([...u.paths.chosen, ...u.paths.detected]);
-    const keys = new Set(u.questions.map((q) => q.key));
     const answers = Object.fromEntries(Object.entries(s.answers).filter(([key, value]) => {
       if (!value.trim()) return false;
       const path = key.match(/^Path ([ABC]) - /);
-      return withAnswers ? !path || shown.has(path[1]) : !keys.has(key) && !path;
+      return !path || shown.has(path[1]);
     }));
     await actions.saveQuery({ silent: true });
     if (store.get().understand !== u || store.get().busy) return;
@@ -186,7 +214,7 @@ const actions = {
     const answers = activePathAnswers(Object.fromEntries(Object.entries(s.answers).filter(([key, value]) =>
       value.trim() && s.run.answers?.[key] !== value)));
     const pathsChanged = JSON.stringify(s.paths) !== JSON.stringify(s.run.preferred_paths || []);
-    if (!Object.keys(answers).length && !pathsChanged) { store.set({ error: "Type at least one answer, or change the preferred path in Reading, first." }); return; }
+    if (!Object.keys(answers).length && !pathsChanged) { store.set({ error: "Type at least one answer, or change the preferred path in Customer Enquiry, first." }); return; }
     await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode, preferred_paths: s.paths, model: chosenModel() });
   },
 };
@@ -213,7 +241,9 @@ async function run(url, body) {
   window.scrollTo(0, 0);
   let receivedResult = false;
   const s0 = store.get();
-  const headers = { "X-AFS-View": s0.view, ...(s0.activeQueryId ? { "X-AFS-Query-Id": s0.activeQueryId } : {}) };
+  const queryId = s0.activeQueryId;            // the saved query this run's result belongs to
+  const headers = { "X-AFS-View": s0.view, ...(queryId ? { "X-AFS-Query-Id": queryId } : {}) };
+  let finished = null;
   try {
     await stream(url, body, (e) => {
       const s = store.get();
@@ -229,8 +259,9 @@ async function run(url, body) {
         store.set({ error: `The run hit an error: ${e.detail}` });
       } else if (e.type === "result") {
         receivedResult = true;
+        finished = e.run;
         const answers = Object.fromEntries(Object.entries(e.run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key)));
-        const tab = s.view === "expert" ? "process" : e.run.error ? "reading" : completionTab;
+        const tab = s.view === "expert" ? "process" : e.run.error ? "reading" : normalizeTab(completionTab, s.view);
         store.remember("tab", tab);
         setDetected(e.run.requirements?.preferred_paths || []);
         store.set({ run: e.run, liveRun: e.run, tab,
@@ -247,15 +278,19 @@ async function run(url, body) {
         liveRun: null, busy: false, tab: s.view === "expert" ? "process" : "reading" });
     } else {
       const s = store.get();
-      const tab = s.view === "expert" ? "process" : s.run?.error ? "reading" : completionTab;
+      const tab = s.view === "expert" ? "process" : s.run?.error ? "reading" : normalizeTab(completionTab, s.view);
       store.remember("tab", tab);
       store.set({ liveRun: null, busy: false, tab });
     }
     if (store.get().run?.error) document.querySelector("#view .err")?.scrollIntoView({ block: "center" });
     else window.scrollTo(0, 0);
   }
-  if (queryRepository.kind === "server") {          // the server linked the run: refresh "last result" links
-    try { store.set({ savedQueries: await queryRepository.list() }); } catch (_) { /* keep the old list */ }
+  if (queryId && finished?.id) {                    // keep this result with its query (server: already linked)
+    try {
+      await queryRepository.attachRun(queryId, runSummary(finished, s0.view));
+      store.set({ savedQueries: await queryRepository.list() });
+    } catch (_) { /* keep the old list */ }
+    await loadQueryRuns(queryId);
   }
 }
 
@@ -281,14 +316,13 @@ function renderView(s) {
   } else if (s.tab === "reading") {
     renderQuerySidebar($("query-sidebar"), s, actions);
     renderEnquiry(content, s, actions);
-    if (s.understand && !s.busy && !s.reading) renderConfirm(content.querySelector("#reading-confirm"), s, actions);
   } else {
     const stage = { assessment: "report", verification: "verify", coach: "coach" }[s.tab];
     if (hasStageData(run, stage)) {
       renderPipelineStep(content, stage, run, { ...s, run }, actions);
     } else if (!run && !s.busy && !s.error) {
       content.innerHTML = `<div class="empty"><h2>Start with a customer enquiry</h2>
-        <p>Open Reading to type an enquiry or load a scenario. Each tab above shows its results as the pipeline runs.</p></div>`;
+        <p>Open Customer Enquiry to type an enquiry or load a scenario. Each tab above shows its results as the pipeline runs.</p></div>`;
     } else {
       const status = stepStatus(s, step.id);
       const message = status === "active" ? "This step is running. Its output will appear here when it finishes." :
@@ -311,7 +345,11 @@ function render(s) {
   $("view").setAttribute("aria-busy", String(s.busy || s.reading));
   $("view").setAttribute("aria-labelledby", transientLoading ? "page-title-loading" : `tab-${s.tab}`);
   renderView(s);
-  document.querySelector(".shell").classList.toggle("with-drawer", !!s.evidence);
+  renderConfirm($("reading-review"), s, actions);
+  // Keep the selected source and its scroll position when leaving the assessment.
+  const showEvidence = s.tab === "assessment" && !s.busy && !!s.evidence;
+  $("drawer").hidden = !showEvidence;
+  document.querySelector(".shell").classList.toggle("with-drawer", showEvidence);
   if (s.evidence !== lastEvidence) {
     lastEvidence = s.evidence;
     renderEvidence($("drawer"), s.evidence, () => store.set({ evidence: null }));
@@ -325,7 +363,7 @@ document.addEventListener("click", (ev) => {
   store.set({ evidence: { source: b.dataset.src, page: +b.dataset.page, quote: b.dataset.quote, status: b.dataset.status } });
 });
 document.addEventListener("keydown", (ev) => {
-  if (ev.key === "Escape" && store.get().evidence && !document.querySelector(".page-navigation:popover-open")) store.set({ evidence: null });
+  if (ev.key === "Escape" && !$("drawer").hidden && store.get().evidence && !document.querySelector(".page-navigation:popover-open")) store.set({ evidence: null });
 });
 
 store.subscribe(render);
@@ -356,13 +394,13 @@ async function loadAccount() {
 (async function boot() {
   await loadAccount();
   const linkedRun = location.hash.match(/run=([\w-]+)/);
-  const view = store.recall("view", "general");
+  const view = isPro(store.get().user) ? store.recall("view", "general") : "general";
   const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"), view);
   store.set({ tab: canOpenStep(store.get(), preferredTab) ? preferredTab : "reading",
     savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent,
     queryStorageLabel: queryRepository.label, querySidebarOpen: !compactSidebar.matches,
     mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto"),
-    view: isPro(store.get().user) ? view : "general", confirm: store.recall("confirm", "on") === "on" });
+    view, confirm: store.recall("confirm", "on") === "on" });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }
   try {

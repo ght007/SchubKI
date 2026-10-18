@@ -25,6 +25,11 @@ It also offers:
 - **A traceable AFS pathway**: a sourced, deterministic suggestion of Path A / B / C; the expert and the customer
   can ask for paths, each gets a fit verdict, and premature paths get an "If you proceed anyway" plan.
 
+**Current frontend:** Result Assessment is an 11-section outline preview in both modes, awaiting the future
+RAG output format. The existing generated report is retained and downloadable as Markdown. General shows a
+simple calculation flow; Expert adds Process Information with the live and completed calculation record.
+See [The user interface](#10-the-user-interface) and [frontend integration](docs/frontend-integration.md).
+
 ---
 
 ## Contents
@@ -49,7 +54,8 @@ It also offers:
 18. [Troubleshooting](#18-troubleshooting)
 19. [Limitations and honest caveats](#19-limitations-and-honest-caveats)
 20. [Future work](#20-future-work)
-21. [How the numbers work, and how the knowledge base grows](#21-how-the-numbers-work-and-how-the-knowledge-base-grows)
+21. [How the numbers work, and how the knowledge base grows]
+(#21-how-the-numbers-work-and-how-the-knowledge-base-grows)
 
 ---
 
@@ -71,7 +77,7 @@ an expert needs. So the system is split:
 | Confidence | **Computed** from observable signals | A model rating itself is not calibrated |
 
 If the model is unavailable, every stage has a rule-based fallback, so the app still produces a complete,
-cited (and clearly labelled) assessment.
+cited (and clearly labelled) assessment. 
 
 ## 2. How it maps to the evaluation criteria
 
@@ -88,9 +94,9 @@ cited (and clearly labelled) assessment.
 
 ```
                           ┌─────────────────────────── Browser (frontend/, no build step) ───────────────────────────┐
-                          │ enquiry · numbered dots on a spectrum pipeline line · four tabs                         │
-                          │ Reading · Result Assessment (grounded sources) · Confidence · Coach                      │
-                          │ source drawer (PDF page with highlighted quote)                                          │
+                          │ enquiry · spectrum pipeline line · General: 4 tabs · Expert: 5 tabs                     │
+                          │ Reading · [Expert: Process Information] · Result outline · Confidence · Coach            │
+                          │ sticky right-side navigation · source drawer with highlighted PDF evidence               │
                           └──────────────────────────────────────┬───────────────────────────────────────────────────┘
                                                                  │ HTTP + SSE (stage, stage_result, result)
 ┌────────────────────────────────────────────────── FastAPI (backend/app) ──────────────────────────────────────────────┐
@@ -121,15 +127,17 @@ command. A separate vector service would add setup risk and no benefit at this s
 
 ## 4. The pipeline, stage by stage
 
-The four browser tabs are Reading, Result Assessment, Confidence and Verification, and Coach.
-A temporary loading screen shows the current model and rule tasks while the navigation line fills.
-Each underlying stage emits `stage` progress
-events and a `stage_result` containing its own output when done.
-The numbered dots in the top navigation bar follow the active step automatically. They stay hollow
-until their step completes, then fill with its visual-spectrum color; the connecting line keeps a color
-gradient. Navigation is locked during calculation; the final `result` opens Result Assessment
-(or Coach after a what-if re-run) and unlocks the tabs. It
-contains the complete run saved in SQLite.
+General has three browser tabs: Reading, Result Assessment, and Confidence and Verification.
+Expert adds Process Information between Reading and Result Assessment, plus Coach at the end. During calculation, General shows
+only the simple stage flow with green completion dots; Expert stays on Process Information with live
+stage activity, model calls, timings, and council details.
+
+Each underlying stage emits `stage` progress events and a `stage_result` containing its output when done.
+The top navigation dots fill with their spectrum color as work completes, and the connecting line retains
+its gradient. Other tabs remain locked until the stream ends, including after the final `result` event.
+General then opens Result Assessment (Confidence and Verification if a what-if switches to General);
+Expert keeps Process Information open and unlocks the other tabs. The final event contains the complete
+run saved in SQLite.
 
 | # | Stage | Module | LLM? | Output |
 |---|---|---|---|---|
@@ -194,7 +202,8 @@ readiness claim, and the clinical-scope rule turns such requests into `outside_s
 6. **Pinned evidence:** cards on pages cited by blocking or warning rules are always included.
 7. **Token budget** (`MAX_EVIDENCE_TOKENS`, default 1800–2500) keeps prompts within the free tier.
 
-The Process tab shows the queries and the budget used for each run.
+Queries and the passage budget remain in the saved run's `retrieval` field and the trace API response.
+The current Process Information UI omits retrieval details.
 
 ## 7. Grounding: verifier, quality gate, confidence
 
@@ -282,7 +291,7 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
   accuracy, process conditions, installation, measuring points, response time) are marked stated /
   inferred / unknown and ranked by impact. It also writes an **improved enquiry template** to send to the
   customer, with `[blanks]` for missing facts. It never fills a blank; a template without blanks is rejected.
-- **What-if:** type the customer's answers in Coach and re-run. The answers are
+- **What-if (Expert mode):** type the customer's answers in Coach and re-run. The answers are
   added as stated facts, the whole pipeline runs again, and a before/after diff shows what changed
   (status, confidence, lead methods, ranking, completeness, AFS path, quality).
 
@@ -290,21 +299,30 @@ Council mode makes many more calls than Fast mode. On the free tier use it for f
 
 Open `http://localhost:8000`.
 
-**Two views** (toggle in the header; the browser remembers the choice). Both keep the same four tabs:
-Reading, Result Assessment, Confidence and Verification, and Coach.
+**Two views** (toggle in the app header; the browser remembers the choice):
 
-- **General (default)**, for internal non-experts such as sales or management: status and confidence in plain
-  words, the answer, *problems found in the request* (always shown), what to test first with a one-line plain
-  explanation of each method (sources behind "Show sources"), the top three questions, the first experiment,
-  and the next step with AFS including path verdicts. Domain terms have tooltips.
-- **Expert**: the full workbench described below.
+- **General (default):** Reading, Result Assessment, and Confidence and Verification. Calculation
+  uses a simple progress flow; no model-call or council diagnostics are rendered.
+- **Expert:** adds Process Information for live activity and the retained calculation record, including
+  stage activity, model calls, timings, and council details, plus Coach for all missing facts and what-if re-runs.
+
+Signed-in Basic accounts have General; Pro accounts have both views. The Expert button directs Basic
+accounts to pricing. Guest mode (`AUTH_REQUIRED=0`) keeps both views available for an offline demo.
+This branch includes main's authentication, account storage, and Supabase integration alongside these frontend changes.
+
+Both views currently share the same 11-section Result Assessment skeleton. It does not display the old
+General summary or full report; the existing generated report remains available through Markdown download.
+The sections below describe where each current feature is available.
 
 **Before you run it (pre-check)**: while the enquiry is typed, an instant keyword check (no AI) shows recognised
 terms (German aliases resolved, e.g. *Feuchte → moisture*, *Glasfaser → silica fiber*), vague words, early
 warnings from blocking rules, and missing key facts. It is informational; the questions are asked on the next step.
 
-**"Is this what you mean?" (in Reading, on by default)**: *Check and assess* first reads the enquiry
-with the extraction model (the run's own first stage) and shows a card with:
+**"Is this what you mean?" (Customer Enquiry dialog, on by default)**: *Check and assess* first reads the enquiry
+with the extraction model (the run's own first stage), then opens a modal review without expanding the page.
+The reading and follow-up questions scroll inside the dialog, with **Yes, assess** always available
+in its footer. Questions can be left unanswered. Escape or the close button returns to editing the original
+enquiry without starting an assessment. The review contains:
 - **We understood**: the structured readings that drive the rules (what to measure, sample form, optics, methods
   asked for, equipment they have, path they ask for, ...). Each has ✓ / ✗; a ✗ resets that reading to *unknown* for
   the run (e.g. "it is **not clear** yet" misread as *optics: clear*), so no rule fires on it. Glossary translations
@@ -313,9 +331,10 @@ with the extraction model (the run's own first stage) and shows a card with:
 - **Open questions, one list without repeats**: vague words, missing key facts, and the questions of every chosen
   or found path. A path question that covers a missing fact replaces it (Path A "reference values?" replaces the
   general reference question). Answers the text already gives are **pre-filled and tagged "from your text"**.
-- **Yes, assess** (with the answers given) · **Skip questions and assess** · **Back**; *Show this step before
-  every run* can be unticked (remembered), then *Assess enquiry* runs straight away. Path questions remain
-  available in Reading when the confirmation card is disabled.
+- **Assessment action**: **Yes, assess** includes any answers given and retains readings marked as unknown.
+  Unanswered questions are optional. *Show this dialog before every run* can be unticked
+  (remembered), then *Assess enquiry* runs straight away. Path questions remain available in Customer Enquiry
+  when the review dialog is disabled.
 
 The customer's text is never rewritten: corrections travel as `rejected` fields, answers as a separate block.
 Because path answers and ✗ corrections are kept out of the extraction prompt, confirming **reuses the cached
@@ -325,7 +344,7 @@ API directly and never see this step.
 **Preferred AFS path (multi-select, shown with full names)**: A *Chemometric model for process automation*,
 B *Multi-spectral system for your R&D lab*, C *Low-cost spectral sensor(s)*; none chosen = Auto. Paths the
 customer seems to ask for are marked *in the enquiry* by the pre-check. Each path has three one-click questions
-(for example *Has a lab trial already shown which wavelengths matter?*), asked on the confirmation card.
+(for example *Has a lab trial already shown which wavelengths matter?*), asked in the review dialog.
 **Everything is optional**: unanswered questions are not sent and the run simply proceeds without them. Some
 answers carry a sourced effect on that path's verdict (e.g. C + "No" → *premature*, S01 p.9; B + "In production"
 → *conflicts*, S02 p.20); the rest is context for the report. Path answers travel as
@@ -333,47 +352,62 @@ answers carry a sourced effect on that path's verdict (e.g. C + "No" → *premat
 extraction prompt so they cannot be misread as other facts. Change paths in Reading and press *Re-run* in Coach
 to re-assess. Answers for a removed path are excluded unless the customer asked for that path in the enquiry.
 
-- **Header:** decision status, computed confidence, quality x/16, claims verified, unsupported numbers.
-- **Top pipeline navigation:** General has four tabs: Reading → Result Assessment → Confidence and
-  Verification → Coach. Expert adds **Process Information** between Reading and Result Assessment.
+- **Pinned app header:** the AFS logo/title, account/login and plan controls, view toggle, status badges,
+  and pipeline navigation stay visible together at the top while scrolling, before, during, and after a run.
+  Section jumps and the sidebars account for the header's actual height, including wrapped rows on small screens.
+- **Top pipeline navigation:** General has three tabs: Reading → Result Assessment → Confidence and
+  Verification. Expert adds **Process Information** between Reading and Result Assessment, and **Coach** at the end.
   One continuous gradient line connects the numbered dots, which fill with their spectrum color as work
   completes. During calculation, General shows a temporary progress screen; Expert stays on Process
-  Information. Other tabs stay locked until processing ends. General then opens Result Assessment (Coach
-  after a what-if re-run); Expert stays on the completed process record with the other tabs unlocked.
+  Information. Other tabs stay locked until processing ends. General then opens Result Assessment;
+  Expert stays on the completed process record with the other tabs unlocked. Switching from Coach to
+  General opens Confidence and Verification, including after a what-if re-run switched to General while busy.
 - **Right-side page navigation:** a sticky, color-tinted panel contains each page's title, short explanation,
-  runtime, and vertical section links. The current section is accented automatically. Links open collapsed
+  and vertical section links. The current section is accented automatically. Links open collapsed
   sections and preserve `#run=<id>` deep links. On smaller screens, the “On this page” button opens the panel
   from the right; selecting a section closes it. Reading omits scenario, assessment-mode, and model links
-  from navigation while keeping those controls in the form.
+  from navigation while keeping those controls in the form. Page runtime and Full run badges are removed
+  from these panels; detailed stage timings remain in Expert's Process Information.
 - **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
   optional Path A/B/C selection, the instant pre-check, and the reading confirmation with follow-up questions.
   Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
-  browser; backend routing still uses the server configuration.
+  browser and sent to the backend for reading and assessment; Auto uses the server configuration.
 - **Saved queries:** a sidebar on Reading lists recent enquiry drafts. Save a query, start a new one, reopen
-  a saved query, or remove it. Text and Reading options are saved in this browser; checking or assessing an
-  enquiry also saves it. This UI has no user/chat database links. On small screens the list folds away.
-- **Account controls:** Log in and Subscribe to Expert are available throughout the app. Their dialogs are
-  placeholders; they collect no credentials or payments. Integration points for the separate account/chat
-  work are described in [frontend integration](docs/frontend-integration.md).
+  a saved query, or remove it. Signed-in users save to their account; guests save in this browser. Checking
+  or assessing an enquiry also saves it, and account queries link to their latest result. Local drafts are
+  imported once on sign-in. On small screens the list folds away.
+- **Account controls:** main's login, pricing, account menu, run history, and logout are integrated.
+  Basic users can upgrade to Pro for Expert; billing is still a demo without payments. The account chip
+  appears in both the app header and Queries sidebar. See [frontend integration](docs/frontend-integration.md)
+  and [Accounts, plans and pricing](#accounts-plans-and-pricing).
 - **General loading flow:** a simple list of steps with green completion dots and the current step.
   Model calls, council records, rule internals, and retrieval details are omitted.
-- **Process Information (Expert only):** current model activity, stage actors and timings, extracted
-  requirements, AFS rules and method screening, spectral coverage, retrieved evidence, premise checks,
-  model calls, and council results. Outputs arrive as their stages finish and remain available after the
-  run. Open sections stay open during live updates. If processing fails, the partial record stays available
+- **Process Information (Expert only):** current model activity, stage actors and timings, model calls,
+  and council results. Outputs arrive as their stages finish and remain available after the run.
+  Requirements read from the enquiry, AFS rules and method screening, evidence retrieval, and customer
+  premise-check panels and the spectral coverage map are removed from this tab, including retrieval-query
+  details inside the trace.
+  Their underlying data remains in the backend and saved runs. The seven calculation-stage markers remain.
+  Open sections stay open during live updates. If processing fails, the partial record stays available
   here; Reading unlocks for retry while result tabs remain locked.
-- **Result Assessment:** a shared outline preview in General and Expert, with contents links for Decision
+- **Result Assessment:** a shared report in General and Expert, with contents links for Decision
   Status, Requirements stated, Key unknowns, Clarification questions, Recommendation, Measurement concept,
-  Spectral range, Risks and uncertainty, First feasibility experiment, Decision basis, and Sources.
-  These are placeholder sections for the next assessment format; current RAG fields are not mapped into them.
-  Existing run data is retained, and the complete generated Markdown report (including appendices A–M)
-  remains available to download. Frontend slots are described in [frontend integration](docs/frontend-integration.md).
+  Spectral range, Risks and uncertainty, Decision basis, Sources, and First feasibility experiment.
+  The backend builds `run.outline` from the assessment data for both this page and the Markdown export.
+  Sections show placeholders until that outline is available. A separate Setup Overview shows proposed
+  diagrams for the selected AFS paths. Markdown downloads are available above and below the report.
+  Frontend slots are described in [frontend integration](docs/frontend-integration.md).
 - **Confidence and Verification:** computed confidence, citation checks, number and client-fact checks,
   and the quality gate. Calculation internals are kept in Expert's Process Information tab.
-- **Coach:** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
+- **Coach (Expert only):** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
   Completed runs can be reopened with `#run=<id>`.
 - **Source drawer:** click any citation chip. Shows the source's scope, the quote, whether it was found
   verbatim, the page text with the passage marked, and the original PDF page with the passage highlighted.
+
+**Data retention:** frontend visibility does not change the backend schema, pipeline outputs, saved runs,
+or exports. Keep all backend fields, including data the current UI does not use. Explicitly requested panel
+removals affect presentation only. Update this README and [frontend integration](docs/frontend-integration.md)
+with every subsequent update.
 
 ## 11. Installation
 
@@ -501,6 +535,7 @@ All settings are read from `.env` (`backend/app/config.py`).
 | `DB_PATH`, `RAW_DIR`, `KB_DIR` | `data/cache/afs.db`, `data/raw`, `data/kb` | paths |
 | `SUPABASE_DB_URL` | empty | Supabase Postgres URI (Session pooler). Set = Supabase is the main database (see "Where the data lives") |
 | `DB_BACKEND` | `supabase` | `sqlite` = ignore Supabase and run on the local file only |
+| `KB_EDIT` | `pro` | Knowledge-base editor (`/kb`): `pro` = logged-in Pro users, `open` = anyone (local demo), `off` = switched off |
 
 ## 15. Groq free tier: what to expect
 
@@ -549,6 +584,11 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 | `GET/POST /api/me/queries` · `DELETE /api/me/queries/{id}` | The user's saved enquiries (sidebar) |
 | `GET /api/me/runs?view=general\|expert` | The user's run history; results via `/api/runs/{id}` |
 | `GET/POST /api/me/projects` | The user's projects (saved enquiries can belong to one) |
+| `GET /api/kb/files` · `GET /api/kb/files/{kb\|raw}/{name}` | Editable knowledge files and uploaded documents (Pro, see `KB_EDIT`) |
+| `POST /api/kb/files/kb/{name}/preview` · `PUT /api/kb/files/kb/{name}` | Check a change (problems, warnings, diff) / save it as a new version, then rebuild and publish |
+| `GET /api/kb/files/{area}/{name}/history` · `POST …/restore` | Versions with author, time and comment / restore one (saved as a new version) |
+| `POST /api/kb/upload` · `POST /api/kb/sources` | Upload a document (base64 JSON, PDF/TXT/MD/DOCX, max 15 MB) / register it as a source with an evidence scope |
+| `GET /api/kb/status` | Rebuild and publish progress |
 | `GET /api/billing/plans` · `POST /api/billing/checkout` | Plans with prices and views, current plan; choose a plan (demo mode switches at once) |
 
 ## 17. Repository layout
@@ -566,22 +606,24 @@ afs-assistant/
 │  ├─ main.py                   FastAPI app, static frontend, startup ingest and model check
 │  ├─ config.py                 settings from .env, source file names
 │  ├─ schemas.py                all Pydantic models (LLM contracts and run objects)
-│  ├─ api/                      assess.py (SSE, what-if) · sources.py (page text/images) · runs.py (runs, export, health, examples, feedback)
+│  ├─ api/                      assess.py (SSE, what-if) · sources.py (page text/images) · runs.py (runs, export, health, examples, feedback) · kb_admin.py (knowledge-base editor)
 │  ├─ llm/
 │  │  ├─ client.py              Groq client: JSON schema, validation, 429/413, cache, fallback, trace
 │  │  ├─ models.py              model roles, council list, availability check
 │  │  └─ prompts/               extract · premise · report · repair · judge · coach (.md)
-│  ├─ kb/                       pages.py (page text, normaliser) · store.py (SQLite) · embed.py · ingest.py · retrieve.py
+│  ├─ kb/                       pages.py (page text, normaliser) · store.py (SQLite) · embed.py · ingest.py · retrieve.py · files.py (KB editor: checks, versions, rebuild, sync)
 │  ├─ engine/                   extract · understand · paths · glossary · precheck · rules · coverage · screen ·
 │  │                            context · premise · report · council ·
 │  │                            verify · quality · confidence · coach · whatif · pipeline (stage_result SSE)
 │  └─ render/markdown.py        run → Markdown
 ├─ frontend/
-│  ├─ index.html · css/styles.css
-│  └─ js/                       api.js · state.js · app.js · glossary.js · pipeline-steps.js (shared step model)
-│      └─ components/           pipeline.js (tab views and temporary loading screen) · page-navigation · header · enquiry · confirm ·
-│                               pathq · precheck · coach · summary · report · matrix · spectral-map ·
+│  ├─ index.html · css/styles.css · kb.html + js/kb.js + css/kb.css (knowledge-base editor, Pro)
+│  └─ js/                       api.js · state.js · app.js · glossary.js · pipeline-steps.js · query-history.js
+│      └─ components/           pipeline.js (mode-specific views) · assessment-outline · page-navigation · header ·
+│                               enquiry · confirm · pathq · precheck · query-sidebar · account-controls · coach ·
+│                               summary · report (retained renderers) · matrix · spectral-map ·
 │                               evidence · quality · council · whatif · trace
+├─ docs/frontend-integration.md  page navigation, mode handling, result slots, data retention, query/account hooks
 ├─ eval/
 │  ├─ cases/                    final_cases.yaml (H01–H06 verbatim) · dev_cases.yaml (D01–D08 + worked answers) · adversarial_cases.yaml
 │  ├─ run_cases.py · summary.py · judge.py
@@ -605,7 +647,7 @@ afs-assistant/
 | Embedding download fails | Set `EMBED_BACKEND=hashing` (offline embedder), re-run ingest. |
 | Many `429 … waiting` lines | Free-tier per-minute limit; normal (section 15). Endless 30 s waits on one model usually mean its daily limit is used up. |
 | `413 Request too large` | One request exceeds the per-minute limit; lower `MAX_EVIDENCE_TOKENS`. |
-| Process shows "fallback" | That stage's LLM call failed; the rule-based version was used. The error text is in Process and in `outputs/*.json` (`trace`). |
+| Process Information shows "fallback" | That stage's LLM call failed; the rule-based version was used. In Expert, open Process Information → Model calls and timing for the error. It is also in `outputs/*.json` (`trace`). |
 | UI shows "Rule-only mode" | `LLM_MOCK=1` or no `GROQ_API_KEY` in `.env`. |
 | Citation drawer: "quote NOT found" | The model cited a passage that is not on that page; the claim is treated as unsupported and flagged by the quality gate. |
 
@@ -623,7 +665,7 @@ afs-assistant/
 - **Council agreement** uses two model families (gpt-oss and qwen) on this key, so it is weaker evidence
   than fully independent models; the UI says so.
 - **Rules are deliberately conservative** and keyword-assisted; an expert should review the fired rules
-  (Process tab) for each case.
+  in the saved run or Markdown export for each case. Rule details are not currently rendered in the UI.
 - **Free-tier latency** makes Council mode slow; Fast mode is the live-demo mode.
 
 ## 20. Future work
@@ -668,7 +710,9 @@ they were checked against expected outcomes (dev and adversarial cases), not fit
 4. Status *insufficient information* or *outside supported scope* → confidence insufficient.
 
 Client premises are shown but do not lower the level: a wrong customer premise is a finding, not
-uncertainty in the answer. Per method: lead = overall, candidate = one level lower, weak / not supported =
+uncertainty in the answer. 
+
+Per method: lead = overall, candidate = one level lower, weak / not supported =
 insufficient. "What would raise confidence" = the top three unknown, high-impact coach questions.
 
 ### Other numbers
@@ -737,8 +781,9 @@ review by an AFS expert.
 
 | Layer | Process |
 |---|---|
-| **Searchable text** (automatic once registered) | Add the file to `SOURCE_FILES` (`config.py`) and to `sources.json` with an evidence scope, re-run ingest. Its pages become retrievable and citable; the verifier checks quotes from them like any other. Planned: auto-discovery of new PDFs with scope "unreviewed", which can never raise confidence. |
+| **Searchable text** (automatic once registered) | Upload the document on the Knowledge base page (`/kb`, Pro) and register it with an evidence scope; it gets the next source id (S07, …), its pages become retrievable and citable, and the verifier checks quotes from it like any other. Readable types: PDF with a text layer, TXT, MD, DOCX (split into 400-word pages). The registry is `data/kb/sources.json`; `config.source_files()` reads it. |
 | **Curated cards and rules** (human-approved by design) | The model proposes candidate cards from a new document; only cards whose quote passes the on-page check are kept; an AFS expert approves them into `claims.jsonl`. Rules are written or approved by experts; expert feedback is already stored per run (`/api/feedback`) as input for new rules. |
+| **Editing in the app** | The Knowledge base page edits the curated files directly. Every save is checked first (JSON/YAML parses; card quotes are on their page; rules name known sources and use valid conditions; sources still cited cannot be removed) and refused with the exact line if it fails. Each version is stored with author, time and comment (`kb_files` table, SQLite and Supabase) and can be restored. After a save the index is rebuilt in the background (assessments wait for it), caches are cleared and the KB is published to Supabase; other machines pull the newer files at startup and rebuild. The evaluation case file can never be uploaded or registered. |
 | **Regression after every change** | `pytest` (every quote on its page, every rule sourced) and `python -m eval.run_cases --set dev` / `--set adversarial` (expectation column must read OK). The knowledge base is versioned in git. |
 
 ---
@@ -747,3 +792,11 @@ review by an AFS expert.
 Control slides, S03 LED kidney study (Sensors 2017), S04 combined MIR-fluorescence probe (Anal. Chem.
 2021), S05 AFS flyer, S06 laboratory link, and the AFS method comparison table. All are © their respective
 owners and are not redistributed in this repository.*
+
+## Team
+
+- Naumanurrahman Shaikmujeeburrahman
+- Akshdeep Singh
+- Eisa Atif
+- Atfan Deshmukh
+- Marie Habermann

@@ -12,7 +12,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .api import assess, auth, runs, sources
+from .api import assess, auth, kb_admin, runs, sources
 from .config import settings
 from .kb import store
 from .llm import models
@@ -25,6 +25,7 @@ app.include_router(assess.router)
 app.include_router(sources.router)
 app.include_router(runs.router)
 app.include_router(auth.router)
+app.include_router(kb_admin.router)
 
 
 @app.on_event("startup")
@@ -37,6 +38,11 @@ def startup() -> None:
         except (SystemExit, Exception) as exc:  # missing sources must not stop the server (hosted build)
             log.error("Ingest failed, knowledge base stays empty: %s", exc)
     log.info("Database: %s", store.db_status().get("detail"))
+    try:                                 # knowledge-base files edited on another machine (Knowledge base page)
+        from .kb import files as kb_files
+        kb_files.sync_from_db()
+    except Exception as exc:  # noqa: BLE001  (never block startup)
+        log.warning("Could not pull knowledge-base changes: %s", exc)
     store.schedule_sync(startup=True)   # publish the knowledge base if needed, upload local-only rows
     status = models.check()
     log.info("LLM mock=%s key=%s models=%s", settings.llm_mock, bool(settings.groq_api_key), status)
@@ -47,7 +53,7 @@ async def no_cache_frontend(request, call_next):
     """Never let the browser cache the page or its JavaScript/CSS: after a code update,
     a normal reload must show the new version (ES modules are otherwise cached aggressively)."""
     response = await call_next(request)
-    if request.url.path in ("/", "/app", "/login", "/pricing") or request.url.path.startswith("/static/"):
+    if request.url.path in ("/", "/app", "/login", "/pricing", "/kb") or request.url.path.startswith("/static/"):
         response.headers["Cache-Control"] = "no-store, max-age=0"
     return response
 
@@ -87,6 +93,14 @@ def login_page(request: Request, next: str | None = None):  # noqa: A002  (query
     if auth.current_user(request):
         return RedirectResponse(_safe_next(next), status_code=307)
     return FileResponse(settings.frontend_dir / "login.html")
+
+
+@app.get("/kb")
+def kb_page(request: Request):
+    """Knowledge-base editor (Pro). The API checks permissions on every call; the page only needs a login."""
+    if settings.auth_required and not auth.current_user(request):
+        return RedirectResponse(f"/login?next={quote('/kb')}", status_code=307)
+    return FileResponse(settings.frontend_dir / "kb.html")
 
 
 @app.get("/pricing")

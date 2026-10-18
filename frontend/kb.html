@@ -1,0 +1,54 @@
+<!doctype html>
+<!-- Knowledge-base editor (Pro): edit the curated files, upload and register documents, see versions.
+     Every save is checked by the server, stored as a version, rebuilt and published (backend/app/kb/files.py). -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge base · AFS Assessment Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/static/css/kb.css">
+</head>
+<body class="kb-body">
+  <header class="topbar">
+    <a class="brand kb-brand" href="/app">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <defs><linearGradient id="spec" x1="0" x2="1"><stop offset="0" stop-color="#6d28d9"/><stop offset=".3" stop-color="#2563eb"/><stop offset=".55" stop-color="#16a34a"/><stop offset=".75" stop-color="#eab308"/><stop offset="1" stop-color="#dc2626"/></linearGradient></defs>
+        <path d="M3 30 C 14 30, 14 10, 25 10 S 34 18, 37 18" fill="none" stroke="url(#spec)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="3" cy="30" r="3" fill="var(--ink)"/>
+      </svg>
+      <div>
+        <div class="brand-name">AFS Assessment Assistant</div>
+        <div class="brand-sub">Knowledge base</div>
+      </div>
+    </a>
+    <nav class="kb-nav"><a class="btn" href="/app">Back to the assistant</a></nav>
+  </header>
+
+  <div id="kb-status" class="kb-status" role="status" aria-live="polite" hidden></div>
+
+  <main class="kb-main">
+    <aside class="kb-side" aria-label="Knowledge-base files">
+      <h2>Knowledge files</h2>
+      <ul class="kb-list" id="kb-files"></ul>
+      <h2>Documents</h2>
+      <ul class="kb-list" id="kb-docs"></ul>
+      <button type="button" class="btn kb-upload-btn" id="kb-upload-open">Upload a document</button>
+    </aside>
+    <section class="kb-work" id="kb-work" aria-live="polite">
+      <div class="kb-empty"><h1>Knowledge base</h1>
+        <p>Choose a file on the left to view or edit it, or upload a new document.</p>
+        <ul class="small muted">
+          <li>Every save is checked first: files must parse, evidence quotes must be on their page, rules must name
+            their sources and use valid conditions. A file that fails is not saved.</li>
+          <li>After a save the knowledge base is rebuilt and published, and the next assessment uses it.</li>
+          <li>Every version is kept with author and time and can be restored.</li>
+        </ul></div>
+    </section>
+  </main>
+  <script type="module" src="/static/js/kb.js"></script>
+</body>
+</html>

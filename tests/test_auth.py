@@ -286,3 +286,38 @@ def test_legacy_tier_names_map_to_plans():
     assert plans.tier_of({"subscription_tier": "free"}) == "basic"
     assert plans.tier_of({"subscription_tier": "expert"}) == "pro"
     assert plans.tier_of({"subscription_tier": "nonsense"}) == "basic" and plans.tier_of(None) == "basic"
+
+
+def test_every_result_of_a_saved_query_is_kept(fresh, monkeypatch):
+    """Re-runs and what-ifs of a saved query are all listed under it, newest first, and stay private."""
+    n = {"i": 0}
+
+    def fake_run(request, emit=None):
+        n["i"] += 1
+        return RunResult(id=f"run-{n['i']}", created=f"2026-10-18T10:00:0{n['i']}+00:00", mode=request.mode,
+                         enquiry=request.enquiry, parent_run_id=request.parent_run_id)
+
+    monkeypatch.setattr(assess_api.pipeline, "run", fake_run)
+    c = client()
+    signup(c)
+    a = c.post("/api/me/queries", json={"enquiry": "Water in crude oil"}).json()
+    b = c.post("/api/me/queries", json={"enquiry": "Protein in whey"}).json()
+    head = {"X-AFS-Query-Id": a["id"]}
+    c.post("/api/assess/sync", json={"enquiry": "Water in crude oil"}, headers=head)                      # run-1
+    c.post("/api/assess/sync", json={"enquiry": "Water in crude oil", "mode": "council"}, headers=head)   # run-2
+    c.post("/api/assess/sync", json={"enquiry": "Water in crude oil", "parent_run_id": "run-2"})         # run-3, what-if
+    c.post("/api/assess/sync", json={"enquiry": "Protein in whey"}, headers={"X-AFS-Query-Id": b["id"]})  # run-4
+
+    runs = c.get(f"/api/me/queries/{a['id']}/runs").json()
+    assert [(r["runId"], r["mode"], r["parentRunId"]) for r in runs] == [
+        ("run-3", "fast", "run-2"), ("run-2", "council", None), ("run-1", "fast", None)]
+    assert [r["runId"] for r in c.get(f"/api/me/runs?query_id={b['id']}").json()] == ["run-4"]
+    counts = {q["id"]: (q["runCount"], q["lastRunId"]) for q in c.get("/api/me/queries").json()}
+    assert counts == {a["id"]: (3, "run-3"), b["id"]: (1, "run-4")}
+
+    other = client()
+    signup(other, "eve@example.com")
+    assert other.get(f"/api/me/queries/{a['id']}/runs").json() == []                    # not visible to others
+    other.post("/api/assess/sync", json={"enquiry": "x"}, headers={"X-AFS-Query-Id": a["id"]})   # run-5, forged link
+    assert [r["queryId"] for r in other.get("/api/me/runs").json()] == [None]
+    assert len(c.get(f"/api/me/queries/{a['id']}/runs").json()) == 3

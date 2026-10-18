@@ -9,3 +9,5 @@ data/raw/*.docx
 data/raw/*.xlsx
 .DS_Store
 sources.zip
+.venv312/
+.vscode/
