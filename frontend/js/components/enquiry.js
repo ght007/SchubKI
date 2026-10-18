@@ -1,4 +1,4 @@
-// The Read step owns the customer enquiry and its UI-only model preference.
+// The Read step owns the customer enquiry, the intake options and the LLM choice for the run.
 import { esc } from "../api.js";
 import { runPrecheck, schedulePrecheck } from "./precheck.js";
 import { renderPathPicker } from "./pathq.js";
@@ -10,8 +10,13 @@ export function renderEnquiry(el, s, actions) {
   const enquiry = s.draftEnquiry ?? s.run?.enquiry ?? "";
   const locked = s.busy || s.reading || !!s.understand;
   const configured = s.health?.models || {};
-  const models = [...new Set([configured.fast, configured.main, ...(configured.council || []), s.modelChoice]
-    .filter((model) => model && model !== "auto"))];
+  const models = s.modelList?.models || [...new Set([configured.fast, configured.main, ...(configured.council || [])]
+    .filter(Boolean))].map((id) => ({ id, note: "" }));
+  const chosen = models.find((m) => m.id === s.modelChoice);
+  const defaults = s.modelList?.defaults || configured;
+  const modelNote = chosen
+    ? `${chosen.note}. Used for every step of this run${s.mode === "council" ? "; Council drafts still compare several models" : ""}.`
+    : `Server default: ${defaults.fast || "fast model"} reads the enquiry and checks claims, ${defaults.main || "main model"} writes the assessment.`;
 
   el.innerHTML = `<section class="panel enquiry-stage">
     <h2>Customer enquiry</h2>
@@ -41,13 +46,13 @@ export function renderEnquiry(el, s, actions) {
       </div>
       <div class="enquiry-option">
         <label class="enquiry-option-label" for="model-choice">LLM model</label>
-        <select id="model-choice">
-          <option value="auto" ${s.modelChoice === "auto" ? "selected" : ""}>Server default</option>
-          ${models.map((model) => `<option value="${esc(model)}" ${s.modelChoice === model ? "selected" : ""}>${esc(model)}</option>`).join("")}
+        <select id="model-choice" ${s.busy || s.reading ? "disabled" : ""}>
+          <option value="auto" ${s.modelChoice === "auto" ? "selected" : ""}>Server default (recommended)</option>
+          ${models.map((m) => `<option value="${esc(m.id)}" ${s.modelChoice === m.id ? "selected" : ""}>${esc(m.id)}${m.tested === false ? " (not tested)" : ""}</option>`).join("")}
         </select>
       </div>
     </div>
-    <p class="small muted model-note">Model choice is saved in this browser. The server still uses its configured model.</p>
+    <p class="small muted model-note" aria-live="polite">${esc(modelNote)}${s.modelList?.mock ? " Rule-only mode: no model is called." : ""}</p>
     <label class="small confirm-choice"><input type="checkbox" id="confirm-choice" ${s.confirm ? "checked" : ""} ${s.busy || s.reading ? "disabled" : ""}> Review the reading and follow-up questions before assessing</label>
     <div class="enquiry-actions"><button type="button" class="btn primary" id="go" ${s.busy || s.reading ? "disabled" : ""}>${s.reading ? "Reading…" : s.busy ? "Assessing…" : s.understand ? "Continue review ↓" : s.confirm ? "Check and assess" : "Assess enquiry"}</button></div>
     ${s.error ? `<div class="err">${esc(s.error)}</div>` : ""}

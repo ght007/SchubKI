@@ -70,7 +70,8 @@ The spectrum line derives its columns, endpoint positions, colors, and progress 
 Display mode uses main's account plan rules: Basic accounts have General, Pro accounts have both views,
 and guest demo mode permits both. `actions.setView` preserves the upgrade redirect for Basic accounts;
 boot normalizes stored tabs against the plan's effective view before restoring a saved run.
-The existing RAG pipeline, stream payloads, saved run objects, and Markdown export are unchanged.
+The merged backend adds `run.outline` to stream results and saved runs, and shares its section ordering
+with the Markdown export. Existing report and process fields remain available.
 
 ## Data retention
 
@@ -81,8 +82,8 @@ spectral and fiber coverage, retrieval, evidence, premises, paths, reports, veri
 coaching, council records, traces, timings, and what-if differences.
 
 The current result outline intentionally leaves some generated data unused. Keep the backend data and the
-original report/summary renderers available for future integration. The new outline slots are presentation
-hooks; defining them does not migrate or replace the existing backend response format.
+original report/summary renderers available for future integration. The outline slots present the backend's
+additive `run.outline` format without removing the original report fields.
 
 The removed requirements, rules, retrieval, premise, and spectral-map panels leave their data in
 `run.requirements`, `rule_hits`, `matrix`, `spectral`, `coverage`, `retrieval`, `evidence`, and `premises`.
@@ -92,7 +93,8 @@ saved run, or Markdown export is deleted or rewritten by this visibility change.
 ## Result Assessment outline
 
 `frontend/js/components/assessment-outline.js` owns the new result outline. General and Expert show the same
-11 placeholder sections, in the order below. The sticky right-side navigation builds its contents links from their
+11 sections from `run.outline`, in the order below. Sections show placeholders before the outline is available.
+The sticky right-side navigation builds its contents links from their
 headings, so section jumps and the current-section accent work without a separate navigation definition.
 
 | Frontend slot | Heading |
@@ -105,22 +107,19 @@ headings, so section jumps and the current-section accent work without a separat
 | `measurement_concept` | Measurement concept |
 | `spectral_range` | Spectral range |
 | `risks_and_uncertainty` | Risks and uncertainty |
-| `first_feasibility_experiment` | First feasibility experiment |
 | `decision_basis` | Decision basis |
 | `sources` | Sources |
+| `first_feasibility_experiment_prototype` | First feasibility experiment prototype |
 
 Each section has `data-assessment-field="<slot>"`, a heading ID `assessment-<slot-with-hyphens>`, and a content
-container with that ID plus `-content`. These are frontend hooks, not a new backend response contract.
-When the future RAG format is agreed, add a presenter that renders its fields into these content containers.
-Keep the heading IDs and section order stable. Escape plain text and reuse the existing citation/source drawer
-components when adding grounded statements; external sources must display their quoted passages.
+container with that ID plus `-content`. Keys and ordering match `backend/app/render/outline.py`, which builds
+the outline from the existing assessment data. The presenter accepts the run payload and renders its outline
+without inventing claims. Grounded statements reuse the citation/source drawer components and show quotes.
+The final section includes the proposed setup diagrams from `project-setup.js`.
 
-The outline intentionally accepts no run payload and does not adapt, rewrite, or manufacture values from
-`run.report`, requirements, premises, or evidence. No scenario-specific example content is embedded.
-`pipeline.js` shows the outline after the existing report stage completes and keeps the current report's
-Markdown download available. Current run objects, API responses, saved data, prompts, retrieval, verification,
-and the original `report.js` / `summary.js` components are retained. Confidence and Verification, Coach,
-Reading, and processing behavior continue using their existing data.
+`pipeline.js` shows the outline after the report stage completes and keeps the Markdown download available
+above it. Saved runs without an outline show placeholders. Existing report/summary renderers remain intact.
+Confidence and Verification, Coach, Reading, and processing behavior continue using their existing data.
 
 ## Query sidebar and account controls
 

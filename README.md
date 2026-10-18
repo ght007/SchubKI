@@ -244,6 +244,29 @@ then **capped** by rules (e.g. silica link for MIR → low; undefined target →
 level for weak verification or council disagreement. Also shown: client-premise and model-agreement signals,
 per-method confidence and the questions that would raise it.
 
+### The output format (11 sections)
+
+Every assessment is presented in one 11-section structure, the same on the Result Assessment page, in the
+Markdown download and in `outputs/H0x.md`: 01 Decision Status · 02 Requirements stated · 03 Key unknowns ·
+04 Clarification questions · 05 Recommendation · 06 Measurement concept · 07 Spectral range · 08 Risks and
+uncertainty · 09 Decision basis · 10 Sources · 11 First feasibility experiment prototype (plan, next step with
+AFS, project setup diagram). Built once by `backend/app/render/outline.py` (`run.outline`) from the report; it
+reorganises, never rewrites, so citations and verifier flags are kept. Details: `docs/frontend-integration.md`.
+
+### Choosing the LLM
+
+The **LLM model** dropdown on Reading lists the chat models this Groq key can use (`GET /api/models`; speech,
+voice and guard models are never offered; a model we have not tested is marked "not tested").
+- **Server default (recommended):** the fast model reads the enquiry, checks claims, repairs and coaches; the
+  main model writes the report. Two models = two free-tier budgets, so fewer `429` waits.
+- **A chosen model** runs **every stage** of that run, including the "Is this what you mean?" reading (so the
+  run still reuses that cached reading). In **Council** mode the drafts and judges still compare the council
+  models; every other stage uses the choice. One model = one budget: expect more `429` waits, especially with
+  `gpt-oss-120b`.
+- The server validates the choice (400 for a model the key cannot use), stores it on the run (`model_choice`),
+  what-if re-runs keep it unless changed, the trace shows every call's model, and the Markdown export names it.
+  The choice is remembered in the browser and in saved queries. Available to every user.
+
 ## 8. Council mode (multi-model)
 
 1. Each model in `COUNCIL_MODELS` (default `openai/gpt-oss-120b`, `qwen/qwen3.8-27b`, `openai/gpt-oss-20b`)
@@ -349,7 +372,7 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
 - **Reading:** a centered customer enquiry form with a larger text field, a scenario loader beneath it,
   optional Path A/B/C selection, the instant pre-check, and the reading confirmation with follow-up questions.
   Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
-  browser; backend routing still uses the server configuration.
+  browser and sent to the backend for reading and assessment; Auto uses the server configuration.
 - **Saved queries:** a sidebar on Reading lists recent enquiry drafts. Save a query, start a new one, reopen
   a saved query, or remove it. Signed-in users save to their account; guests save in this browser. Checking
   or assessing an enquiry also saves it, and account queries link to their latest result. Local drafts are
@@ -368,12 +391,13 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   Their underlying data remains in the backend and saved runs. The seven calculation-stage markers remain.
   Open sections stay open during live updates. If processing fails, the partial record stays available
   here; Reading unlocks for retry while result tabs remain locked.
-- **Result Assessment:** a shared outline preview in General and Expert, with contents links for Decision
+- **Result Assessment:** a shared report in General and Expert, with contents links for Decision
   Status, Requirements stated, Key unknowns, Clarification questions, Recommendation, Measurement concept,
-  Spectral range, Risks and uncertainty, First feasibility experiment, Decision basis, and Sources.
-  These are placeholder sections for the next assessment format; current RAG fields are not mapped into them.
-  Existing run data is retained, and the complete generated Markdown report (including appendices A–M)
-  remains available to download. Frontend slots are described in [frontend integration](docs/frontend-integration.md).
+  Spectral range, Risks and uncertainty, Decision basis, Sources, and First feasibility experiment prototype.
+  The backend builds `run.outline` from the assessment data for both this page and the Markdown export.
+  Sections show placeholders until that outline is available. The final section includes proposed setup
+  diagrams for the selected AFS paths. Existing run data and the complete Markdown report remain available.
+  Frontend slots are described in [frontend integration](docs/frontend-integration.md).
 - **Confidence and Verification:** computed confidence, citation checks, number and client-fact checks,
   and the quality gate. Calculation internals are kept in Expert's Process Information tab.
 - **Coach (Expert only):** follow-up questions, improved enquiry template, and what-if re-runs with before/after changes.
@@ -535,7 +559,8 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 | Method & path | Purpose |
 |---|---|
 | `POST /api/understand` | Reading confirmation: structured readings, glossary translations, paths, warnings, and one list of questions with pre-fills. Body: `{enquiry, answers?, preferred_paths?}` |
-| `POST /api/assess` | Run the pipeline; SSE stream (`stage`, `stage_result`, `detail`, `error`, `result`). Each `stage_result` contains that stage's fields and the current trace; `result` contains the complete saved run. Body: `{enquiry, answers?, mode: fast|council, preferred_paths?: ["A","B","C"], rejected?: ["optical_behavior", ...]}` |
+| `POST /api/assess` | Run the pipeline; SSE stream (`stage`, `stage_result`, `detail`, `error`, `result`). Each `stage_result` contains that stage's fields and the current trace; `result` contains the complete saved run. Body: `{enquiry, answers?, mode: fast|council, preferred_paths?: ["A","B","C"], rejected?: ["optical_behavior", ...], model?: "qwen/qwen3.8-27b"}` |
+| `GET /api/models` | Models a user may choose (chat models this key can use; speech, voice and guard models filtered out), with a note each, plus the server defaults |
 | `POST /api/assess/sync` | Same, returns the run JSON (scripts, curl) |
 | `POST /api/whatif` | Re-run a saved run with answers; same SSE events. Body: `{run_id, answers, mode?, preferred_paths?}` |
 | `GET /api/coach/{run_id}` | Coach result of a run |

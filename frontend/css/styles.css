@@ -678,5 +678,54 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .account-menu-item.upgrade span { font-weight: 400; color: var(--graphite); font-size: .76rem; }
 .account-menu-sep { border-top: 1px solid var(--line-soft); margin: .3rem 0; }
 .account-facts a { color: var(--core); }
+.prototype-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-m); }
+.prototype-scroll:focus-visible { outline: 2px solid var(--core); outline-offset: 3px; }
+.prototype-board { min-width: calc(var(--lane-count) * 245px); }
+.prototype-lanes, .prototype-cells { display: grid; grid-template-columns: repeat(var(--lane-count), minmax(0, 1fr)); }
+.prototype-lane { padding: 1rem; display: grid; gap: .35rem; background: var(--core-soft); border-right: 1px solid var(--line); }
+.prototype-lane span { font-size: .8rem; color: var(--graphite); }
+.prototype-lane:last-child { border-right: 0; }
+.prototype-system + .prototype-system { border-top: 2px solid var(--line); }
+.prototype-system-head { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; padding: 1rem 1rem .4rem; }
+.prototype-system-head h3 { margin: 0; font-size: 1rem; }
+.prototype-condition { margin: .3rem 1rem; }
+.prototype-cell { position: relative; padding: 1rem; border-right: 1px dashed var(--line); display: flex; }
+.prototype-cell:last-child { border-right: 0; }
+.prototype-cell:not(:last-child)::after { content: "↔"; position: absolute; z-index: 1; right: -1rem; top: 2.3rem; width: 2rem; text-align: center; background: var(--surface); color: var(--core); font-size: 1.25rem; }
+.prototype-box { width: 100%; min-width: 0; padding: .85rem; border: 1px solid var(--core); border-radius: var(--radius-s); background: var(--surface); overflow-wrap: anywhere; }
+.prototype-box h4 { margin: 0 0 .6rem; font-size: .9rem; }
+.prototype-box ul { margin: 0; padding-left: 1.1rem; font-size: .85rem; }
+.prototype-box li + li { margin-top: .4rem; }
+.prototype-output { border-top: 1px solid var(--line-soft); padding-top: .6rem; margin: .8rem 0 0; font-size: .8rem; color: var(--core); }
+.prototype-fit { margin-bottom: 0; }
+.prototype-validation { margin: 0; padding: .4rem 1rem 1rem; color: var(--graphite); }
 .view-toggle button.locked { color: var(--graphite); display: inline-flex; align-items: center; gap: .3rem; }
 .view-toggle .lock { width: 13px; height: 13px; }
+
+/* Result Assessment: filled 11-section outline (assessment-outline.js) */
+.assessment-document.filled .assessment-field-content { border: 0; padding: 0; }
+.assessment-document.filled .assessment-section:first-child { background: none; }
+.assessment-section.assessment-diagram { grid-template-columns: minmax(0, 1fr); }
+.outline-pills { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .6rem; }
+.outline-sub { margin: .9rem 0 .35rem; font-size: .92rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.assessment-field-content > .outline-sub:first-child, .outline-rec:first-child .outline-sub { margin-top: 0; }
+.outline-list { margin: 0; padding-left: 1.2rem; }
+.outline-list li { margin: .3rem 0; }
+.outline-list .tag { margin-left: .35rem; }
+.outline-rec + .outline-rec { margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--line-soft); }
+.outline-details { margin-top: .6rem; }
+.outline-details summary { cursor: pointer; font-size: .88rem; color: var(--core); }
+.outline-sources { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+.outline-sources li > span { font-size: .88rem; }
+.outline-sources blockquote { margin: .35rem 0 0; padding: .3rem .7rem; border-left: 3px solid var(--core); background: var(--core-soft);
+  font-size: .85rem; color: var(--ink); }
+.outline-sources blockquote:not(.verified):not(.unchecked) { border-left-color: var(--warn); background: var(--warn-soft); }
+.outline-plan { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .4rem 1.4rem; margin-bottom: .4rem; }
+.outline-plan-block .outline-sub { margin-top: .5rem; }
+
+/* project setup diagram (project-setup.js): classes from the team's final version */
+.project-setup { display: grid; gap: .6rem; }
+.prototype-path { font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--core); }
+.prototype-lane h3 { margin: 0; font-size: .92rem; }
+.prototype-box h4 { display: flex; align-items: center; gap: .4rem; }
+.prototype-icon { flex: none; width: 1.15rem; height: 1.15rem; color: var(--core); }

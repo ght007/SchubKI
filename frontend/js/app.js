@@ -130,7 +130,8 @@ const actions = {
     if (request !== readingRequest) return;
     let reviewReady = false;
     try {
-      const data = await postJSON("/api/understand", { enquiry, answers: {}, preferred_paths: [...store.get().paths] });
+      const data = await postJSON("/api/understand", { enquiry, answers: {}, preferred_paths: [...store.get().paths],
+        model: chosenModel() });
       if (request !== readingRequest) return;
       const s = store.get();
       const answers = { ...s.answers };
@@ -166,7 +167,7 @@ const actions = {
     await actions.saveQuery({ silent: true });
     if (store.get().understand !== u || store.get().busy) return;
     await run("/api/assess", { enquiry: u.enquiry, answers, mode: s.mode,
-      preferred_paths: s.paths, rejected: [...s.rejected] });
+      preferred_paths: s.paths, rejected: [...s.rejected], model: chosenModel() });
   },
   async assess(enquiry) {
     if (!enquiry.trim()) { store.set({ error: "Type or load an enquiry first." }); return; }
@@ -176,12 +177,13 @@ const actions = {
     if (s.confirm) { await actions.understand(enquiry.trim()); return; }
     await actions.saveQuery({ silent: true });
     const answers = activePathAnswers(Object.fromEntries(Object.entries(s.answers).filter(([, value]) => value.trim())));
-    await run("/api/assess", { enquiry, answers, mode: s.mode, preferred_paths: s.paths });
+    await run("/api/assess", { enquiry, answers, mode: s.mode, preferred_paths: s.paths, model: chosenModel() });
   },
   async assessCouncil() {
     const r = store.get().busy ? null : store.get().run;
     if (r) { store.remember("mode", "council"); store.set({ mode: "council", answers: {} }); await run("/api/assess", {
-      enquiry: r.enquiry, answers: r.answers, mode: "council", preferred_paths: r.preferred_paths || [], rejected: r.rejected || [] }); }
+      enquiry: r.enquiry, answers: r.answers, mode: "council", preferred_paths: r.preferred_paths || [], rejected: r.rejected || [],
+      model: r.model_choice || null }); }
   },
   async whatif() {
     const s = store.get();
@@ -190,9 +192,12 @@ const actions = {
       value.trim() && s.run.answers?.[key] !== value)));
     const pathsChanged = JSON.stringify(s.paths) !== JSON.stringify(s.run.preferred_paths || []);
     if (!Object.keys(answers).length && !pathsChanged) { store.set({ error: "Type at least one answer, or change the preferred path in Reading, first." }); return; }
-    await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode, preferred_paths: s.paths });
+    await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode, preferred_paths: s.paths, model: chosenModel() });
   },
 };
+
+// The chosen LLM for a request ("auto" = server defaults, sent as null).
+function chosenModel() { const m = store.get().modelChoice; return m && m !== "auto" ? m : null; }
 
 async function run(url, body) {
   ++readingRequest;
@@ -360,6 +365,11 @@ async function loadAccount() {
     view, confirm: store.recall("confirm", "on") === "on" });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }
+  try {
+    const modelList = await getJSON("/api/models");
+    const keep = modelList.models.some((m) => m.id === store.get().modelChoice);
+    store.set({ modelList, modelChoice: keep ? store.get().modelChoice : "auto" });   // a stored model the key lost
+  } catch (_) { /* older server: dropdown falls back to the health list */ }
   await Promise.all([loadGlossary(), loadPathQuestions()]);
   if (linkedRun) {
     try {

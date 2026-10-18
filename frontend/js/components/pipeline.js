@@ -121,10 +121,9 @@ function renderPremise(el, run) {
 }
 
 function renderAssessment(el, run, state) {
-  renderAssessmentOutline(el);
-  // Preserve access to the existing generated report while the new presentation is a skeleton.
-  if (!state.busy && run.id) el.insertAdjacentHTML("beforeend", `<div class="assessment-export">
-    <p class="small muted">The current generated report is still available to download.</p>
+  renderAssessmentOutline(el, run);
+  // Keep the Markdown export alongside the rendered assessment.
+  if (!state.busy && run.id) el.insertAdjacentHTML("afterbegin", `<div class="assessment-export">
     <a class="btn" href="/api/runs/${encodeURIComponent(run.id)}/export.md" download>Download current report (Markdown)</a>
   </div>`);
 }

@@ -21,6 +21,7 @@ function contents(content, tab) {
 
   const headings = [...content.querySelectorAll("h2, h3, summary")].filter((node) => {
     if (node.tagName === "SUMMARY" && node.parentElement.classList.contains("srcs")) return false;
+    if (node.tagName === "SUMMARY" && node.closest(".assessment-document")) return false;   // only the 11 section headings
     if (node.tagName === "H3" && (tab !== "coach" || !node.textContent.includes("Improved enquiry"))) return false;
     return node.tagName === "SUMMARY" || !node.closest("details") || node.hasAttribute("data-page-toc");
   });
