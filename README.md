@@ -1,4 +1,4 @@
-# AFS Assessment Assistant
+# AFS Fiberwise
 
 **An AI assistant for the first technical assessment of in-line spectroscopy enquiries.**
 Built for the Art Fiber Systems (AFS) challenge, *National AI Hackathon 2026 by SchubKI*.
