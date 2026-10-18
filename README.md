@@ -318,7 +318,7 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   Information. Other tabs stay locked until processing ends. General then opens Result Assessment (Coach
   after a what-if re-run); Expert stays on the completed process record with the other tabs unlocked.
 - **Right-side page navigation:** a sticky, color-tinted panel contains each page's title, short explanation,
-  runtime, and vertical section links. The current section is accented automatically. Links open collapsed
+  and vertical section links. The current section is accented automatically. Links open collapsed
   sections and preserve `#run=<id>` deep links. On smaller screens, the “On this page” button opens the panel
   from the right; selecting a section closes it. Reading omits scenario, assessment-mode, and model links
   from navigation while keeping those controls in the form.

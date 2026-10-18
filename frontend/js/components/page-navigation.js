@@ -1,8 +1,7 @@
-// A sticky navigation panel to the right of each page, with live timings and section tracking.
+// A sticky navigation panel to the right of each page, with section tracking.
 import { esc } from "../api.js";
-import { STEPS, activeStep, latestStageEvent, stepStatus } from "../pipeline-steps.js";
+import { latestStageEvent } from "../pipeline-steps.js";
 
-const formatTime = (ms) => ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
 let cleanupNavigation = () => {};
 
 const contentsLinks = (links) => links.map(([label, id]) => `<a href="#${id}">${esc(label)}</a>`).join("");
@@ -27,15 +26,6 @@ function contents(content, tab) {
     node.id ||= `section-${tab}-${index}`;
     return [label, node.id];
   });
-}
-
-function stageTime(s, run, id) {
-  const timings = run?.timings_ms || {};
-  const direct = timings[id] ?? (id === "report" ? timings.council : undefined);
-  if (direct != null) return direct;
-  const event = [...s.stages].reverse().find((item) =>
-    (item.stage === id || (id === "report" && item.stage === "council")) && item.status === "done");
-  return event?.ms;
 }
 
 function trackContents(panel, content, tab) {
@@ -156,19 +146,13 @@ function trackContents(panel, content, tab) {
   };
 }
 
-export function renderPageNavigation(content, s, step, run) {
+export function renderPageNavigation(content, s, step) {
   cleanupNavigation();
-  const status = stepStatus(s, step.id);
-  const current = activeStep(s);
-  const stageTimes = step.stages.map((id) => stageTime(s, run, id)).filter((ms) => Number.isFinite(ms));
-  const runtime = stageTimes.reduce((sum, ms) => sum + ms, 0);
-  const total = run?.timings_ms?.total;
   const event = latestStageEvent(s, step.id);
   const detail = [...s.details].reverse().find((item) =>
     step.stages.includes(item.stage === "council" ? "report" : item.stage) &&
     (step.id !== "loading" || item.stage === event?.stage));
-  const detailParts = s.view === "expert" && step.id === "process" ? [event?.detail?.replaceAll("_", " "), detail?.detail,
-    s.busy && current && current !== step.id ? `Current stage: ${STEPS.find((item) => item.id === current)?.label || current}` : ""]
+  const detailParts = s.view === "expert" && step.id === "process" ? [event?.detail?.replaceAll("_", " "), detail?.detail]
     .filter(Boolean) : [];
   const links = contents(content, step.id);
   const panel = document.createElement("aside");
@@ -178,11 +162,6 @@ export function renderPageNavigation(content, s, step, run) {
   panel.style.setProperty("--page-accent", step.color);
   panel.innerHTML = `<button type="button" class="page-navigation-close" popovertarget="page-navigation" popovertargetaction="hide" aria-label="Close page navigation" autofocus>Close ×</button>
     <div class="page-navigation-copy"><h1 id="page-title-${step.id}">${esc(step.label)}</h1><p>${esc(step.description)}</p></div>
-    <div class="page-runtime" aria-label="Runtime statistics">
-      <span class="page-stat">${stageTimes.length ? `${status === "active" ? "Runtime so far" : "Page runtime"}: <b>${formatTime(runtime)}</b>` :
-        s.busy || (s.reading && current === step.id) ? "Running…" : "Runtime: awaiting assessment"}</span>
-      ${Number.isFinite(total) ? `<span class="page-stat">Full run: <b>${formatTime(total)}</b></span>` : ""}
-    </div>
   ${detailParts.length ? `<p class="page-detail">${detailParts.map(esc).join(" · ")}</p>` : ""}
   <nav class="page-toc" aria-label="Contents of ${esc(step.label)}">
     <span class="page-toc-label">On this page</span>

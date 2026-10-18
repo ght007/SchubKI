@@ -3,7 +3,7 @@
 ## Page navigation
 
 `frontend/js/components/page-navigation.js` wraps page content with a sticky navigation panel on the right.
-It owns the title, explanation, runtime stats, section links, and `aria-current="location"` tracking.
+It owns the title, explanation, section links, and `aria-current="location"` tracking.
 Reading's link list deliberately excludes the scenario loader, assessment mode, and model choice;
 their form controls remain available. Other pages derive their links from content headings.
 On viewports up to 1100px, or when the content area is narrower than 740px (for example beside the source

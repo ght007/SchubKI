@@ -285,10 +285,6 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 }
 .page-navigation h1 { font-size: 1.25rem; line-height: 1.25; margin: 0 0 .55rem; letter-spacing: -.025em; }
 .page-navigation-copy p { margin: 0; color: #d4e1e9; font-size: .84rem; }
-.page-runtime { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; margin-top: .9rem; }
-.page-stat { display: inline-flex; gap: .35rem; align-items: baseline; padding: .3rem .65rem; border-radius: 999px;
-  background: rgba(255,255,255,.11); border: 1px solid rgba(255,255,255,.24); font-size: .81rem; white-space: nowrap; }
-.page-stat b { font-weight: 700; }
 .page-detail { margin: .85rem 0 0; color: #d4e1e9; font-size: .84rem; }
 .page-toc { margin-top: 1rem; padding-top: .95rem; border-top: 1px solid rgba(255,255,255,.24); }
 .page-toc-label { display: block; color: #d4e1e9; font-size: .8rem; font-weight: 600; margin-bottom: .6rem; }

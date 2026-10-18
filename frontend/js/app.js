@@ -269,7 +269,7 @@ function renderView(s) {
         `<div class="err">${esc(s.error || run.error)}</div>` : ""}</div>`;
     }
   }
-  renderPageNavigation(content, s, step, run);
+  renderPageNavigation(content, s, step);
 }
 
 let lastEvidence = null;
