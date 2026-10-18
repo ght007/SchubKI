@@ -291,9 +291,6 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 .page-navigation h1 { font-size: 1.25rem; line-height: 1.25; margin: 0 0 .55rem; letter-spacing: -.025em; }
 .page-navigation-copy p { margin: 0; color: #d4e1e9; font-size: .84rem; }
 .page-detail { margin: .85rem 0 0; color: #d4e1e9; font-size: .84rem; }
-.page-review-status { margin: 1rem 0 0; padding: .75rem; border: 1px solid rgba(250,210,137,.5);
-  border-radius: var(--radius-s); background: rgba(250,210,137,.1); color: #fae1b0; font-size: .83rem; }
-.page-review-status strong { display: block; margin-bottom: .25rem; }
 .page-toc { margin-top: 1rem; padding-top: .95rem; border-top: 1px solid rgba(255,255,255,.24); }
 .page-toc-label { display: block; color: #d4e1e9; font-size: .8rem; font-weight: 600; margin-bottom: .6rem; }
 .page-toc-links { display: grid; gap: .35rem; min-width: 0; }
@@ -301,8 +298,6 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
   border: 1px solid rgba(255,255,255,.23); border-left-width: 3px; border-radius: var(--radius-s); padding: .48rem .6rem;
   font-size: .83rem; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
 .page-toc a:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.55); }
-.page-toc a.page-toc-next { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-weight: 600; }
-.page-next-label { flex: none; border: 1px solid currentColor; border-radius: 999px; padding: .05rem .4rem; font-size: .7rem; }
 .page-toc a[aria-current="location"] { color: #102534; background: color-mix(in srgb, var(--page-accent) 18%, #fff);
   border-color: #fff; border-left-color: var(--page-accent); box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
 .page-toc a:focus-visible { outline-color: #fff; }
@@ -593,13 +588,25 @@ abbr.gl { text-decoration: underline dotted var(--faint); text-underline-offset:
 details.proceed { margin-top: .5rem; border: 1px dashed var(--line); border-radius: var(--radius-s); padding: .45rem .7rem; }
 details.proceed summary { cursor: pointer; }
 
-/* "Is this what you mean?" card (step 1 of a run) */
-.confirm { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--core); border-radius: var(--radius-m);
-  padding: 1.1rem 1.3rem; }
+/* "Is this what you mean?" modal: the review scrolls while its actions stay visible. */
+html:has(.reading-review-dialog[open]) { overflow: hidden; }
+.reading-review-dialog { width: min(780px, calc(100% - 2rem)); max-width: none;
+  max-height: calc(100dvh - 2rem); padding: 0; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-top: 4px solid var(--core); border-radius: var(--radius-m);
+  box-shadow: 0 24px 80px rgba(6,20,32,.3); overflow: hidden; }
+.reading-review-dialog[open] { display: flex; flex-direction: column; }
+.reading-review-dialog::backdrop { background: rgba(6,20,32,.55); backdrop-filter: blur(3px); }
+.cf-dialog-header { display: flex; align-items: flex-start; gap: 1rem; flex: none;
+  padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid var(--line-soft); }
+.cf-dialog-header h2 { margin: 0; font-size: 1.4rem; }
+.cf-dialog-header p { margin: .6rem 0 0; color: var(--graphite); font-size: .9rem; }
+.cf-close { flex: none; display: grid; place-items: center; width: 2.25rem; height: 2.25rem;
+  margin-left: auto; padding: 0; border: 1px solid var(--line); border-radius: var(--radius-s);
+  background: var(--surface); color: var(--graphite); font: inherit; font-size: 1.5rem; cursor: pointer; }
+.cf-close:hover { background: var(--line-soft); color: var(--ink); }
+.cf-dialog-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 1.5rem 1.25rem; }
 .confirm h3 { font-size: .95rem; margin: 0 0 .4rem; }
-.cf-intro { padding: 1rem; border-radius: var(--radius-s); background: var(--core-soft); }
 .cf-next-step { display: block; margin: 0 0 .4rem; color: var(--core); font-size: .8rem; font-weight: 700; }
-.cf-jump { margin-top: .35rem; }
 .cf-reader { margin: .7rem 0 0; }
 .cf-block { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--line-soft); }
 .cf-summary { margin: 0 0 .5rem; }
@@ -613,17 +620,28 @@ details.proceed summary { cursor: pointer; }
 .tag { display: inline-block; font-size: .72rem; border-radius: 999px; padding: 0 .45rem; background: var(--core-soft); color: var(--core); }
 .tag.fromtext { background: var(--ok-soft); color: var(--ok); }
 .confirm .pc-q input { width: 100%; margin-top: .3rem; }
-.cf-actions { margin-top: 1.25rem; padding: 1rem; background: var(--core-soft);
-  border: 1px solid color-mix(in srgb, var(--core) 35%, var(--line)); border-radius: var(--radius-s); }
-.cf-action-buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; margin-top: .85rem; }
-.cf-always { display: block; margin-top: 1rem; color: var(--graphite); }
+.cf-actions { flex: none; padding: 1rem 1.5rem; background: var(--core-soft); border-top: 1px solid var(--line); }
+.cf-action-buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; }
+.cf-always { display: block; margin-top: .8rem; color: var(--graphite); }
 .readings .val { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 700px) {
   .readings li { flex-wrap: wrap; }
   .readings .lbl { flex-basis: 100%; }
   .cf-action-buttons { flex-direction: column; }
   .cf-action-buttons .btn { width: 100%; }
+  .cf-dialog-header { padding: 1rem; }
+  .cf-dialog-header h2 { font-size: 1.2rem; }
+  .cf-dialog-body { padding: 0 1rem 1rem; }
+  .cf-actions { padding: .85rem 1rem; }
   .chip { white-space: normal; overflow-wrap: anywhere; }
+}
+@media (max-height: 520px) and (min-width: 480px) {
+  .cf-dialog-header { padding: .65rem 1rem; }
+  .cf-dialog-header p { margin-top: .35rem; font-size: .8rem; }
+  .cf-action-buttons { flex-direction: row; }
+  .cf-action-buttons .btn { width: auto; }
+  .cf-actions { padding: .6rem 1rem; }
+  .cf-always { margin-top: .4rem; }
 }
 
 /* ---------------------------------------------------------------- accounts */

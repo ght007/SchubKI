@@ -7,7 +7,7 @@ import { renderPageNavigation } from "./components/page-navigation.js";
 import { renderEnquiry } from "./components/enquiry.js";
 import { hasStageData, renderPipelineStep, renderLoadingFlow, renderProcessInformation } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
-import { renderConfirm, focusReadingReview } from "./components/confirm.js";
+import { renderConfirm } from "./components/confirm.js";
 import { resetPrecheck } from "./components/precheck.js";
 import { activePathAnswers, loadPathQuestions, setDetected } from "./components/pathq.js";
 import { loadGlossary } from "./glossary.js";
@@ -151,7 +151,6 @@ const actions = {
     store.set({ reading: true, error: "", draftEnquiry: enquiry, tab: "reading" });
     await actions.saveQuery({ silent: true });
     if (request !== readingRequest) return;
-    let reviewReady = false;
     try {
       const data = await postJSON("/api/understand", { enquiry, answers: {}, preferred_paths: [...store.get().paths],
         model: chosenModel() });
@@ -165,21 +164,23 @@ const actions = {
       data.enquiry = enquiry;
       setDetected(data.paths.detected);
       store.set({ understand: data, answers, rejected: s.understand ? s.rejected : [] });
-      reviewReady = true;
     } catch (err) {
       if (request === readingRequest) store.set({ error: `Could not read the enquiry: ${err.message}` });
     } finally {
       if (request === readingRequest) {
         store.set({ reading: false });
-        if (reviewReady) focusReadingReview();
       }
     }
   },
-  closeConfirm() { ++readingRequest; store.set({ understand: null, rejected: [], reading: false }); },
+  closeConfirm() {
+    ++readingRequest;
+    store.set({ understand: null, rejected: [], reading: false });
+    $("enq")?.focus({ preventScroll: true });
+  },
   async confirmRun(withAnswers) {
     const s = store.get();
     const u = s.understand;
-    if (!u || s.busy || s.reading) return;
+    if (!u || s.busy || s.reading || s.savingQuery) return;
     const shown = new Set([...u.paths.chosen, ...u.paths.detected]);
     const keys = new Set(u.questions.map((q) => q.key));
     const answers = Object.fromEntries(Object.entries(s.answers).filter(([key, value]) => {
@@ -316,7 +317,6 @@ function renderView(s) {
   } else if (s.tab === "reading") {
     renderQuerySidebar($("query-sidebar"), s, actions);
     renderEnquiry(content, s, actions);
-    if (s.understand && !s.busy && !s.reading) renderConfirm(content.querySelector("#reading-confirm"), s, actions);
   } else {
     const stage = { assessment: "report", verification: "verify", coach: "coach" }[s.tab];
     if (hasStageData(run, stage)) {
@@ -346,6 +346,7 @@ function render(s) {
   $("view").setAttribute("aria-busy", String(s.busy || s.reading));
   $("view").setAttribute("aria-labelledby", transientLoading ? "page-title-loading" : `tab-${s.tab}`);
   renderView(s);
+  renderConfirm($("reading-review"), s, actions);
   // Keep the selected source and its scroll position when leaving the assessment.
   const showEvidence = s.tab === "assessment" && !s.busy && !!s.evidence;
   $("drawer").hidden = !showEvidence;
