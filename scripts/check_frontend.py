@@ -33,7 +33,7 @@ def main() -> int:
         if f'id="{ident}"' not in html:
             problems.append(f'index.html has no element id="{ident}"')
 
-    # Intake and follow-up containers are rendered inside Reading in the four-tab shell.
+    # Intake and follow-up containers are rendered inside Reading in the mode-aware shell.
     enquiry = (ROOT / "js/components/enquiry.js").read_text(encoding="utf-8")
     for ident in ("precheck", "pathpick", "reading-confirm", "enq"):
         if f'id="{ident}"' not in enquiry:

@@ -84,12 +84,13 @@ p { margin: .3rem 0 .6rem; }
 }
 .fiber.running { position: sticky; top: 0; z-index: 5; }
 .fiber-rail {
-  position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  width: max(100%, 720px); min-height: 84px; padding: 0 1.25rem;
+  --rail-padding: 1.25rem;
+  position: relative; display: grid; grid-template-columns: repeat(var(--step-count, 4), minmax(0, 1fr));
+  width: max(100%, calc(var(--step-count, 4) * 180px)); min-height: 84px; padding: 0 var(--rail-padding);
 }
 .fiber-track, .fiber-lit {
-  position: absolute; z-index: 1; top: 24px; left: calc(12.5% + .9375rem);
-  right: calc(12.5% + .9375rem); height: 3px; border-radius: 999px;
+  position: absolute; z-index: 1; top: 24px; left: calc(var(--half-step, 12.5%) + var(--rail-padding) * var(--edge-factor, .75));
+  right: calc(var(--half-step, 12.5%) + var(--rail-padding) * var(--edge-factor, .75)); height: 3px; border-radius: 999px;
   background: var(--spectrum, linear-gradient(90deg, #6d28d9, #2563eb 25%, #0b7285 45%, #16a34a 60%, #eab308 80%, #dc2626));
   pointer-events: none;
 }
@@ -330,6 +331,7 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 .process-item.done .process-marker { background: var(--ok); border-color: var(--ok); }
 .process-item.active .process-marker { border-color: var(--core); box-shadow: 0 0 0 4px var(--core-soft); }
 .process-item.error .process-marker { border-color: var(--block); }
+.process-flow .process-item.active .process-marker { border-color: var(--ok); box-shadow: 0 0 0 4px var(--ok-soft); }
 .process-title { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; }
 .process-item p { margin: .15rem 0 0; }
 .stage-card { min-width: 0; padding: .85rem 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); }
@@ -340,8 +342,7 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 .view .section:has(table.data) { overflow-x: auto; }
 @media (max-width: 760px) {
   .fiber { scroll-padding-inline: .75rem; }
-  .fiber-rail { padding-inline: .75rem; }
-  .fiber-track, .fiber-lit { left: calc(12.5% + .5625rem); right: calc(12.5% + .5625rem); }
+  .fiber-rail { --rail-padding: .75rem; }
   .stage-grid { grid-template-columns: 1fr; }
 }
 

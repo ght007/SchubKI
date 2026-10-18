@@ -5,7 +5,7 @@ import { STEPS, LOADING_PAGE, canOpenStep, normalizeTab, stepStatus } from "./pi
 import { renderStatus, renderFiber } from "./components/header.js";
 import { renderPageNavigation } from "./components/page-navigation.js";
 import { renderEnquiry } from "./components/enquiry.js";
-import { hasStageData, renderPipelineStep, renderProcess } from "./components/pipeline.js";
+import { hasStageData, renderPipelineStep, renderLoadingFlow, renderProcessInformation } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
 import { renderConfirm } from "./components/confirm.js";
 import { resetPrecheck } from "./components/precheck.js";
@@ -37,7 +37,15 @@ function openReadingDraft(query = null) {
 
 const actions = {
   setMode(mode) { store.remember("mode", mode); store.set({ mode }); },
-  setView(view) { store.remember("view", view); store.set({ view }); },
+  setView(view) {
+    const s = store.get();
+    const preferred = normalizeTab(s.tab, view);
+    const tab = s.busy ? view === "expert" ? "process" : "reading" :
+      canOpenStep({ ...s, view }, preferred) ? preferred : "reading";
+    store.remember("view", view);
+    store.remember("tab", tab);
+    store.set({ view, tab, evidence: null });
+  },
   setConfirm(confirm) { store.remember("confirm", confirm ? "on" : "off"); store.set({ confirm }); },
   togglePath(path) {
     const s = store.get();
@@ -89,7 +97,7 @@ const actions = {
       ...(store.get().activeQueryId === id ? { activeQueryId: null, skipQueryAutosave: true } : {}), queryNotice: "Query removed." });
   },
   selectTab(id) {
-    const tab = normalizeTab(id);
+    const tab = normalizeTab(id, store.get().view);
     if (!canOpenStep(store.get(), tab)) return;
     store.remember("tab", tab);
     store.set({ tab });
@@ -175,7 +183,8 @@ async function run(url, body) {
     timings_ms: {},
   };
   store.set({ busy: true, error: "", stages: [], details: [], previous,
-    run: null, liveRun, understand: null, reading: false, evidence: null });
+    run: null, liveRun, understand: null, reading: false, evidence: null,
+    tab: store.get().view === "expert" ? "process" : "reading" });
   window.scrollTo(0, 0);
   let receivedResult = false;
   try {
@@ -194,7 +203,7 @@ async function run(url, body) {
       } else if (e.type === "result") {
         receivedResult = true;
         const answers = Object.fromEntries(Object.entries(e.run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key)));
-        const tab = e.run.error ? "reading" : completionTab;
+        const tab = s.view === "expert" ? "process" : e.run.error ? "reading" : completionTab;
         store.remember("tab", tab);
         setDetected(e.run.requirements?.preferred_paths || []);
         store.set({ run: e.run, liveRun: e.run, tab,
@@ -208,9 +217,12 @@ async function run(url, body) {
     if (!receivedResult) {
       const s = store.get();
       store.set({ run: { ...s.liveRun, error: s.error || "Run ended before a result was returned." },
-        liveRun: null, busy: false, tab: "reading" });
+        liveRun: null, busy: false, tab: s.view === "expert" ? "process" : "reading" });
     } else {
-      store.set({ liveRun: null, busy: false });
+      const s = store.get();
+      const tab = s.view === "expert" ? "process" : s.run?.error ? "reading" : completionTab;
+      store.remember("tab", tab);
+      store.set({ liveRun: null, busy: false, tab });
     }
     if (store.get().run?.error) document.querySelector("#view .err")?.scrollIntoView({ block: "center" });
     else window.scrollTo(0, 0);
@@ -219,16 +231,23 @@ async function run(url, body) {
 
 function renderView(s) {
   const el = $("view");
+  const disclosures = new Map([...el.querySelectorAll("[data-process-section]")]
+    .map((node) => [node.dataset.processSection, node.open]));
   const run = s.busy ? s.liveRun : s.run;
-  const step = s.busy ? LOADING_PAGE : STEPS.find((item) => item.id === s.tab);
+  const step = s.busy && s.view !== "expert" ? LOADING_PAGE : STEPS.find((item) => item.id === s.tab);
   const readingPage = !s.busy && s.tab === "reading";
   el.innerHTML = readingPage ? `<div class="reading-layout">
     <aside id="query-sidebar" class="query-sidebar" aria-labelledby="saved-queries-title"></aside>
     <div id="reading-main" class="reading-main"><div id="stage-content" class="page-content"></div></div>
   </div>` : `<div id="stage-content" class="page-content"></div>`;
   const content = el.querySelector("#stage-content");
-  if (s.busy) {
-    renderProcess(content, run, s, actions);
+  if (s.busy && s.view !== "expert") {
+    renderLoadingFlow(content, run, s);
+  } else if (s.view === "expert" && s.tab === "process") {
+    renderProcessInformation(content, run, s, actions);
+    content.querySelectorAll("[data-process-section]").forEach((node) => {
+      if (disclosures.has(node.dataset.processSection)) node.open = disclosures.get(node.dataset.processSection);
+    });
   } else if (s.tab === "reading") {
     renderQuerySidebar($("query-sidebar"), s, actions);
     renderEnquiry(content, s, actions);
@@ -257,9 +276,10 @@ let lastEvidence = null;
 function render(s) {
   renderStatus($("status"), s, actions);
   renderFiber($("fiber"), s, actions.selectTab);
-  $("view").setAttribute("role", s.busy ? "region" : "tabpanel");
+  const transientLoading = s.busy && s.view !== "expert";
+  $("view").setAttribute("role", transientLoading ? "region" : "tabpanel");
   $("view").setAttribute("aria-busy", String(s.busy || s.reading));
-  $("view").setAttribute("aria-labelledby", s.busy ? "page-title-loading" : `tab-${s.tab}`);
+  $("view").setAttribute("aria-labelledby", transientLoading ? "page-title-loading" : `tab-${s.tab}`);
   renderView(s);
   document.querySelector(".shell").classList.toggle("with-drawer", !!s.evidence);
   if (s.evidence !== lastEvidence) {
@@ -284,11 +304,12 @@ compactSidebar.addEventListener("change", (event) => store.set({ querySidebarOpe
 
 (async function boot() {
   const linkedRun = location.hash.match(/run=([\w-]+)/);
-  const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"));
+  const view = store.recall("view", "general");
+  const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"), view);
   store.set({ tab: canOpenStep(store.get(), preferredTab) ? preferredTab : "reading",
     savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent, querySidebarOpen: !compactSidebar.matches,
     mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto"),
-    view: store.recall("view", "general"), confirm: store.recall("confirm", "on") === "on" });
+    view, confirm: store.recall("confirm", "on") === "on" });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }
   await Promise.all([loadGlossary(), loadPathQuestions()]);

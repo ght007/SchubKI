@@ -167,9 +167,9 @@ export function renderPageNavigation(content, s, step, run) {
   const detail = [...s.details].reverse().find((item) =>
     step.stages.includes(item.stage === "council" ? "report" : item.stage) &&
     (step.id !== "loading" || item.stage === event?.stage));
-  const detailParts = [event?.detail?.replaceAll("_", " "), detail?.detail,
+  const detailParts = s.view === "expert" && step.id === "process" ? [event?.detail?.replaceAll("_", " "), detail?.detail,
     s.busy && current && current !== step.id ? `Current stage: ${STEPS.find((item) => item.id === current)?.label || current}` : ""]
-    .filter(Boolean);
+    .filter(Boolean) : [];
   const links = contents(content, step.id);
   const panel = document.createElement("aside");
   panel.id = "page-navigation";

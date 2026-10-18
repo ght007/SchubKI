@@ -10,6 +10,29 @@ On viewports up to 1100px, or when the content area is narrower than 740px (for 
 drawer), the panel uses a native popover opened by “On this page”. Section selection closes the popover.
 Observers and global listeners are cleaned up when the view is rebuilt.
 
+## General and Expert processing
+
+`pipeline-steps.js` defines all five tabs; `visibleSteps(state)` excludes Process Information in General.
+`normalizeTab(id, view)` also handles stored legacy tab names without exposing the process tab in General.
+The spectrum line derives its columns, endpoint positions, colors, and progress from the visible steps.
+
+- General: four tabs and a temporary `renderLoadingFlow` screen containing only the simple stage flow.
+  No process-detail markup is rendered. A successful run opens Result Assessment (Coach after a what-if).
+- Expert: five tabs, with `process` labeled **Process Information**. Starting a run selects this tab.
+  `renderProcessInformation` renders live stage outputs and the completed record. It remains selected when
+  processing finishes, and is available whenever a run or partial failed run exists.
+- While busy, only Expert's process tab is available; other navigation remains locked until the stream ends.
+  A final result event alone does not unlock it. After failure, Reading and Expert's process record are
+  available, while result tabs remain locked.
+- Switching display mode during calculation immediately switches between the simple flow and the expert
+  record, using the same in-memory run. It neither restarts nor changes the backend request.
+- Confidence and Verification contains evaluation outputs only. Rule, retrieval, premise, trace, and
+  council diagnostics live in Process Information. Disclosure sections use stable `data-process-section`
+  keys and heading IDs so open sections and contents links survive live updates.
+
+This distinction is a frontend presentation preference; account authorization remains separate.
+The existing RAG pipeline, stream payloads, saved run objects, and Markdown export are unchanged.
+
 ## Result Assessment outline
 
 `frontend/js/components/assessment-outline.js` owns the new result outline. General and Expert show the same
