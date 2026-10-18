@@ -64,8 +64,9 @@ left unanswered. Escape or the close button calls `actions.closeConfirm()` and
 returns focus to the enquiry field without assessing. Starting a run closes the dialog.
 
 The dialog stays mounted across page updates. Text input does not redraw it; choice and correction
-updates preserve keyboard focus, scroll position, answers, and expanded disclosures. The preference
-checkbox still controls whether future runs show the review. The page navigation links only to the
+updates preserve keyboard focus, scroll position, answers, and expanded disclosures. The dialog footer
+contains only **Yes, assess**. The review preference checkbox remains in Customer Enquiry and controls
+whether future runs show the review. The page navigation links only to the
 enquiry form and any inline path questions shown when review is disabled, rather than into the modal.
 The existing submission, optional-question, reading-correction, and backend contracts are unchanged.
 

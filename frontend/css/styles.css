@@ -652,7 +652,6 @@ html:has(.reading-review-dialog[open]) { overflow: hidden; }
 .confirm .pc-q input { width: 100%; margin-top: .3rem; }
 .cf-actions { flex: none; padding: 1rem 1.5rem; background: var(--core-soft); border-top: 1px solid var(--line); }
 .cf-action-buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; }
-.cf-always { display: block; margin-top: .8rem; color: var(--graphite); }
 .readings .val { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 700px) {
   .readings li { flex-wrap: wrap; }
@@ -671,7 +670,6 @@ html:has(.reading-review-dialog[open]) { overflow: hidden; }
   .cf-action-buttons { flex-direction: row; }
   .cf-action-buttons .btn { width: auto; }
   .cf-actions { padding: .6rem 1rem; }
-  .cf-always { margin-top: .4rem; }
 }
 
 /* ---------------------------------------------------------------- accounts */

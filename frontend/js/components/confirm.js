@@ -39,7 +39,6 @@ export function renderConfirm(container, s, acts) {
     reading = s.understand;
     view = s.view;
   }
-  el.querySelector("#cf-always").checked = s.confirm;
   el.querySelector("#cf-go").disabled = s.savingQuery;
   if (!el.open) focusReadingReview();
 }
@@ -106,7 +105,6 @@ function draw() {
       <div class="cf-action-buttons">
         <button type="button" class="btn primary" id="cf-go">Yes, assess</button>
       </div>
-      <label class="small cf-always"><input type="checkbox" id="cf-always" ${s.confirm ? "checked" : ""}> Show this dialog before every run</label>
     </footer>`;
 
   el.querySelectorAll("[data-ok]").forEach((b) => (b.onclick = () => { store.get().rejected = s.rejected.filter((f) => f !== b.dataset.ok); draw(); }));
@@ -121,7 +119,6 @@ function draw() {
     draw();
   }));
   el.querySelectorAll("[data-t]").forEach((inp) => (inp.oninput = () => { store.get().answers[inp.dataset.t] = inp.value; }));
-  el.querySelector("#cf-always").onchange = (ev) => actions.setConfirm(ev.target.checked);
   el.querySelector("#cf-back").onclick = () => actions.closeConfirm();
   el.querySelector("#cf-go").onclick = () => actions.confirmRun();
   el.querySelectorAll("details[id]").forEach((node) => {

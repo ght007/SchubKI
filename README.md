@@ -332,9 +332,9 @@ enquiry without starting an assessment. The review contains:
   or found path. A path question that covers a missing fact replaces it (Path A "reference values?" replaces the
   general reference question). Answers the text already gives are **pre-filled and tagged "from your text"**.
 - **Assessment action**: **Yes, assess** includes any answers given and retains readings marked as unknown.
-  Unanswered questions are optional. *Show this dialog before every run* can be unticked
-  (remembered), then *Assess enquiry* runs straight away. Path questions remain available in Customer Enquiry
-  when the review dialog is disabled.
+  Unanswered questions are optional. The review preference is set in Customer Enquiry with
+  *Review the reading and follow-up questions before assessing* (remembered). When unticked,
+  *Assess enquiry* runs straight away and path questions remain available in Customer Enquiry.
 
 The customer's text is never rewritten: corrections travel as `rejected` fields, answers as a separate block.
 Because path answers and ✗ corrections are kept out of the extraction prompt, confirming **reuses the cached
