@@ -12,6 +12,7 @@ from typing import Callable, Optional
 from ..config import settings
 from ..kb import retrieve as retrieve_mod
 from ..kb import store
+from ..render import outline as outline_mod
 from ..llm.models import model_for
 from ..schemas import AssessRequest, RunResult
 from . import coach as coach_mod
@@ -39,15 +40,26 @@ STAGE_FIELDS = {
     "report": {"report", "council"},
     "council": {"report", "council"},
     "verify": {"report", "verification", "quality"},
-    "coach": {"coach", "confidence", "diff"},
+    "coach": {"coach", "confidence", "diff", "outline"},
 }
 
 
 def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
+    """Run the pipeline; a chosen model applies to every stage of this run only."""
+    from ..llm import models as models_mod
+    token = models_mod.use_model(request.model if request.model != "auto" else None)
+    try:
+        return _run(request, emit)
+    finally:
+        models_mod.reset_model(token)
+
+
+def _run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
     emit = emit or (lambda e: None)
     run_ = RunResult(id=uuid.uuid4().hex[:10], created=time.strftime("%Y-%m-%dT%H:%M:%S"), mode=request.mode,
                      enquiry=request.enquiry.strip(), answers=request.answers, parent_run_id=request.parent_run_id,
-                     preferred_paths=list(request.preferred_paths), rejected=list(request.rejected))
+                     preferred_paths=list(request.preferred_paths), rejected=list(request.rejected),
+                     model_choice=request.model if request.model and request.model != "auto" else "")
     trace = run_.trace
     t_all = time.time()
 
@@ -155,6 +167,7 @@ def run(request: AssessRequest, emit: Optional[Emit] = None) -> RunResult:
             parent = store.get_run(request.parent_run_id)
             if parent:
                 run_.diff = whatif_mod.diff(RunResult.model_validate(parent), run_)
+        run_.outline = outline_mod.build(run_)   # the 11-section output format (page, export, outputs/)
         done("coach", t, f"completeness {run_.coach.completeness}/{run_.coach.total}")
     except Exception as exc:  # never lose a run silently
         run_.error = f"{type(exc).__name__}: {exc}"

@@ -51,6 +51,7 @@ export function openAccountMenu(anchor, user, { openRun }) {
       <span class="pill ${pro ? "core" : ""}">${esc(planName(user))}</span></div>
     ${pro ? "" : `<a role="menuitem" class="account-menu-item upgrade" href="/pricing">Upgrade to Pro<span>Unlock the Expert view</span></a>`}
     <button role="menuitem" type="button" class="account-menu-item" data-act="history">Run history</button>
+    ${pro ? '<a role="menuitem" class="account-menu-item" href="/kb">Knowledge base<span>Edit evidence, rules and documents</span></a>' : ""}
     <a role="menuitem" class="account-menu-item" href="/pricing">Plans and pricing</a>
     <div class="account-menu-sep"></div>
     <button role="menuitem" type="button" class="account-menu-item" data-act="logout">Log out</button>`;
@@ -81,13 +82,13 @@ async function renderHistory(d, list, view, openRun) {
     const runs = await getJSON(`/api/me/runs?limit=30${view ? `&view=${view}` : ""}`);
     list.innerHTML = runs.length ? `<ul class="account-runs">${runs.map((r) => {
       const [label, cls] = STATUS[r.status] || ["No result", ""];
-      return `<li><button type="button" data-run="${esc(r.runId)}">
+      return `<li><button type="button" data-run="${esc(r.runId)}" data-query="${esc(r.queryId || "")}">
         <span class="account-run-title">${esc(r.title || "Untitled enquiry")}</span>
         <span class="account-run-meta"><span class="pill ${cls}">${esc(label)}</span>
           <span class="account-view-tag">${esc(r.view === "expert" ? "Expert" : "General")}${r.mode === "council" ? " · council" : ""}${r.parentRunId ? " · what-if" : ""}</span>
           <span>${esc(when(r.createdAt))}</span></span></button></li>`; }).join("")}</ul>`
       : `<p class="muted small">No runs yet${view ? ` in the ${view === "expert" ? "Expert" : "General"} view` : ""}. Assess an enquiry and it appears here.</p>`;
-    list.querySelectorAll("[data-run]").forEach((b) => (b.onclick = () => { d.close(); openRun(b.dataset.run); }));
+    list.querySelectorAll("[data-run]").forEach((b) => (b.onclick = () => { d.close(); openRun(b.dataset.run, b.dataset.query || null); }));
   } catch (_) {
     list.innerHTML = `<p class="err small">Could not load your history. Your session may have expired: <a href="/login">log in again</a>.</p>`;
   }

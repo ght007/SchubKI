@@ -53,16 +53,25 @@ class Settings:
     auth_required: bool = os.getenv("AUTH_REQUIRED", "1") == "1"
     # demo = plan buttons switch the plan at once without payment; off = refuse until payments are connected
     billing_mode: str = os.getenv("BILLING_MODE", "demo").strip().lower()
+    # Knowledge-base editor: pro = logged-in Pro users (default), open = anyone (local demo), off = nobody
+    kb_edit: str = os.getenv("KB_EDIT", "pro").strip().lower()
 
 
 settings = Settings()
 
 # Source id -> raw file name. S02 text comes from the transcription notes.
-SOURCE_FILES = {
-    "S01": "S01_Multispectral_Laboratory.pdf",
-    "S02": "S02_AFS_Process_Control_Slides.pdf",
-    "S03": "S03_LED_Kidney_Study_2017.pdf",
-    "S04": "S04_Combi_MIR_Fluorescence_2021.pdf",
-    "S05": "S05_AFS_Flyer.pdf",
-    "S06": "S06_Laboratory_Link.txt",
-}
+# Document types the page loader can read (kb/pages.py). Spreadsheets (the method table T1) are curated
+# into methods.json by hand and are not searched as pages.
+READABLE_SOURCE_TYPES = (".pdf", ".txt", ".md", ".docx")
+
+
+def source_files() -> dict[str, str]:
+    """{source id: file name in data/raw} for every readable document registered in data/kb/sources.json.
+    Read on every call (small file), so a document registered in the knowledge-base editor is used at once."""
+    import json
+    try:
+        reg = json.loads((settings.kb_dir / "sources.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {s["id"]: s["file"] for s in reg.get("sources", [])
+            if s.get("file", "").lower().endswith(READABLE_SOURCE_TYPES)}

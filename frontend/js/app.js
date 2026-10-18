@@ -3,19 +3,27 @@ import { esc, getJSON, postJSON, stream } from "./api.js";
 import * as store from "./state.js";
 import { STEPS, LOADING_PAGE, canOpenStep, normalizeTab, stepStatus } from "./pipeline-steps.js";
 import { renderStatus, renderFiber } from "./components/header.js";
-import { renderPageHeader } from "./components/page-header.js";
+import { renderPageNavigation } from "./components/page-navigation.js";
 import { renderEnquiry } from "./components/enquiry.js";
-import { hasStageData, renderPipelineStep, renderProcess } from "./components/pipeline.js";
+import { hasStageData, renderPipelineStep, renderLoadingFlow, renderProcessInformation } from "./components/pipeline.js";
 import { renderEvidence } from "./components/evidence.js";
-import { renderConfirm } from "./components/confirm.js";
+import { renderConfirm, focusReadingReview } from "./components/confirm.js";
 import { resetPrecheck } from "./components/precheck.js";
 import { activePathAnswers, loadPathQuestions, setDetected } from "./components/pathq.js";
 import { loadGlossary } from "./glossary.js";
-import { createLocalQueryRepository, createServerQueryRepository, importLocalDrafts } from "./query-history.js";
+import { createLocalQueryRepository, createServerQueryRepository, importLocalDrafts, runSummary } from "./query-history.js";
 import { renderQuerySidebar } from "./components/query-sidebar.js";
 import { isPro, mountAccountControls, openAccountMenu } from "./components/account-controls.js";
 
 const $ = (id) => document.getElementById(id);
+// Reserve the pinned header's actual height, including wrapped account controls and pipeline tabs.
+const appHeader = document.querySelector(".app-header");
+if (appHeader) {
+  const updateHeaderHeight = () => document.documentElement.style.setProperty(
+    "--app-header-height", `${appHeader.offsetHeight}px`);
+  updateHeaderHeight();
+  new ResizeObserver(updateHeaderHeight).observe(appHeader);
+}
 const localQueries = createLocalQueryRepository();
 let queryRepository = localQueries;   // swapped for the account store after login (boot)
 const compactSidebar = window.matchMedia("(max-width: 900px)");
@@ -31,17 +39,31 @@ function openReadingDraft(query = null) {
     understand: null, reading: false, rejected: [], answers: {}, evidence: null, selectedExample: "",
     draftEnquiry: query?.enquiry || "", activeQueryId: query?.id || null, paths: query?.paths || [],
     mode: query?.mode || store.get().mode, modelChoice: query?.modelChoice || store.get().modelChoice,
-    querySidebarOpen: !compactSidebar.matches, queryNotice: "", skipQueryAutosave: false });
+    querySidebarOpen: !compactSidebar.matches, queryNotice: "", skipQueryAutosave: false, queryRuns: null });
   window.scrollTo(0, 0);
   $("enq")?.focus({ preventScroll: true });
+}
+
+// Every result generated for a saved query (newest first) -> s.queryRuns, listed under it in the sidebar.
+async function loadQueryRuns(queryId) {
+  if (!queryId) { store.set({ queryRuns: null }); return []; }
+  let runs = [];
+  try { runs = await queryRepository.runsFor(queryId); } catch (_) { /* list stays empty */ }
+  if (store.get().activeQueryId === queryId) store.set({ queryRuns: { queryId, runs } });
+  return runs;
 }
 
 const actions = {
   setMode(mode) { store.remember("mode", mode); store.set({ mode }); },
   setView(view) {
     if (view === "expert" && !isPro(store.get().user)) { location.assign("/pricing?upgrade=expert"); return; } // Basic plan
+    const s = store.get();
+    const preferred = normalizeTab(s.tab, view);
+    const tab = s.busy ? view === "expert" ? "process" : "reading" :
+      canOpenStep({ ...s, view }, preferred) ? preferred : "reading";
     store.remember("view", view);
-    store.set({ view });
+    store.remember("tab", tab);
+    store.set({ view, tab });
   },
   openAccountMenu(anchor) { openAccountMenu(anchor, store.get().user, { openRun: (id) => actions.openRun(id) }); },
   setConfirm(confirm) { store.remember("confirm", confirm ? "on" : "off"); store.set({ confirm }); },
@@ -87,32 +109,38 @@ const actions = {
     if (store.get().busy) return;
     if (!store.get().skipQueryAutosave) await actions.saveQuery({ silent: true });
     const query = (await queryRepository.list()).find((item) => item.id === id);
-    if (query) openReadingDraft(query);
+    if (!query) return;
+    openReadingDraft(query);
+    const runs = await loadQueryRuns(id);
+    if (runs.length && store.get().activeQueryId === id) await actions.openRun(runs[0].runId, id);  // latest result
   },
   async removeQuery(id) {
     await queryRepository.remove(id);
     store.set({ savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent,
       ...(store.get().activeQueryId === id ? { activeQueryId: null, skipQueryAutosave: true } : {}), queryNotice: "Query removed." });
   },
-  async openRun(id) {
+  async openRun(id, queryId = null) {
     if (store.get().busy) return;
     try {
       const run = await getJSON(`/api/runs/${encodeURIComponent(id)}`);
       setDetected(run.requirements?.preferred_paths || []);
       const tab = run.error ? "reading" : "assessment";
+      const activeQueryId = queryId || store.get().savedQueries.find((q) => q.lastRunId === id)?.id || null;
       store.remember("tab", tab);
+      if (activeQueryId !== store.get().queryRuns?.queryId) store.set({ queryRuns: null });
       store.set({ run, previous: null, liveRun: null, error: "", understand: null, evidence: null, tab,
-        draftEnquiry: null, activeQueryId: store.get().savedQueries.find((q) => q.lastRunId === id)?.id || null,
+        draftEnquiry: null, activeQueryId,
         paths: run.preferred_paths || [], rejected: [],
         answers: Object.fromEntries(Object.entries(run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key))) });
       history.replaceState(null, "", `#run=${id}`);
       window.scrollTo(0, 0);
+      if (activeQueryId && store.get().queryRuns?.queryId !== activeQueryId) loadQueryRuns(activeQueryId);
     } catch (err) {
       store.set({ queryNotice: "Could not open that result.", error: `Could not open the saved result: ${err.message}` });
     }
   },
   selectTab(id) {
-    const tab = normalizeTab(id);
+    const tab = normalizeTab(id, store.get().view);
     if (!canOpenStep(store.get(), tab)) return;
     store.remember("tab", tab);
     store.set({ tab });
@@ -123,8 +151,10 @@ const actions = {
     store.set({ reading: true, error: "", draftEnquiry: enquiry, tab: "reading" });
     await actions.saveQuery({ silent: true });
     if (request !== readingRequest) return;
+    let reviewReady = false;
     try {
-      const data = await postJSON("/api/understand", { enquiry, answers: {}, preferred_paths: [...store.get().paths] });
+      const data = await postJSON("/api/understand", { enquiry, answers: {}, preferred_paths: [...store.get().paths],
+        model: chosenModel() });
       if (request !== readingRequest) return;
       const s = store.get();
       const answers = { ...s.answers };
@@ -135,10 +165,14 @@ const actions = {
       data.enquiry = enquiry;
       setDetected(data.paths.detected);
       store.set({ understand: data, answers, rejected: s.understand ? s.rejected : [] });
+      reviewReady = true;
     } catch (err) {
       if (request === readingRequest) store.set({ error: `Could not read the enquiry: ${err.message}` });
     } finally {
-      if (request === readingRequest) store.set({ reading: false });
+      if (request === readingRequest) {
+        store.set({ reading: false });
+        if (reviewReady) focusReadingReview();
+      }
     }
   },
   closeConfirm() { ++readingRequest; store.set({ understand: null, rejected: [], reading: false }); },
@@ -156,7 +190,7 @@ const actions = {
     await actions.saveQuery({ silent: true });
     if (store.get().understand !== u || store.get().busy) return;
     await run("/api/assess", { enquiry: u.enquiry, answers, mode: s.mode,
-      preferred_paths: s.paths, rejected: [...s.rejected] });
+      preferred_paths: s.paths, rejected: [...s.rejected], model: chosenModel() });
   },
   async assess(enquiry) {
     if (!enquiry.trim()) { store.set({ error: "Type or load an enquiry first." }); return; }
@@ -166,12 +200,13 @@ const actions = {
     if (s.confirm) { await actions.understand(enquiry.trim()); return; }
     await actions.saveQuery({ silent: true });
     const answers = activePathAnswers(Object.fromEntries(Object.entries(s.answers).filter(([, value]) => value.trim())));
-    await run("/api/assess", { enquiry, answers, mode: s.mode, preferred_paths: s.paths });
+    await run("/api/assess", { enquiry, answers, mode: s.mode, preferred_paths: s.paths, model: chosenModel() });
   },
   async assessCouncil() {
     const r = store.get().busy ? null : store.get().run;
     if (r) { store.remember("mode", "council"); store.set({ mode: "council", answers: {} }); await run("/api/assess", {
-      enquiry: r.enquiry, answers: r.answers, mode: "council", preferred_paths: r.preferred_paths || [], rejected: r.rejected || [] }); }
+      enquiry: r.enquiry, answers: r.answers, mode: "council", preferred_paths: r.preferred_paths || [], rejected: r.rejected || [],
+      model: r.model_choice || null }); }
   },
   async whatif() {
     const s = store.get();
@@ -179,10 +214,13 @@ const actions = {
     const answers = activePathAnswers(Object.fromEntries(Object.entries(s.answers).filter(([key, value]) =>
       value.trim() && s.run.answers?.[key] !== value)));
     const pathsChanged = JSON.stringify(s.paths) !== JSON.stringify(s.run.preferred_paths || []);
-    if (!Object.keys(answers).length && !pathsChanged) { store.set({ error: "Type at least one answer, or change the preferred path in Reading, first." }); return; }
-    await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode, preferred_paths: s.paths });
+    if (!Object.keys(answers).length && !pathsChanged) { store.set({ error: "Type at least one answer, or change the preferred path in Customer Enquiry, first." }); return; }
+    await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode, preferred_paths: s.paths, model: chosenModel() });
   },
 };
+
+// The chosen LLM for a request ("auto" = server defaults, sent as null).
+function chosenModel() { const m = store.get().modelChoice; return m && m !== "auto" ? m : null; }
 
 async function run(url, body) {
   ++readingRequest;
@@ -198,11 +236,14 @@ async function run(url, body) {
     timings_ms: {},
   };
   store.set({ busy: true, error: "", stages: [], details: [], previous,
-    run: null, liveRun, understand: null, reading: false, evidence: null });
+    run: null, liveRun, understand: null, reading: false, evidence: null,
+    tab: store.get().view === "expert" ? "process" : "reading" });
   window.scrollTo(0, 0);
   let receivedResult = false;
   const s0 = store.get();
-  const headers = { "X-AFS-View": s0.view, ...(s0.activeQueryId ? { "X-AFS-Query-Id": s0.activeQueryId } : {}) };
+  const queryId = s0.activeQueryId;            // the saved query this run's result belongs to
+  const headers = { "X-AFS-View": s0.view, ...(queryId ? { "X-AFS-Query-Id": queryId } : {}) };
+  let finished = null;
   try {
     await stream(url, body, (e) => {
       const s = store.get();
@@ -218,8 +259,9 @@ async function run(url, body) {
         store.set({ error: `The run hit an error: ${e.detail}` });
       } else if (e.type === "result") {
         receivedResult = true;
+        finished = e.run;
         const answers = Object.fromEntries(Object.entries(e.run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key)));
-        const tab = e.run.error ? "reading" : completionTab;
+        const tab = s.view === "expert" ? "process" : e.run.error ? "reading" : normalizeTab(completionTab, s.view);
         store.remember("tab", tab);
         setDetected(e.run.requirements?.preferred_paths || []);
         store.set({ run: e.run, liveRun: e.run, tab,
@@ -233,30 +275,44 @@ async function run(url, body) {
     if (!receivedResult) {
       const s = store.get();
       store.set({ run: { ...s.liveRun, error: s.error || "Run ended before a result was returned." },
-        liveRun: null, busy: false, tab: "reading" });
+        liveRun: null, busy: false, tab: s.view === "expert" ? "process" : "reading" });
     } else {
-      store.set({ liveRun: null, busy: false });
+      const s = store.get();
+      const tab = s.view === "expert" ? "process" : s.run?.error ? "reading" : normalizeTab(completionTab, s.view);
+      store.remember("tab", tab);
+      store.set({ liveRun: null, busy: false, tab });
     }
     if (store.get().run?.error) document.querySelector("#view .err")?.scrollIntoView({ block: "center" });
     else window.scrollTo(0, 0);
   }
-  if (queryRepository.kind === "server") {          // the server linked the run: refresh "last result" links
-    try { store.set({ savedQueries: await queryRepository.list() }); } catch (_) { /* keep the old list */ }
+  if (queryId && finished?.id) {                    // keep this result with its query (server: already linked)
+    try {
+      await queryRepository.attachRun(queryId, runSummary(finished, s0.view));
+      store.set({ savedQueries: await queryRepository.list() });
+    } catch (_) { /* keep the old list */ }
+    await loadQueryRuns(queryId);
   }
 }
 
 function renderView(s) {
   const el = $("view");
+  const disclosures = new Map([...el.querySelectorAll("[data-process-section]")]
+    .map((node) => [node.dataset.processSection, node.open]));
   const run = s.busy ? s.liveRun : s.run;
-  const step = s.busy ? LOADING_PAGE : STEPS.find((item) => item.id === s.tab);
+  const step = s.busy && s.view !== "expert" ? LOADING_PAGE : STEPS.find((item) => item.id === s.tab);
   const readingPage = !s.busy && s.tab === "reading";
   el.innerHTML = readingPage ? `<div class="reading-layout">
     <aside id="query-sidebar" class="query-sidebar" aria-labelledby="saved-queries-title"></aside>
     <div id="reading-main" class="reading-main"><div id="stage-content" class="page-content"></div></div>
   </div>` : `<div id="stage-content" class="page-content"></div>`;
   const content = el.querySelector("#stage-content");
-  if (s.busy) {
-    renderProcess(content, run, s, actions);
+  if (s.busy && s.view !== "expert") {
+    renderLoadingFlow(content, run, s);
+  } else if (s.view === "expert" && s.tab === "process") {
+    renderProcessInformation(content, run, s, actions);
+    content.querySelectorAll("[data-process-section]").forEach((node) => {
+      if (disclosures.has(node.dataset.processSection)) node.open = disclosures.get(node.dataset.processSection);
+    });
   } else if (s.tab === "reading") {
     renderQuerySidebar($("query-sidebar"), s, actions);
     renderEnquiry(content, s, actions);
@@ -267,7 +323,7 @@ function renderView(s) {
       renderPipelineStep(content, stage, run, { ...s, run }, actions);
     } else if (!run && !s.busy && !s.error) {
       content.innerHTML = `<div class="empty"><h2>Start with a customer enquiry</h2>
-        <p>Open Reading to type an enquiry or load a scenario. Each tab above shows its results as the pipeline runs.</p></div>`;
+        <p>Open Customer Enquiry to type an enquiry or load a scenario. Each tab above shows its results as the pipeline runs.</p></div>`;
     } else {
       const status = stepStatus(s, step.id);
       const message = status === "active" ? "This step is running. Its output will appear here when it finishes." :
@@ -278,18 +334,22 @@ function renderView(s) {
         `<div class="err">${esc(s.error || run.error)}</div>` : ""}</div>`;
     }
   }
-  renderPageHeader(readingPage ? $("reading-main") : el, content, s, step, run);
+  renderPageNavigation(content, s, step);
 }
 
 let lastEvidence = null;
 function render(s) {
   renderStatus($("status"), s, actions);
   renderFiber($("fiber"), s, actions.selectTab);
-  $("view").setAttribute("role", s.busy ? "region" : "tabpanel");
+  const transientLoading = s.busy && s.view !== "expert";
+  $("view").setAttribute("role", transientLoading ? "region" : "tabpanel");
   $("view").setAttribute("aria-busy", String(s.busy || s.reading));
-  $("view").setAttribute("aria-labelledby", s.busy ? "page-title-loading" : `tab-${s.tab}`);
+  $("view").setAttribute("aria-labelledby", transientLoading ? "page-title-loading" : `tab-${s.tab}`);
   renderView(s);
-  document.querySelector(".shell").classList.toggle("with-drawer", !!s.evidence);
+  // Keep the selected source and its scroll position when leaving the assessment.
+  const showEvidence = s.tab === "assessment" && !s.busy && !!s.evidence;
+  $("drawer").hidden = !showEvidence;
+  document.querySelector(".shell").classList.toggle("with-drawer", showEvidence);
   if (s.evidence !== lastEvidence) {
     lastEvidence = s.evidence;
     renderEvidence($("drawer"), s.evidence, () => store.set({ evidence: null }));
@@ -302,7 +362,9 @@ document.addEventListener("click", (ev) => {
   if (!b) return;
   store.set({ evidence: { source: b.dataset.src, page: +b.dataset.page, quote: b.dataset.quote, status: b.dataset.status } });
 });
-document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && store.get().evidence) store.set({ evidence: null }); });
+document.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape" && !$("drawer").hidden && store.get().evidence && !document.querySelector(".page-navigation:popover-open")) store.set({ evidence: null });
+});
 
 store.subscribe(render);
 const accountProps = { openRun: (id) => actions.openRun(id) };
@@ -327,14 +389,20 @@ async function loadAccount() {
 (async function boot() {
   await loadAccount();
   const linkedRun = location.hash.match(/run=([\w-]+)/);
-  const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"));
+  const view = isPro(store.get().user) ? store.recall("view", "general") : "general";
+  const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"), view);
   store.set({ tab: canOpenStep(store.get(), preferredTab) ? preferredTab : "reading",
     savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent,
     queryStorageLabel: queryRepository.label, querySidebarOpen: !compactSidebar.matches,
     mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto"),
-    view: isPro(store.get().user) ? store.recall("view", "general") : "general", confirm: store.recall("confirm", "on") === "on" });
+    view, confirm: store.recall("confirm", "on") === "on" });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }
   try { store.set({ examples: await getJSON("/api/examples") }); } catch (_) { /* optional */ }
+  try {
+    const modelList = await getJSON("/api/models");
+    const keep = modelList.models.some((m) => m.id === store.get().modelChoice);
+    store.set({ modelList, modelChoice: keep ? store.get().modelChoice : "auto" });   // a stored model the key lost
+  } catch (_) { /* older server: dropdown falls back to the health list */ }
   await Promise.all([loadGlossary(), loadPathQuestions()]);
   if (linkedRun) {
     try {

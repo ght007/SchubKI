@@ -51,6 +51,27 @@ def windows(text: str) -> list[str]:
     return out
 
 
+KB_FILES = ("bands.json", "claims.jsonl", "fibers.json", "glossary.yaml", "methods.json", "rules.yaml",
+            "s02_notes.md", "sources.json")
+
+
+def kb_hash() -> str:
+    """Fingerprint of everything the index is built from: the curated files and the registered documents.
+    Same inputs give the same index (same chunk ids), so two machines with the same hash can share one."""
+    import hashlib
+    from ..config import source_files
+    h = hashlib.sha256()
+    for name in KB_FILES:
+        path = settings.kb_dir / name
+        if path.exists():
+            h.update(name.encode() + b"\0" + hashlib.sha256(path.read_bytes()).digest())
+    for sid, fname in sorted(source_files().items()):
+        path = settings.raw_dir / fname
+        if path.exists():
+            h.update(f"{sid}:{fname}".encode() + b"\0" + hashlib.sha256(path.read_bytes()).digest())
+    return h.hexdigest()[:24]
+
+
 def run() -> dict:
     t0 = time.time()
     pages = load_pages()
@@ -81,6 +102,7 @@ def run() -> dict:
     store.clear_vector_cache()
     store.set_meta("embed_backend", embed.backend())
     store.set_meta("ingested_at", time.strftime("%Y-%m-%dT%H:%M:%S"))
+    store.set_meta("kb_hash", kb_hash())
     stats = {"pages": len(pages), "records": len(ids), "claims": len(claims),
              "embed_backend": embed.backend(), "seconds": round(time.time() - t0, 1)}
     store.set_meta("ingest_stats", json.dumps(stats))

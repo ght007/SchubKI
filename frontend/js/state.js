@@ -11,12 +11,14 @@ const state = {
   tab: "reading",
   view: "general",      // "general" (compact, default) | "expert" (full workbench)
   mode: "fast",
-  modelChoice: "auto", // UI preference only; backend model routing is unchanged
+  modelChoice: "auto", // "auto" = server defaults; otherwise one model for every stage of the run
+  modelList: null,      // GET /api/models: the models this server's key may use
   draftEnquiry: null, // null means use the loaded run's enquiry
   selectedExample: "",
   user: null,             // logged-in account with plan and allowed views (null = guest); /api/auth/me
   savedQueries: [],       // enquiry drafts: browser-local for guests, from the account when logged in
-  queryStorageLabel: "",  // where the drafts are kept, shown under the sidebar
+  queryStorageLabel: "",
+  queryRuns: null,        // {queryId, runs}: every result generated for the active saved query, newest first  // where the drafts are kept, shown under the sidebar
   activeQueryId: null,
   querySidebarOpen: true,
   queryPersistent: true,

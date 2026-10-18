@@ -18,137 +18,142 @@ def _stmt(s: Statement) -> str:
     return f"- {s.text}{_cite(s)} _({KIND_TAG.get(s.kind, s.kind)})_"
 
 
+def _q(c: dict) -> str:
+    return f"[{c['source']} p.{c['page']}]"
+
+
+def _st(s: dict) -> str:
+    cites = " ".join(_q(c) for c in s["citations"])
+    flag = "" if s["check"] in ("verified", "unchecked") or s["kind"] != "sourced" else f" ⚠ {s['check'].replace('_', ' ')}"
+    return f"- {s['text']}{' ' + cites if cites else ''} _({KIND_TAG.get(s['kind'], s['kind'])}{flag})_"
+
+
 def render(run: RunResult, title: str = "") -> str:
+    """The assessment in the 11-section output format (same sections and order as the Result Assessment page)."""
+    from .outline import build
     r = run.report
     if r is None:
         return f"# {title or 'Assessment'}\n\nNo report produced. {run.error}\n"
-    L: list[str] = []
-    L.append(f"# {title or 'First technical assessment'}")
-    L.append("")
-    L.append(f"> **Enquiry:** {run.enquiry}")
+    o = {s["key"]: s for s in build(run)["sections"]}
+    L: list[str] = [f"# {title or 'First technical assessment'}", "", f"> **Enquiry:** {run.enquiry}"]
     if run.answers:
-        L.append(">")
-        L.append("> **Answers added:** " + "; ".join(f"{k}: {v}" for k, v in run.answers.items()))
+        L += [">", "> **Answers added:** " + "; ".join(f"{k}: {v}" for k, v in run.answers.items())]
     if run.rejected:
-        L.append(">")
-        L.append("> **Readings marked as wrong by the user (treated as unknown):** " + ", ".join(run.rejected))
-    L.append("")
-    conf = run.confidence.level if run.confidence else "n/a"
+        L += [">", "> **Readings marked as wrong by the user (treated as unknown):** " + ", ".join(run.rejected)]
     q = f"{run.quality.passed}/{run.quality.total}" if run.quality else "n/a"
     v = run.verification
-    ver = f"{v.n_verified}/{v.n_sourced}" if v else "n/a"
-    L.append(f"**Decision status:** {STATUS[r.decision_status]} · **Confidence:** {conf} · "
-             f"**Quality checks:** {q} · **Sourced claims verified:** {ver} · "
-             f"**Unsupported numbers:** {v.n_unsupported_numbers if v else 'n/a'}")
-    L.append("")
-    L.append(f"**Answer:** {r.headline}")
-    L.append("")
+    L += ["", f"**Quality checks:** {q} · **Sourced claims verified:** {f'{v.n_verified}/{v.n_sourced}' if v else 'n/a'} · "
+              f"**Unsupported numbers:** {v.n_unsupported_numbers if v else 'n/a'}", ""]
+    none = ["- (none)"]
 
-    if run.premises:
-        L.append("## Premise check")
-        for p in run.premises:
-            cites = " ".join(f"[{c.source} p.{c.page}]" for c in p.citations)
-            L.append(f"- **{p.verdict.replace('_', ' ')}**: \"{p.statement}\". {p.explanation} {cites}".rstrip())
-        L.append("")
+    def head(n: int, key: str) -> None:
+        L.append(f"## {n:02d}. {o[key]['title']}")
 
-    L.append("## Requirements")
-    L.append("**Stated by the client**")
-    L += [f"- {x}" for x in r.requirements_stated] or ["- (none)"]
-    L.append("")
-    L.append("**Key unknowns**")
-    L += [f"- {x}" for x in r.key_unknowns] or ["- (none)"]
-    if r.assumptions:
-        L.append("")
-        L.append("**Assumptions made**")
-        L += [f"- {x}" for x in r.assumptions]
+    d = o["decision_status"]
+    head(1, "decision_status")
+    conf = d["confidence"]
+    L.append(f"**{d['status_label']}**" + (f" · **Confidence:** {conf['level']} (computed, not self-reported)" if conf else ""))
+    L += ["", d["headline"]]
+    if d["blocking"]:
+        L += ["", "**Problems found in the request**"]
+        L += [f"- {b['title']}: {b['text']} [{', '.join(b['sources'])}]" for b in d["blocking"]]
+    if d["premises"]:
+        L += ["", "**The customer's own claims, tested first**"]
+        L += [f"- **{p['verdict'].replace('_', ' ')}**: \"{p['statement']}\". {p['explanation']} "
+              + " ".join(_q(c) for c in p["citations"]) for p in d["premises"]]
+    if conf and conf["raise_with"]:
+        L += ["", "To raise confidence, answer: " + " / ".join(conf["raise_with"])]
     L.append("")
 
-    L.append("## Clarification questions (highest impact first)")
-    for i, qq in enumerate(r.clarification_questions, 1):
-        L.append(f"{i}. **{qq.question}** _({qq.impact} impact)_. Why: {qq.why}")
+    head(2, "requirements_stated")
+    L += [f"- {x}" for x in o["requirements_stated"]["items"]] or none
+    L.append("")
+    head(3, "key_unknowns")
+    L += [f"- {x}" for x in o["key_unknowns"]["items"]] or none
+    if o["key_unknowns"]["assumptions"]:
+        L += ["", "**Assumptions made**"] + [f"- {x}" for x in o["key_unknowns"]["assumptions"]]
+    L.append("")
+    head(4, "clarification_questions")
+    L += [f"{i}. **{x['question']}** _({x['impact']} impact)_. Why: {x['why']}"
+          for i, x in enumerate(o["clarification_questions"]["items"], 1)] or none
     L.append("")
 
-    L.append("## Recommendation")
-    for rec in r.recommendations:
-        L.append(f"### {rec.method} ({rec.role.replace('_', ' ')})")
-        L += [_stmt(s) for s in rec.rationale]
-        if rec.conditions:
-            L.append(f"- _Applies if:_ {rec.conditions}")
-        L.append("")
-
+    head(5, "recommendation")
+    for rec in o["recommendation"]["items"]:
+        L += ["", f"### {rec['method']} ({rec['role'].replace('_', ' ')})"] + [_st(s) for s in rec["rationale"]]
+        if rec["conditions"]:
+            L.append(f"- _Applies if:_ {rec['conditions']}")
     if run.matrix:
-        L.append("**Method screening (deterministic, from sourced rules)**")
-        L.append("")
-        L.append("| Method | Score | Verdict | Contributions |")
-        L.append("|---|---|---|---|")
-        for m in run.matrix:
-            contrib = "; ".join(f"{c.delta:+d} {c.reason}" for c in m.contributions) or "-"
-            L.append(f"| {m.name} | {m.score} | {m.verdict.replace('_', ' ')} | {contrib} |")
-        L.append("")
-
-    L.append("## Measurement concept")
-    L += [_stmt(s) for s in r.measurement_concept]
+        L += ["", "**Method screening (deterministic, from sourced rules)**", "",
+              "| Method | Score | Verdict |", "|---|---|---|"]
+        L += [f"| {m.name} | {m.score} | {m.verdict.replace('_', ' ')} |" for m in run.matrix]
     L.append("")
-    L.append("## Spectral range")
-    L += [_stmt(s) for s in r.spectral_range]
+    head(6, "measurement_concept")
+    L += [_st(s) for s in o["measurement_concept"]["statements"]] or none
     L.append("")
-    L.append("## Risks and uncertainty")
-    L += [_stmt(s) for s in r.risks]
-    if run.confidence:
-        L.append("")
-        L.append(f"**Confidence: {run.confidence.level}** (computed, not self-reported)")
-        L += [f"- {s.name}: {s.level} ({s.detail})" for s in run.confidence.signals]
-        L += [f"- Cap: {c}" for c in run.confidence.caps]
-        if run.confidence.raise_with:
-            L.append("- To raise confidence, answer: " + " / ".join(run.confidence.raise_with))
+    head(7, "spectral_range")
+    L += [_st(s) for s in o["spectral_range"]["statements"]] or none
     L.append("")
-
-    fp = r.feasibility_plan
-    L.append("## First feasibility experiment")
-    for name, items in (("Samples", fp.samples), ("Reference measurements", fp.reference),
-                        ("Comparison", fp.comparison), ("Decision basis", fp.decision_basis)):
-        L.append(f"**{name}**")
-        L += [f"- {x}" for x in items]
-    if fp.steps:
-        L.append("**Steps**")
-        L += [f"{i}. {x}" for i, x in enumerate(fp.steps, 1)]
+    head(8, "risks_and_uncertainty")
+    rk = o["risks_and_uncertainty"]
+    L += [_st(s) for s in rk["statements"]] or none
+    if rk["confidence"]:
+        L += ["", f"**Confidence: {rk['confidence']['level']}**"]
+        L += [f"- {s['name']}: {s['level']} ({s['detail']})" for s in rk["confidence"]["signals"]]
+        L += [f"- Cap: {c}" for c in rk["confidence"]["caps"]]
     L.append("")
-    L.append("## AFS pathway")
-    L.append(f"- Next step: {r.pathway.next_step}")
-    L.append(f"- Likely path: {r.pathway.likely_path} {('- ' + r.pathway.why) if r.pathway.why else ''}")
-    if run.paths:
-        src = lambda xs: ", ".join(f"{x.source} p.{x.page}" for x in xs)  # noqa: E731
-        for f in run.paths.requested:
-            who = {"expert": "chosen by the expert", "enquiry": "asked by the customer", "both": "asked by customer and expert"}[f.requested_by]
-            L.append(f"- Path {f.path} ({who}): **{f.verdict}**. {f.reason} [{src(f.sources)}]")
-        for pa in run.paths.proceed_anyway:
-            L.append("")
-            L.append(f"**If you proceed anyway with Path {pa.path}** ({pa.caveat})")
-            L += [f"{i}. {x}" for i, x in enumerate(pa.steps, 1)]
-            L.append(f"_Sources: {src(pa.sources)}_")
+    head(9, "decision_basis")
+    L += [f"- {x}" for x in o["decision_basis"]["items"]] or none
     L.append("")
-
-    cited = sorted({(c.source, c.page) for rec in r.recommendations for s in rec.rationale for c in s.citations} |
-                   {(c.source, c.page) for s in r.measurement_concept + r.spectral_range + r.risks for c in s.citations} |
-                   {(c.source, c.page) for p in run.premises for c in p.citations})
-    L.append("## Sources")
-    L.append(", ".join(f"{s} p.{p}" for s, p in cited) or "-")
-    if run.verification:
-        bad = [c for c in run.verification.claims if c.status not in ("verified", "fuzzy")]
+    head(10, "sources")
+    for s in o["sources"]["items"]:
+        L.append(f"- **{s['source']} p.{s['page']}**: {s['title']}" + (f" _({s['scope']})_" if s["scope"] else ""))
+        L += [f"  - \"{x['quote']}\"" + ("" if x["check"] in ("verified", "unchecked") else f" ⚠ {x['check']}")
+              for x in s["quotes"]]
+    if not o["sources"]["items"]:
+        L += none
+    if v:
+        bad = [c for c in v.claims if c.status not in ("verified", "fuzzy")]
         if bad:
-            L.append("")
-            L.append("**Verifier warnings**")
-            L += [f"- {c.location}: {c.status} {c.detail}" for c in bad]
-    if run.council and run.council.drafts:
-        L.append("")
-        L.append("## Council")
-        L.append(f"Winner: draft {run.council.winner}; agreement {run.council.agreement:.0%} ({run.council.agreement_detail})")
-        for d in run.council.drafts:
-            L.append(f"- Draft {d.letter} ({d.model}): judge score {d.judge_total}, gate failures: "
-                     f"{', '.join(d.gate_failures) or 'none'}")
-    models = sorted({t.model for t in run.trace})
+            L += ["", "**Verifier warnings**"] + [f"- {c.location}: {c.status} {c.detail}" for c in bad]
     L.append("")
-    L.append(f"_Generated by the AFS assessment assistant (run {run.id}, mode {run.mode}, models: {', '.join(models) or '-'})._")
+
+    fx = o["first_feasibility_experiment_prototype"]
+    head(11, "first_feasibility_experiment_prototype")
+    for name, key in (("Samples", "samples"), ("Reference measurements", "reference"), ("Comparison", "comparison")):
+        L += [f"**{name}**"] + ([f"- {x}" for x in fx["plan"][key]] or none)
+    if fx["plan"]["steps"]:
+        L += ["**Steps**"] + [f"{i}. {x}" for i, x in enumerate(fx["plan"]["steps"], 1)]
+    pw = fx["pathway"]
+    L += ["", "**Next step with AFS**", f"- {pw['next_step']}",
+          f"- Likely path: {pw['likely_path']}" + (f" - {pw['why']}" if pw["why"] else "")]
+    src = lambda xs: ", ".join(f"{x['source']} p.{x['page']}" for x in xs)  # noqa: E731
+    who = {"expert": "chosen by the expert", "enquiry": "asked by the customer", "both": "asked by customer and expert"}
+    L += [f"- Path {f['path']} ({who[f['requested_by']]}): **{f['verdict']}**. {f['reason']} [{src(f['sources'])}]"
+          for f in pw["requested"]]
+    for pa in pw["proceed_anyway"]:
+        L += ["", f"**If you proceed anyway with Path {pa['path']}** ({pa['caveat']})"]
+        L += [f"{i}. {x}" for i, x in enumerate(pa["steps"], 1)] + [f"_Sources: {src(pa['sources'])}_"]
+    setup = fx["setup"]
+    if setup["paths"] and setup["systems"]:
+        L += ["", "**Proposed setup** (ranked by recommendation; validate in a lab trial)", "",
+              "| System | " + " | ".join(f"Path {p}: {setup['path_titles'][p]}" for p in setup["paths"]) + " |",
+              "|---|" + "---|" * len(setup["paths"])]
+        for i, sy in enumerate(setup["systems"], 1):
+            cells = [f"{c['title']}: {', '.join(c['items'])} → {c['output']}" for c in sy["components"].values()]
+            L.append(f"| {i}. {sy['method']} ({sy['role']}) | " + " | ".join(cells) + " |")
+    elif not setup["paths"]:
+        L += ["", "_Proposed setup: select AFS paths to build a setup._"]
+
+    if run.council and run.council.drafts:
+        L += ["", "## Council",
+              f"Winner: draft {run.council.winner}; agreement {run.council.agreement:.0%} ({run.council.agreement_detail})"]
+        L += [f"- Draft {d.letter} ({d.model}): judge score {d.judge_total}, gate failures: "
+              f"{', '.join(d.gate_failures) or 'none'}" for d in run.council.drafts]
+    models = sorted({t.model for t in run.trace})
+    chosen = f"model chosen for every stage: {run.model_choice}" if run.model_choice else "server default models"
+    L += ["", f"_Generated by the AFS assessment assistant (run {run.id}, mode {run.mode}, {chosen}; "
+              f"models used: {', '.join(models) or '-'})._"]
     return "\n".join(L) + "\n"
 
 

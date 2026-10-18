@@ -73,8 +73,28 @@ def _stream(request: AssessRequest, owner: tuple[str, str, str | None] | None = 
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
+def _model(model: str | None) -> str | None:
+    """Validate a chosen model (None / 'auto' = server defaults); 400 for a model this key cannot use."""
+    from ..llm import models as models_mod
+    try:
+        return models_mod.validate_choice(model)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.get("/models")
+def models_list():
+    """Models a user may choose for a run (every stage uses the choice; Council keeps its draft models)."""
+    from ..config import settings
+    from ..llm import models as models_mod
+    return {"models": models_mod.selectable(),
+            "defaults": {"fast": settings.model_fast, "main": settings.model_main},
+            "council": models_mod.council_models(), "mock": settings.llm_mock or not settings.groq_api_key}
+
+
 @router.post("/assess")
 async def assess(request: AssessRequest, http: Request = None):
+    request.model = _model(request.model)
     if not request.enquiry.strip():
         raise HTTPException(400, "Empty enquiry")
     if len(request.enquiry) > 6000:
@@ -85,6 +105,7 @@ async def assess(request: AssessRequest, http: Request = None):
 @router.post("/assess/sync")
 def assess_sync(request: AssessRequest, http: Request = None):
     """Same pipeline without streaming (used by eval scripts and curl)."""
+    request.model = _model(request.model)
     with _RUN_LOCK:
         result = pipeline.run(request)
     _record(_owner(http), result)
@@ -96,6 +117,7 @@ class WhatIfRequest(BaseModel):
     answers: dict[str, str]
     mode: str | None = None
     preferred_paths: list[str] | None = None
+    model: str | None = None          # None = keep the parent run's model
 
 
 @router.post("/whatif")
@@ -110,6 +132,7 @@ async def whatif(body: WhatIfRequest, http: Request = None):
                if not paths_mod.is_path_answer(key) or key[5:6] in active_paths}
     req = AssessRequest(enquiry=parent["enquiry"], answers=answers, mode=body.mode or parent.get("mode", "fast"),
                         preferred_paths=preferred_paths, rejected=parent.get("rejected", []),
+                        model=_model(body.model if body.model is not None else parent.get("model_choice") or None),
                         parent_run_id=body.run_id)
     return _stream(req, _owner(http))
 
@@ -132,6 +155,7 @@ class UnderstandRequest(BaseModel):
     enquiry: str
     answers: dict[str, str] = {}
     preferred_paths: list[str] = []
+    model: str | None = None          # same model as the run, so the run reuses this cached reading
 
 
 @router.post("/understand")
@@ -141,9 +165,15 @@ def understand(body: UnderstandRequest):
     from ..engine import understand as understand_mod
     if not body.enquiry.strip():
         raise HTTPException(400, "Empty enquiry")
+    from ..llm import models as models_mod
+    model = _model(body.model)
     with _RUN_LOCK:
-        return understand_mod.run(body.enquiry.strip()[:6000], body.answers,
-                                  [p for p in body.preferred_paths if p in ("A", "B", "C")])
+        token = models_mod.use_model(model)
+        try:
+            return understand_mod.run(body.enquiry.strip()[:6000], body.answers,
+                                      [p for p in body.preferred_paths if p in ("A", "B", "C")])
+        finally:
+            models_mod.reset_model(token)
 
 
 @router.get("/paths")

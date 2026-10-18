@@ -9,7 +9,7 @@ import re
 import unicodedata
 from functools import lru_cache
 
-from ..config import SOURCE_FILES, settings
+from ..config import settings, source_files
 
 _QUOTES = {"‘": "'", "’": "'", "“": '"', "”": '"', "´": "'",
            "−": "-", "‐": "-", "‑": "-", "­": ""}
@@ -42,6 +42,14 @@ def _parse_s02_notes() -> dict[int, str]:
     return notes
 
 
+DOCX_PAGE_WORDS = 400
+
+
+def clear_caches() -> None:
+    load_pages.cache_clear()
+    normalized_pages.cache_clear()
+
+
 @lru_cache(maxsize=1)
 def load_pages() -> dict[tuple[str, int], str]:
     """{(source_id, page): raw page text}. Pages are 1-based PDF pages."""
@@ -49,12 +57,20 @@ def load_pages() -> dict[tuple[str, int], str]:
 
     pages: dict[tuple[str, int], str] = {}
     s02_notes = _parse_s02_notes()
-    for sid, fname in SOURCE_FILES.items():
+    for sid, fname in source_files().items():
         path = settings.raw_dir / fname
         if not path.exists():
             continue
-        if path.suffix == ".txt":
+        suffix = path.suffix.lower()
+        if suffix in (".txt", ".md"):
             pages[(sid, 1)] = path.read_text(encoding="utf-8")
+            continue
+        if suffix == ".docx":
+            # Word files have no fixed pages: every DOCX_PAGE_WORDS words form one citable "page"
+            import docx
+            words = " ".join(p.text for p in docx.Document(str(path)).paragraphs if p.text.strip()).split()
+            for i in range(0, max(len(words), 1), DOCX_PAGE_WORDS):
+                pages[(sid, i // DOCX_PAGE_WORDS + 1)] = " ".join(words[i:i + DOCX_PAGE_WORDS])
             continue
         with pymupdf.open(path) as doc:
             for i, page in enumerate(doc, start=1):

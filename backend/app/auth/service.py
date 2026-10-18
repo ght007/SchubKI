@@ -261,7 +261,11 @@ def _query_out(r: dict) -> dict:
 def list_queries(user_id: str, limit: int = 100) -> list[dict]:
     rows = db.query_merged("SELECT * FROM saved_queries WHERE user_id = ?", (user_id,))
     rows.sort(key=lambda r: r["updated_at"], reverse=True)
-    return [_query_out(r) for r in rows[:limit]]
+    counts: dict[str, int] = {}
+    for r in db.query_merged("SELECT run_id, query_id FROM user_runs WHERE user_id = ?", (user_id,), key="run_id"):
+        if r.get("query_id"):
+            counts[r["query_id"]] = counts.get(r["query_id"], 0) + 1
+    return [{**_query_out(r), "runCount": counts.get(r["id"], 0)} for r in rows[:limit]]
 
 
 def save_query(user_id: str, draft: dict) -> dict:
@@ -300,6 +304,11 @@ def record_run(user_id: str, run: dict, view: str = "general", query_id: str | N
     view = view if view in VIEWS else "general"
     if not plans.can_view(get_user(user_id), view):
         view = "general"                       # a Basic account cannot log runs as Expert
+    if query_id and not db.one("SELECT id FROM saved_queries WHERE id = ? AND user_id = ?", (query_id, user_id)):
+        query_id = None                        # not this user's query: keep the run, drop the link
+    if not query_id and run.get("parent_run_id"):
+        parent = db.one("SELECT query_id FROM user_runs WHERE run_id = ? AND user_id = ?", (run["parent_run_id"], user_id))
+        query_id = (parent or {}).get("query_id")   # a what-if belongs to the same query as its parent
     status = (run.get("report") or {}).get("decision_status")
     conf = (run.get("confidence") or {}).get("level")
     db.upsert("user_runs", {
@@ -311,10 +320,13 @@ def record_run(user_id: str, run: dict, view: str = "general", query_id: str | N
                  "WHERE id = ? AND user_id = ?", (run["id"], status, view, now(), query_id, user_id))
 
 
-def list_runs(user_id: str, view: str | None = None, limit: int = 50) -> list[dict]:
+def list_runs(user_id: str, view: str | None = None, limit: int = 50, query_id: str | None = None) -> list[dict]:
+    """The user's runs, newest first; with query_id only the results generated for that saved query."""
     sql, params = "SELECT * FROM user_runs WHERE user_id = ?", (user_id,)
     if view in VIEWS:
-        sql, params = sql + " AND view = ?", (user_id, view)
+        sql, params = sql + " AND view = ?", (*params, view)
+    if query_id:
+        sql, params = sql + " AND query_id = ?", (*params, query_id)
     rows = db.query_merged(sql, params, key="run_id")
     rows.sort(key=lambda r: r["created_at"], reverse=True)
     return [{"runId": r["run_id"], "queryId": r.get("query_id"), "parentRunId": r.get("parent_run_id"),
