@@ -17,7 +17,7 @@ function contents(content, tab) {
 
   const headings = [...content.querySelectorAll("h2, h3, summary")].filter((node) => {
     if (node.tagName === "SUMMARY" && node.parentElement.classList.contains("srcs")) return false;
-    if (node.tagName === "SUMMARY" && node.closest(".assessment-document")) return false;   // only the 11 section headings
+    if (node.tagName === "SUMMARY" && node.closest(".assessment-document")) return false;   // only section headings
     if (node.tagName === "H3" && (tab !== "coach" || !node.textContent.includes("Improved enquiry"))) return false;
     return node.tagName === "SUMMARY" || !node.closest("details") || node.hasAttribute("data-page-toc");
   });
@@ -30,7 +30,7 @@ function contents(content, tab) {
 }
 
 function trackContents(panel, content, tab) {
-  const layout = panel.parentElement;
+  const layout = panel.closest(".page-layout");
   const toc = panel.querySelector(".page-toc-links");
   const toggle = layout.querySelector(".page-navigation-toggle");
   const compact = window.matchMedia("(max-width: 1100px)");
@@ -67,8 +67,8 @@ function trackContents(panel, content, tab) {
       }
     }
     const top = loadingBar?.getBoundingClientRect().height || 0;
-    const offset = top + 16 + (content.querySelector(".assessment-export")?.offsetHeight || 0);
-    panel.style.setProperty("--page-navigation-top", `${top + 16}px`);
+    const offset = top + 16;
+    layout.style.setProperty("--page-navigation-top", `${top + 16}px`);
     content.style.setProperty("--page-scroll-offset", `${offset}px`);
     // Resolve IDs again: follow-up answers can replace their own DOM without a page render.
     const visible = entries.map((entry) => {
@@ -172,7 +172,13 @@ export function renderPageNavigation(content, s, step) {
   const layout = document.createElement("div");
   layout.className = "page-layout";
   content.before(layout);
-  layout.append(panel, content);
+  const sidebar = document.createElement("div");
+  sidebar.className = "page-sidebar";
+  sidebar.append(panel);
+  if (!s.busy && s.run?.id) sidebar.insertAdjacentHTML("beforeend", `<div class="sidebar-export">
+    <a class="btn" href="/api/runs/${encodeURIComponent(s.run.id)}/export.md" download>Download report (Markdown)</a>
+  </div>`);
+  layout.append(sidebar, content);
   layout.insertAdjacentHTML("beforeend", `<button type="button" class="page-navigation-toggle" popovertarget="page-navigation" aria-controls="page-navigation" aria-expanded="false">
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 5h10M7 10h10M7 15h10M2 5h1M2 10h1M2 15h1"/></svg>On this page</button>`);
   cleanupNavigation = trackContents(panel, content, step.id);

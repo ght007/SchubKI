@@ -28,7 +28,7 @@ SECTIONS = [
     ("risks_and_uncertainty", "Risks and uncertainty"),
     ("decision_basis", "Decision basis"),
     ("sources", "Sources"),
-    ("first_feasibility_experiment_prototype", "First feasibility experiment prototype"),
+    ("first_feasibility_experiment_prototype", "First feasibility experiment"),
 ]
 STATUS_LABEL = {"provisional_assessment": "Provisional assessment",
                 "insufficient_information": "Insufficient information",

@@ -120,12 +120,8 @@ function renderPremise(el, run) {
     </section>`;
 }
 
-function renderAssessment(el, run, state) {
+function renderAssessment(el, run) {
   renderAssessmentOutline(el, run);
-  // Preserve access to the existing generated report while the new presentation is a skeleton.
-  if (!state.busy && run.id) el.insertAdjacentHTML("afterbegin", `<div class="assessment-export">
-    <a class="btn" href="/api/runs/${encodeURIComponent(run.id)}/export.md" download>Download current report (Markdown)</a>
-  </div>`);
 }
 
 function renderCoachStep(el, run, state, actions) {
@@ -269,7 +265,7 @@ export function renderPipelineStep(el, stepId, run, state = {}, actions = {}) {
     case "rules": renderRules(el, run); break;
     case "retrieve": renderRetrieve(el, run); break;
     case "premise": renderPremise(el, run); break;
-    case "report": renderAssessment(el, run, state); break;
+    case "report": renderAssessment(el, run); break;
     case "verify": renderQuality(el, run); break;
     case "coach": renderCoachStep(el, run, state, actions); break;
   }
