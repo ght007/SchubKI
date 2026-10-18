@@ -6,6 +6,8 @@
 It owns the title, explanation, section links, and `aria-current="location"` tracking.
 Reading's link list deliberately excludes the scenario loader, assessment mode, and model choice;
 their form controls remain available. Other pages derive their links from content headings.
+Headings inside collapsed sections can opt into navigation with `data-page-toc`, as the spectral coverage
+map does. Selecting that link opens its parent disclosure before scrolling to the map.
 On viewports up to 1100px, or when the content area is narrower than 740px (for example beside the source
 drawer), the panel uses a native popover opened by “On this page”. Section selection closes the popover.
 Observers and global listeners are cleaned up when the view is rebuilt.

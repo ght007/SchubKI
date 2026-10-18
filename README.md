@@ -337,7 +337,8 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
 - **Process Information (Expert only):** current model activity, stage actors and timings, extracted
   requirements, AFS rules and method screening, spectral coverage, retrieved evidence, premise checks,
   model calls, and council results. Outputs arrive as their stages finish and remain available after the
-  run. Open sections stay open during live updates. If processing fails, the partial record stays available
+  run. The right-hand **Spectral coverage map** link opens the map within AFS rules and method screening.
+  Open sections stay open during live updates. If processing fails, the partial record stays available
   here; Reading unlocks for retry while result tabs remain locked.
 - **Result Assessment:** a shared outline preview in General and Expert, with contents links for Decision
   Status, Requirements stated, Key unknowns, Clarification questions, Recommendation, Measurement concept,
