@@ -49,7 +49,8 @@ It also offers:
 18. [Troubleshooting](#18-troubleshooting)
 19. [Limitations and honest caveats](#19-limitations-and-honest-caveats)
 20. [Future work](#20-future-work)
-21. [How the numbers work, and how the knowledge base grows](#21-how-the-numbers-work-and-how-the-knowledge-base-grows)
+21. [How the numbers work, and how the knowledge base grows]
+(#21-how-the-numbers-work-and-how-the-knowledge-base-grows)
 
 ---
 
@@ -719,3 +720,11 @@ review by an AFS expert.
 Control slides, S03 LED kidney study (Sensors 2017), S04 combined MIR-fluorescence probe (Anal. Chem.
 2021), S05 AFS flyer, S06 laboratory link, and the AFS method comparison table. All are © their respective
 owners and are not redistributed in this repository.*
+
+## Team
+
+- Naumanurrahman Shaikmujeeburrahman
+- Akshdeep Singh
+- Eisa Atif
+- Atfan Deshmukh
+- Marie Habermann
