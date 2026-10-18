@@ -1,10 +1,15 @@
-// Source drawer: page text with the quote marked, and the PDF page image with the passage highlighted.
+// Source drawer: highlighted document page and the cited page/line location.
 import { esc, getJSON } from "../api.js";
 
-function markQuote(text, quote) {
-  if (!quote) return esc(text);
+function quoteRanges(text, quote) {
+  if (!quote) return [];
   const words = quote.match(/[\p{L}\p{N}]+/gu) || [];
   const escapePattern = (word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const fullPattern = words.map(escapePattern).join("[^\\p{L}\\p{N}]{0,12}");
+  if (words.length) {
+    const exact = new RegExp(`(?<![\\p{L}\\p{N}])${fullPattern}(?![\\p{L}\\p{N}])`, "iu").exec(text);
+    if (exact) return [[exact.index, exact.index + exact[0].length]];
+  }
   let ranges = [];
   // PDF extraction may add line breaks and hyphens. Mark matching quote fragments
   // on the original page text so escaping cannot shift the highlighted offsets.
@@ -20,6 +25,10 @@ function markQuote(text, quote) {
     }
     if (found.length) { ranges = found.sort((a, b) => a[0] - b[0]); break; }
   }
+  return ranges;
+}
+
+function markQuote(text, ranges) {
   if (!ranges.length) return esc(text);
   let html = "", end = 0, marked = false;
   for (const [start, stop] of ranges) {
@@ -31,39 +40,42 @@ function markQuote(text, quote) {
   return html + esc(text.slice(end));
 }
 
-const STATUS_TEXT = {
-  verified: "Quote found verbatim on this page.",
-  fuzzy: "Quote found nearly verbatim on this page.",
-  unverified: "The quote was NOT found on this page: treat this claim as unsupported.",
-  scope_warning: "Quote found, but the source's scope (lab / in vitro / business) cannot support this claim.",
-};
+function lineLocation(text, ranges) {
+  if (!ranges.length) return "Line unavailable";
+  const lines = [...new Set(ranges.flatMap(([start, stop]) => {
+    const first = text.slice(0, start).split("\n").length;
+    const last = text.slice(0, stop).split("\n").length;
+    return Array.from({ length: last - first + 1 }, (_, i) => first + i);
+  }))].sort((a, b) => a - b);
+  const groups = [];
+  for (const line of lines) {
+    const group = groups.at(-1);
+    if (group && line === group[1] + 1) group[1] = line;
+    else groups.push([line, line]);
+  }
+  return `${lines.length === 1 ? "Line" : "Lines"} ${groups.map(([first, last]) => first === last ? first : `${first}–${last}`).join(", ")}`;
+}
+
 let latestRequest = 0;
 
 export async function renderEvidence(el, ev, close) {
   const request = ++latestRequest;
   if (!ev) { el.innerHTML = ""; return; }
-  el.innerHTML = `<div class="drawer-inner"><div class="drawer-head"><b>${esc(ev.source)} p.${ev.page}</b>
+  el.innerHTML = `<div class="drawer-inner"><div class="drawer-head"><b>${esc(ev.source)} · Page ${ev.page}<span class="source-lines small" title="Line numbers in the extracted page text"></span></b>
     <button class="btn" id="close">Close</button></div><div class="drawer-body"><p class="muted">Loading the page…</p></div></div>`;
   el.querySelector("#close").onclick = close;
   try {
     const data = await getJSON(`/api/source/${encodeURIComponent(ev.source)}/${ev.page}?q=${encodeURIComponent(ev.quote || "")}`);
     if (request !== latestRequest) return;
     const meta = data.meta || {};
-    const found = data.quote_found;
-    const status = ev.status && ev.status !== "unchecked" ? ev.status : found === true ? "verified" : found === false ? "unverified" : null;
-    const isPdf = (meta.file || "").endsWith(".pdf");
-    el.querySelector(".drawer-body").innerHTML = `
-      <div class="small muted">${esc(meta.title || "")}</div>
-      <div class="small" style="margin:.3rem 0 .6rem">Evidence scope: <b>${esc(meta.scope || "n/a")}</b></div>
-      ${ev.quote ? `<div class="quote">“${esc(ev.quote)}”</div>` : ""}
-      ${status ? `<div class="pill ${status === "verified" ? "ok" : status === "fuzzy" ? "warn" : "block"}" style="white-space:normal;margin-bottom:.7rem">${esc(STATUS_TEXT[status] || status)}</div>` : ""}
-      ${data.transcribed ? `<p class="small muted">S02 slides are images: the text below is the team's transcription of this slide; compare it with the slide image.</p>` : ""}
-      <div class="pagetext" aria-label="Knowledge base page text with matching evidence highlighted">${markQuote(data.text, ev.quote)}</div>
-      ${isPdf ? `<h3>Original page</h3><img alt="${esc(ev.source)} page ${ev.page}" loading="lazy"
-        src="/api/source/${encodeURIComponent(ev.source)}/${ev.page}/image?q=${encodeURIComponent(data.transcribed ? "" : ev.quote || "")}">` : ""}`;
-    const pageText = el.querySelector(".pagetext");
-    const hit = pageText.querySelector("#hit");
-    if (hit) pageText.scrollTop += hit.getBoundingClientRect().top - pageText.getBoundingClientRect().top - pageText.clientHeight / 2;
+    const text = data.text || "";
+    const ranges = quoteRanges(text, ev.quote);
+    el.querySelector(".source-lines").textContent = ` · ${lineLocation(text, ranges)}`;
+    const isPdf = (meta.file || "").toLowerCase().endsWith(".pdf");
+    el.querySelector(".drawer-body").innerHTML = isPdf
+      ? `<img alt="${esc(ev.source)} page ${ev.page}" loading="lazy"
+          src="/api/source/${encodeURIComponent(ev.source)}/${ev.page}/image?q=${encodeURIComponent(data.transcribed ? "" : ev.quote || "")}">`
+      : `<div class="source-document" aria-label="Source document with cited passage highlighted">${markQuote(text, ranges)}</div>`;
   } catch (e) {
     if (request !== latestRequest) return;
     el.querySelector(".drawer-body").innerHTML = `<div class="err">Could not load ${esc(ev.source)} p.${ev.page}: ${esc(e.message)}</div>`;

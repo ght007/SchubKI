@@ -525,7 +525,8 @@ table.data th { color: var(--graphite); font-weight: 500; border-top: 0; }
   max-height: calc(100dvh - var(--app-header-height) - 2rem); overflow: auto; }
 .drawer-head { display: flex; justify-content: space-between; align-items: center; padding: .7rem .9rem; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); }
 .drawer-body { padding: .9rem; }
-.drawer-body img { width: 100%; border: 1px solid var(--line); border-radius: var(--radius-s); background: #fff; }
+.source-document { white-space: pre-wrap; overflow-wrap: anywhere; }
+.drawer-body img { display: block; width: 100%; border: 1px solid var(--line); border-radius: var(--radius-s); background: #fff; }
 .pagetext { white-space: pre-wrap; font-size: .82rem; line-height: 1.5; color: var(--graphite); max-height: 340px; overflow: auto; border: 1px solid var(--line-soft); border-radius: var(--radius-s); padding: .6rem; }
 mark { background: #fde68a; color: #1f2937; border-radius: 2px; padding: 0 .1rem; }
 .quote { border-left: 3px solid var(--core); padding: .3rem .7rem; margin: .5rem 0 .8rem; font-style: italic; }
