@@ -337,7 +337,34 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
   .stage-grid { grid-template-columns: 1fr; }
 }
 
-/* ---------------------------------------------------------------- report */
+/* ---------------------------------------------------------------- result assessment outline */
+.assessment-preview { display: flex; align-items: center; gap: .65rem 1rem; flex-wrap: wrap;
+  margin-bottom: 1rem; padding: .85rem 1rem; border: 1px solid var(--line); border-radius: var(--radius-m); background: var(--surface); }
+.assessment-preview-label { flex: none; color: var(--graphite); border: 1px dashed var(--faint); border-radius: 999px;
+  padding: .18rem .6rem; font-size: .76rem; font-weight: 600; }
+.assessment-preview p { margin: 0; color: var(--graphite); font-size: .87rem; }
+.assessment-document { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); }
+.assessment-section { display: grid; grid-template-columns: minmax(220px, .85fr) minmax(0, 2fr); gap: 1rem 2rem;
+  padding: clamp(1.1rem, 2vw, 1.7rem); }
+.assessment-section + .assessment-section { border-top: 1px solid var(--line-soft); }
+.assessment-section:first-child { background: color-mix(in srgb, var(--ok) 5%, var(--surface)); border-radius: var(--radius-m) var(--radius-m) 0 0; }
+.assessment-section-heading { display: flex; align-items: baseline; gap: .75rem; }
+.assessment-section-number { color: var(--faint); font-size: .75rem; font-weight: 600; }
+.assessment-section h2 { margin: 0; font-size: 1.05rem; }
+.assessment-field-content { min-width: 0; padding: .8rem 1rem; border: 1px dashed var(--line); border-radius: var(--radius-s); }
+.assessment-placeholder-copy { margin: 0 0 .8rem; color: var(--graphite); font-size: .87rem; max-width: 72ch; }
+.assessment-placeholder-lines { display: grid; gap: .5rem; }
+.assessment-placeholder-lines span { height: .4rem; border-radius: 999px; background: var(--line-soft); max-width: 38rem; }
+.assessment-placeholder-lines span:last-child { width: 65%; }
+.assessment-export { display: flex; align-items: center; justify-content: space-between; gap: .75rem 1.5rem; flex-wrap: wrap;
+  padding: 1rem 0; }
+.assessment-export p { margin: 0; }
+.assessment-export .btn { text-decoration: none; color: var(--ink); }
+@media (max-width: 760px) {
+  .assessment-section { grid-template-columns: minmax(0, 1fr); gap: .8rem; }
+}
+
+/* ---------------------------------------------------------------- existing report and shared result styles */
 .headline {
   font-size: 1.12rem; line-height: 1.45; padding: .9rem 1rem; border-radius: var(--radius-m); background: var(--surface);
   border: 1px solid var(--line); border-left: 4px solid var(--core); margin-bottom: 1rem; max-width: 80ch;

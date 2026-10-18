@@ -1,9 +1,44 @@
-# Query sidebar and account controls
+# Frontend integration
+
+## Result Assessment outline
+
+`frontend/js/components/assessment-outline.js` owns the new result outline. General and Expert show the same
+11 placeholder sections, in the order below. The sticky page header builds its contents links from their
+headings, so section jumps and the current-section accent work without a separate navigation definition.
+
+| Frontend slot | Heading |
+| --- | --- |
+| `decision_status` | Decision Status |
+| `requirements_stated` | Requirements stated |
+| `key_unknowns` | Key unknowns |
+| `clarification_questions` | Clarification questions |
+| `recommendation` | Recommendation |
+| `measurement_concept` | Measurement concept |
+| `spectral_range` | Spectral range |
+| `risks_and_uncertainty` | Risks and uncertainty |
+| `first_feasibility_experiment` | First feasibility experiment |
+| `decision_basis` | Decision basis |
+| `sources` | Sources |
+
+Each section has `data-assessment-field="<slot>"`, a heading ID `assessment-<slot-with-hyphens>`, and a content
+container with that ID plus `-content`. These are frontend hooks, not a new backend response contract.
+When the future RAG format is agreed, add a presenter that renders its fields into these content containers.
+Keep the heading IDs and section order stable. Escape plain text and reuse the existing citation/source drawer
+components when adding grounded statements; external sources must display their quoted passages.
+
+The outline intentionally accepts no run payload and does not adapt, rewrite, or manufacture values from
+`run.report`, requirements, premises, or evidence. No scenario-specific example content is embedded.
+`pipeline.js` shows the outline after the existing report stage completes and keeps the current report's
+Markdown download available. Current run objects, API responses, saved data, prompts, retrieval, verification,
+and the original `report.js` / `summary.js` components are retained. Confidence and Verification, Coach,
+Reading, and processing behavior continue using their existing data.
+
+## Query sidebar and account controls
 
 The Reading sidebar is a local enquiry-draft UI. It has no authentication, user-to-chat mapping,
 conversation messages, or database integration. Login and subscription controls are app-wide placeholders.
 
-## Saved query provider
+### Saved query provider
 
 `frontend/js/query-history.js` exports `createLocalQueryRepository()`. `app.js` uses its asynchronous interface:
 
@@ -25,7 +60,7 @@ the restored draft. Follow-up answers are supplied again when assessing.
 The future per-user chat implementation can replace the repository construction in `app.js` with its own
 provider. Conversation history and authentication remain the responsibility of that implementation.
 
-## Account entry points
+### Account entry points
 
 `frontend/js/components/account-controls.js` mounts once in `#account-actions`, outside the tab content.
 The buttons dispatch cancelable events on `document`:

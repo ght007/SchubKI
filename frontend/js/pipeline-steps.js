@@ -2,7 +2,7 @@
 export const PIPELINE_STAGES = ["extract", "rules", "retrieve", "premise", "report", "verify", "coach"];
 export const STEPS = [
   { id: "reading", short: "Reading", label: "Reading", color: "#6d28d9", description: "Enter the customer's enquiry and choose how to assess it.", stages: ["extract"] },
-  { id: "assessment", short: "Result Assessment", label: "Result Assessment", color: "#15803d", description: "Review recommendations and open the highlighted evidence behind sourced claims.", stages: ["report"] },
+  { id: "assessment", short: "Result Assessment", label: "Result Assessment", color: "#15803d", description: "Review the decision, requirements, recommended methods, and feasibility-study plan.", stages: ["report"] },
   { id: "verification", short: "Confidence & Verification", label: "Confidence and Verification", color: "#c2410c", description: "Review confidence signals, source checks, and quality metrics.", stages: ["verify"] },
   { id: "coach", short: "Coach", label: "Coach", color: "#b91c1c", description: "Fill the important gaps and re-run with customer answers.", stages: ["coach"] },
 ];

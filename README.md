@@ -336,10 +336,12 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
 - **Temporary loading screen:** the current model task, stage completion, an updating model trace,
   council activity, and timings. It appears during calculation only; detailed outputs are kept in the
   completed calculation record.
-- **Result Assessment:** compact summary in General, full report in Expert, with glossary tooltips, path
-  verdicts, and sourced plans for a requested path that is premature or conflicting. Sourced statements are
-  highlighted; selecting a citation opens its supporting quote highlighted in the knowledge base page and
-  original PDF. Both views export the complete Markdown run, including appendices A–M.
+- **Result Assessment:** a shared outline preview in General and Expert, with contents links for Decision
+  Status, Requirements stated, Key unknowns, Clarification questions, Recommendation, Measurement concept,
+  Spectral range, Risks and uncertainty, First feasibility experiment, Decision basis, and Sources.
+  These are placeholder sections for the next assessment format; current RAG fields are not mapped into them.
+  Existing run data is retained, and the complete generated Markdown report (including appendices A–M)
+  remains available to download. Frontend slots are described in [frontend integration](docs/frontend-integration.md).
 - **Confidence and Verification:** computed confidence, citation checks, number and client-fact checks,
   and the quality gate. The complete calculation record, model trace, and council results are available
   in a collapsed details section.

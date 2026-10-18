@@ -2,8 +2,7 @@
 import { esc } from "../api.js";
 import { renderMatrix } from "./matrix.js";
 import { renderSpectral } from "./spectral-map.js";
-import { renderReport } from "./report.js";
-import { renderSummary } from "./summary.js";
+import { renderAssessmentOutline } from "./assessment-outline.js";
 import { renderCouncil } from "./council.js";
 import { renderQuality } from "./quality.js";
 import { renderCoach } from "./coach.js";
@@ -121,17 +120,13 @@ function renderPremise(el, run) {
     </section>`;
 }
 
-function renderAssessment(el, run, state, actions) {
-  const reportEl = document.createElement("div");
-  el.innerHTML = `<section class="section evidence-intro"><h2>Grounded evidence</h2>
-    <p>Source-backed statements are highlighted throughout the assessment. Select a citation beside a statement to see its supporting quote highlighted in the knowledge base page and original PDF.</p>
-    <p class="small muted">Citation dots show quote matching: green found on the cited page, amber nearly verbatim, red needs review. Quote matching alone does not prove that the source supports the whole claim.</p>
-  </section>`;
-  el.appendChild(reportEl);
-  if (state.view === "general") renderSummary(reportEl, run, actions);
-  else renderReport(reportEl, run);
-  // The export endpoint is available after the run is saved, not while the draft streams.
-  if (state?.busy || !run.id) reportEl.querySelector(".toolbar")?.remove();
+function renderAssessment(el, run, state) {
+  renderAssessmentOutline(el);
+  // Preserve access to the existing generated report while the new presentation is a skeleton.
+  if (!state.busy && run.id) el.insertAdjacentHTML("beforeend", `<div class="assessment-export">
+    <p class="small muted">The current generated report is still available to download.</p>
+    <a class="btn" href="/api/runs/${encodeURIComponent(run.id)}/export.md" download>Download current report (Markdown)</a>
+  </div>`);
 }
 
 function renderCoachStep(el, run, state, actions) {
@@ -250,7 +245,7 @@ export function renderPipelineStep(el, stepId, run, state = {}, actions = {}) {
     case "rules": renderRules(el, run); break;
     case "retrieve": renderRetrieve(el, run); break;
     case "premise": renderPremise(el, run); break;
-    case "report": renderAssessment(el, run, state, actions); break;
+    case "report": renderAssessment(el, run, state); break;
     case "verify": {
       renderQuality(el, run);
       const record = document.createElement("details");
