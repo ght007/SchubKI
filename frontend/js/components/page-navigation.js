@@ -175,9 +175,6 @@ export function renderPageNavigation(content, s, step) {
   const sidebar = document.createElement("div");
   sidebar.className = "page-sidebar";
   sidebar.append(panel);
-  if (!s.busy && s.run?.id) sidebar.insertAdjacentHTML("beforeend", `<div class="sidebar-export">
-    <a class="btn" href="/api/runs/${encodeURIComponent(s.run.id)}/export.md" download>Download report (Markdown)</a>
-  </div>`);
   layout.append(sidebar, content);
   layout.insertAdjacentHTML("beforeend", `<button type="button" class="page-navigation-toggle" popovertarget="page-navigation" aria-controls="page-navigation" aria-expanded="false">
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 5h10M7 10h10M7 15h10M2 5h1M2 10h1M2 15h1"/></svg>On this page</button>`);

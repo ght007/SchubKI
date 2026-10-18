@@ -52,7 +52,7 @@ function draw() {
       ${["A", "B", "C"].map((p) => `<button type="button" class="pathopt" data-path="${p}" aria-pressed="${chosen.includes(p)}" ${s.busy || s.reading ? "disabled" : ""}>
           <span class="pl">${p}</span><span>${esc(defs[p]?.title || FALLBACK[p].title)}</span>
           ${detected.includes(p) && !chosen.includes(p) ? `<span class="tag">in the enquiry</span>` : ""}</button>`).join("")}
-      ${s.confirm && shown.length ? `<span class="small muted">Choose Check and assess to review the questions for ${shown.length > 1 ? "these paths" : "this path"} below in Reading.</span>` : ""}
+      ${s.confirm && shown.length ? `<span class="small muted">Choose Check and assess to review the questions for ${shown.length > 1 ? "these paths" : "this path"} below in Customer Enquiry.</span>` : ""}
     </div>
     ${!s.confirm && shown.length ? `<div class="pathq"><h3 id="path-questions">Path follow-up questions</h3>
       ${shown.map((path) => (defs[path]?.questions || []).map((q) => `<div class="pq">

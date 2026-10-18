@@ -120,8 +120,15 @@ function renderPremise(el, run) {
     </section>`;
 }
 
-function renderAssessment(el, run) {
+function renderAssessment(el, run, state) {
   renderAssessmentOutline(el, run);
+  if (!state.busy && run.id) {
+    const download = `<div class="assessment-export">
+      <a class="btn" href="/api/runs/${encodeURIComponent(run.id)}/export.md" download>Download report (Markdown)</a>
+    </div>`;
+    el.insertAdjacentHTML("afterbegin", download);
+    el.insertAdjacentHTML("beforeend", download);
+  }
 }
 
 function renderCoachStep(el, run, state, actions) {
@@ -181,7 +188,7 @@ export function renderProcessInformation(el, run, state, actions) {
     <p><b>${esc(active?.[1] || (finishing ? "Finalizing the assessment" : "Starting the pipeline"))}</b></p>
     <p>${esc(finishing ? "Waiting for the calculation to finish before unlocking the result tabs." :
       activity || [...state.stages].reverse().find((event) => event.status === "start")?.label || "Preparing the first stage…")}</p>
-  </section>` : run?.error ? `<section class="section stage-placeholder"><h2 id="process-activity">Processing stopped</h2><p class="err">${esc(run.error)}</p><p>Open Reading to edit the enquiry and try again.</p></section>` :
+  </section>` : run?.error ? `<section class="section stage-placeholder"><h2 id="process-activity">Processing stopped</h2><p class="err">${esc(run.error)}</p><p>Open Customer Enquiry to edit the enquiry and try again.</p></section>` :
     run?.id ? `<section class="section process-live"><h2 id="process-activity">Calculation complete</h2><p>Result Assessment, Confidence and Verification, and Coach are now available. The calculation record stays here for review.</p></section>` : ""}
   <section class="section"><h2 id="process-stages">Calculation stages</h2>
     <p class="small muted">${state.busy ? "Follow each model or rule task as it runs. Completed model calls appear in the trace below as soon as their stage finishes." : "Recorded model and rule tasks, with their timings and outputs."}</p>
@@ -265,7 +272,7 @@ export function renderPipelineStep(el, stepId, run, state = {}, actions = {}) {
     case "rules": renderRules(el, run); break;
     case "retrieve": renderRetrieve(el, run); break;
     case "premise": renderPremise(el, run); break;
-    case "report": renderAssessment(el, run); break;
+    case "report": renderAssessment(el, run, state); break;
     case "verify": renderQuality(el, run); break;
     case "coach": renderCoachStep(el, run, state, actions); break;
   }

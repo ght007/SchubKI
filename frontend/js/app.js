@@ -186,7 +186,7 @@ const actions = {
     const answers = activePathAnswers(Object.fromEntries(Object.entries(s.answers).filter(([key, value]) =>
       value.trim() && s.run.answers?.[key] !== value)));
     const pathsChanged = JSON.stringify(s.paths) !== JSON.stringify(s.run.preferred_paths || []);
-    if (!Object.keys(answers).length && !pathsChanged) { store.set({ error: "Type at least one answer, or change the preferred path in Reading, first." }); return; }
+    if (!Object.keys(answers).length && !pathsChanged) { store.set({ error: "Type at least one answer, or change the preferred path in Customer Enquiry, first." }); return; }
     await run("/api/whatif", { run_id: s.run.id, answers, mode: s.mode, preferred_paths: s.paths, model: chosenModel() });
   },
 };
@@ -288,7 +288,7 @@ function renderView(s) {
       renderPipelineStep(content, stage, run, { ...s, run }, actions);
     } else if (!run && !s.busy && !s.error) {
       content.innerHTML = `<div class="empty"><h2>Start with a customer enquiry</h2>
-        <p>Open Reading to type an enquiry or load a scenario. Each tab above shows its results as the pipeline runs.</p></div>`;
+        <p>Open Customer Enquiry to type an enquiry or load a scenario. Each tab above shows its results as the pipeline runs.</p></div>`;
     } else {
       const status = stepStatus(s, step.id);
       const message = status === "active" ? "This step is running. Its output will appear here when it finishes." :

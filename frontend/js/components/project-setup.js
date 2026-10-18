@@ -51,7 +51,7 @@ export function projectSystems(run) {
 
 export function projectSetupHTML(run) {
   const { paths, systems } = projectSystems(run);
-  if (!paths.length) return `<p class="muted">Select AFS paths in Reading to build a setup.</p>`;
+  if (!paths.length) return `<p class="muted">Select AFS paths in Customer Enquiry to build a setup.</p>`;
   if (!systems.length) return `<p class="muted">No setup proposed yet. Resolve the open assessment questions.</p>`;
   return `<div class="project-setup">
     <p class="small muted">Proposed systems · ranked by recommendation · validate in a lab trial</p>

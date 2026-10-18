@@ -24,7 +24,7 @@ const SECTIONS = [
 const KIND = { client_fact: "client fact", sourced: "sourced", assumption: "assumption", proposal: "proposal" };
 const STATUS_PILL = { provisional_assessment: "core", insufficient_information: "warn", outside_supported_scope: "block" };
 const CONF_PILL = { high: "ok", medium: "core", low: "warn", insufficient: "block" };
-const WHO = { expert: "chosen in Reading", enquiry: "asked for by the customer", both: "asked for by customer and in Reading" };
+const WHO = { expert: "chosen in Customer Enquiry", enquiry: "asked for by the customer", both: "asked for by customer and in Customer Enquiry" };
 
 const list = (items, tag = "ul") => items.length ? `<${tag} class="outline-list">${items.map((x) => `<li>${annotate(x)}</li>`).join("")}</${tag}>` : none();
 const none = () => `<p class="muted small">Nothing reported for this section.</p>`;

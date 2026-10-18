@@ -273,9 +273,6 @@ select, input[type=text] { border: 1px solid var(--line); border-radius: var(--r
 .page-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: start; gap: 1.25rem; }
 .page-layout > .page-content { grid-column: 1; grid-row: 1; }
 .page-sidebar { grid-column: 2; grid-row: 1; position: sticky; top: var(--page-navigation-top, 1rem); z-index: 4; min-width: 0; }
-.sidebar-export { margin-top: .75rem; }
-.sidebar-export .btn { width: 100%; justify-content: center; text-align: center; }
-.page-sidebar:has(.sidebar-export) .page-navigation { max-height: calc(100dvh - var(--page-navigation-top, 1rem) - 7rem); }
 .page-navigation {
   max-height: calc(100dvh - var(--page-navigation-top, 1rem) - 3rem); overflow-y: auto;
   overscroll-behavior: contain; scrollbar-width: thin;
@@ -718,5 +715,3 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .prototype-icon { flex: none; width: 1.15rem; height: 1.15rem; color: var(--core); }
 .setup-overview { margin-top: 1.5rem; }
 .compact-navigation .page-sidebar { grid-column: 1; position: static; }
-.compact-navigation .sidebar-export { position: fixed; right: .85rem; bottom: 4.25rem; z-index: 6; margin: 0; max-width: calc(100vw - 1.7rem); }
-.compact-navigation:has(.sidebar-export) { padding-bottom: 4rem; }
