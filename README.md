@@ -76,7 +76,7 @@ an expert needs. So the system is split:
 | Confidence | **Computed** from observable signals | A model rating itself is not calibrated |
 
 If the model is unavailable, every stage has a rule-based fallback, so the app still produces a complete,
-cited (and clearly labelled) assessment.
+cited (and clearly labelled) assessment. 
 
 ## 2. How it maps to the evaluation criteria
 
