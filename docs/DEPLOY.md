@@ -18,11 +18,11 @@ needed. The Render URL on its own also serves the complete app (fallback link fo
 
 PowerShell, in the repo root:
 ```powershell
-Compress-Archive -Path data\raw\S01_*.pdf,data\raw\S02_*.pdf,data\raw\S03_*.pdf,data\raw\S04_*.pdf,data\raw\S05_*.pdf -DestinationPath sources.zip
+Compress-Archive -Path data\raw\S01_*.pdf,data\raw\S02_*.pdf,data\raw\S03_*.pdf,data\raw\S04_*.pdf,data\raw\S05_*.pdf,data\raw\AFS_method_comparison_table.xlsx -DestinationPath sources.zip -Force
 ```
 bash:
 ```bash
-(cd data/raw && zip ../../sources.zip S0[1-5]_*.pdf)
+(cd data/raw && zip ../../sources.zip S0[1-5]_*.pdf AFS_method_comparison_table.xlsx)
 ```
 Upload `sources.zip` to a **private** Supabase Storage bucket (e.g. `build`), then use *Create signed URL*
 with an expiry that covers the jury period. That URL is a secret: put it in Render only, never in git.

@@ -105,7 +105,6 @@ def _zip(files: dict[str, bytes]) -> bytes:
 
 def test_required_sources_are_the_supplied_and_cited_pdfs():
     reg = fetch.registered()
-    assert all(name.lower().endswith(".pdf") for name in reg.values())
     need = fetch.required()
     for sid in fetch.SUPPLIED | fetch.cited_sources():
         if sid in reg:
@@ -117,6 +116,17 @@ def test_uploaded_documents_are_optional_for_the_build():
     # documents added on the Knowledge base page come from Supabase at startup, not from the zip
     assert not set(fetch.required()) & set(fetch.optional())
     assert set(fetch.required()) | set(fetch.optional()) == set(fetch.registered().values())
+
+
+def test_every_registered_file_is_fetched_or_in_git():
+    # the Knowledge base page refuses to save sources.json while a registered file is missing on the server
+    import subprocess
+    tracked = set(subprocess.run(["git", "ls-files", "data/raw"], cwd=ROOT, capture_output=True, text=True)
+                  .stdout.split())
+    for name in fetch.registered().values():
+        in_git = f"data/raw/{name}" in tracked
+        assert in_git or name in fetch.required() + fetch.optional(), name
+    assert "AFS_method_comparison_table.xlsx" in fetch.optional()      # T1: git ignores *.xlsx
 
 
 def test_extract_takes_wanted_files_by_name_only(tmp_path):
