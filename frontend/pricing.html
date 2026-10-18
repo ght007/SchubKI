@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- Pricing page: plans come from /api/billing/plans (one source for prices and features). -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pricing · AFS Assessment Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/static/css/pricing.css">
+</head>
+<body class="pricing-body">
+  <header class="topbar">
+    <a class="brand pricing-brand" href="/app">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <defs><linearGradient id="spec" x1="0" x2="1"><stop offset="0" stop-color="#6d28d9"/><stop offset=".3" stop-color="#2563eb"/><stop offset=".55" stop-color="#16a34a"/><stop offset=".75" stop-color="#eab308"/><stop offset="1" stop-color="#dc2626"/></linearGradient></defs>
+        <path d="M3 30 C 14 30, 14 10, 25 10 S 34 18, 37 18" fill="none" stroke="url(#spec)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="3" cy="30" r="3" fill="var(--ink)"/>
+      </svg>
+      <div>
+        <div class="brand-name">AFS Assessment Assistant</div>
+        <div class="brand-sub">First technical assessment for in-line spectroscopy enquiries</div>
+      </div>
+    </a>
+    <nav class="pricing-nav" id="pricing-nav" aria-label="Account"></nav>
+  </header>
+
+  <main class="pricing-main">
+    <div id="upgrade-banner" class="pricing-banner" role="status" hidden>
+      The <b>Expert view</b> is part of the Pro plan. Upgrade to see the full report, evidence and checks.
+    </div>
+
+    <section class="pricing-hero">
+      <p class="pricing-eyebrow">Pricing</p>
+      <h1>One plan for the summary, one for the workbench.</h1>
+      <p class="pricing-lede">Every plan runs the same assessment. Basic shows it as a one-page summary;
+        Pro opens the full engineering view behind it.</p>
+    </section>
+
+    <section class="pricing-cards" id="plans" aria-label="Plans"><p class="muted">Loading plans…</p></section>
+    <p id="pricing-message" class="pricing-message" role="status"></p>
+
+    <section class="pricing-compare" aria-labelledby="compare-title">
+      <h2 id="compare-title">Compare plans</h2>
+      <div class="pricing-table-wrap"><table class="pricing-table" id="compare"></table></div>
+    </section>
+
+    <section class="pricing-faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions</h2>
+      <details><summary>What is the difference between the General and the Expert view?</summary>
+        <p>Both show the same run. The General view is one compact page for sales and project leads: problems
+          in the request, what to test first, questions for the customer and the first experiment. The Expert view
+          adds the full report, the method comparison, every source quote with its highlighted page, the
+          verification and quality checks, and the model trace.</p></details>
+      <details><summary>Can I change plans later?</summary>
+        <p>Yes. Switch between Basic and Pro on this page at any time; your saved enquiries and run history stay
+          in your account.</p></details>
+      <details id="faq-payment"><summary>When am I charged?</summary>
+        <p>Online payment is not connected yet. Until it is, choosing a plan switches it straight away and no
+          payment is taken.</p></details>
+    </section>
+  </main>
+
+  <footer class="pricing-footer">Prices in US dollars per month. <a href="/app">Back to the assistant</a></footer>
+  <script type="module" src="/static/js/pricing.js"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 // Summary badges and the navigable spectrum line with completion dots.
 import { esc } from "../api.js";
+import { isPro } from "./account-controls.js";
 import { STATUS_LABELS, activeStep, canOpenStep, pipelineProgress, stepStatus, visibleSteps } from "../pipeline-steps.js";
 
 const STATUS = {
@@ -17,10 +18,22 @@ function revealStep(nav, button) {
   else if (bounds.right > viewport.right) nav.scrollLeft += bounds.right - viewport.right + 12;
 }
 
+const LOCK = `<svg class="lock" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4.5" y="9" width="11" height="8" rx="1.5"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></svg>`;
+
 function viewToggle(s) {
+  const pro = isPro(s.user);   // Basic plan: General only; the Expert button leads to /pricing
   return `<div class="seg view-toggle" role="group" aria-label="View">
     <button data-view="general" aria-pressed="${s.view === "general"}" title="Simple progress and assessment views">General</button>
-    <button data-view="expert" aria-pressed="${s.view === "expert"}" title="Includes Process Information and Coach: model activity, timings, and follow-up questions">Expert</button></div>`;
+    <button data-view="expert" aria-pressed="${s.view === "expert"}" class="${pro ? "" : "locked"}"
+      title="${pro ? "Includes Process Information and Coach: model activity, timings, and follow-up questions" : "Expert view is part of the Pro plan"}">${pro ? "" : LOCK}Expert</button></div>`;
+}
+
+// Where data lives: Supabase (online), offline fallback to the local file, or local only.
+function dbPill(db) {
+  if (!db) return "";
+  const [label, cls] = db.mode === "supabase" ? [db.kb === "supabase" ? "Supabase" : "Supabase (KB local)", "ok"]
+    : db.mode === "offline" ? ["Supabase offline: saving locally", "warn"] : ["Local database", ""];
+  return `<span class="pill ${cls}" title="${esc(db.detail || "")}">${esc(label)}</span>`;
 }
 
 export function renderStatus(el, s, actions) {
@@ -35,7 +48,7 @@ export function renderStatus(el, s, actions) {
     const h = s.health;
     el.innerHTML = (h ? `<span class="pill ${h.mock || !h.has_key ? "warn" : "ok"}"><span class="dot"></span>${
       h.mock ? "Rule-only mode (no LLM)" : h.has_key ? "Groq connected" : "No Groq key: rule-only"}</span>
-      ${s.view === "expert" ? `<span class="pill">${h.kb_records} indexed passages</span>` : ""}` : "") + viewToggle(s);
+      ${s.view === "expert" ? `<span class="pill">${h.kb_records} indexed passages</span>${dbPill(h.db)}` : ""}` : "") + viewToggle(s);
     wire();
     return;
   }

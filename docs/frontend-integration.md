@@ -59,7 +59,9 @@ The spectrum line derives its columns, endpoint positions, colors, and progress 
   Model-call and council disclosures use stable `data-process-section` keys and heading IDs so open
   sections and contents links survive live updates.
 
-This distinction is a frontend presentation preference; account authorization remains separate.
+Display mode uses main's account plan rules: Basic accounts have General, Pro accounts have both views,
+and guest demo mode permits both. `actions.setView` preserves the upgrade redirect for Basic accounts;
+boot normalizes stored tabs against the plan's effective view before restoring a saved run.
 The existing RAG pipeline, stream payloads, saved run objects, and Markdown export are unchanged.
 
 ## Data retention
@@ -114,54 +116,53 @@ Reading, and processing behavior continue using their existing data.
 
 ## Query sidebar and account controls
 
-The Reading sidebar is a local enquiry-draft UI. It has no authentication, user-to-chat mapping,
-conversation messages, or database integration. Login and subscription controls are app-wide placeholders.
+The branch now includes main's authentication, session, account-query, run-history, pricing, and database
+integration. `backend/app/auth/`, `backend/app/api/auth.py`, and the Supabase/local database code are
+preserved from main. The frontend presentation changes do not replace those services.
 
 ### Saved query provider
 
-`frontend/js/query-history.js` exports `createLocalQueryRepository()`. `app.js` uses its asynchronous interface:
+`frontend/js/query-history.js` exports `createLocalQueryRepository()`, `createServerQueryRepository()`,
+and `importLocalDrafts()`. `app.js` starts with the local provider and switches to the account provider
+after `/api/auth/me` returns a signed-in user. Both implement:
 
 - `list()` returns saved query drafts, most recent first.
-- `save({ id?, enquiry, mode, modelChoice, paths })` creates or updates a draft and returns it.
+- `save({ id?, enquiry, mode, modelChoice, paths, view? })` creates or updates a draft and returns it.
 - `remove(id)` removes a saved draft.
-- `persistent` reports whether the current data could be written to browser storage.
+- `persistent` reports whether persistent storage is available (`true` for the account provider).
 
-Drafts contain only `id`, `title`, `enquiry`, `mode`, `modelChoice`, `paths`, and `updatedAt` (epoch milliseconds).
-These IDs identify local drafts only. No user ID, chat ID, run ID, answer history, credentials, or tokens are stored.
-The provider keeps the latest 50 drafts under `afs.saved-queries.v1` in localStorage. If browser storage is
-unavailable, it retains drafts in memory and the sidebar says they last for this session only.
+The guest provider keeps the latest 50 drafts under `afs.saved-queries.v1` in localStorage. Its fields are
+`id`, `title`, `enquiry`, `mode`, `modelChoice`, `paths`, and `updatedAt` (epoch milliseconds). If browser
+storage is unavailable, it retains drafts in memory. Guest drafts contain no account credentials or session tokens.
+The account provider uses `GET/POST /api/me/queries` and `DELETE /api/me/queries/{id}`; returned queries also
+carry `view`, `lastRunId`, and `lastStatus`. The server associates them with the signed-in user. Local drafts
+are imported once per account per browser, retaining the local copy. If the account store cannot be reached
+during boot, the existing provider fallback keeps browser drafts available.
 
 Reading saves a draft when the user chooses Save, checks/assesses an enquiry, or leaves a draft through
 New query or another saved query. Opening a saved query restores its text and intake options without making
 an assessment request. It clears the current result and its URL hash so previous results are not shown for
 the restored draft. Follow-up answers are supplied again when assessing.
 
-The future per-user chat implementation can replace the repository construction in `app.js` with its own
-provider. Conversation history and authentication remain the responsibility of that implementation.
-For integration with parallel account/chat work, review this branch with `git diff origin/main...HEAD`
-(the changes since the common ancestor). Preserve backend and database changes already on `main` while
-connecting the provider and account events; these frontend placeholders do not replace those services.
+Assessment streams retain main's `X-AFS-View` and `X-AFS-Query-Id` headers. The server links each completed
+run to the account/query, and the frontend refreshes account queries afterward to show their latest-result
+links. `actions.openRun` restores a saved result from the account menu or sidebar.
+For integration, review `git diff origin/main...HEAD` (the changes since the common ancestor). Merge current
+main before publishing an integrated branch, retaining its backend/auth/database modules and account behavior.
 
 ### Account entry points
 
-`frontend/js/components/account-controls.js` mounts once in `#account-actions`, outside the tab content.
-The buttons dispatch cancelable events on `document`:
+`frontend/js/components/account-controls.js` mounts in `#account-actions`, outside the tab content, after
+account loading. The same account menu is available from the Queries sidebar. Signed-in users can view
+run history, open saved results, manage plans, and log out; guests get pricing and login links. The earlier
+placeholder dialogs and `afs:login-requested` / `afs:subscription-requested` events have been replaced by
+main's implementation.
 
-- `afs:login-requested`
-- `afs:subscription-requested`
-
-An integration can call `event.preventDefault()` to replace the default “Coming soon” dialog:
-
-```js
-document.addEventListener("afs:login-requested", (event) => {
-  event.preventDefault();
-  // Open the real authentication flow here.
-});
-```
-
-The default dialogs make no network requests and collect no credentials or payment details.
-“Preview Expert view” changes the existing display preference only. It grants no subscription or login state;
-General/Expert remains an ungated UI toggle until the account implementation defines access rules.
+`/login` provides sign-in/sign-up, `/pricing` lists plans, and `/app` requires a session by default.
+Basic users are sent to `/pricing?upgrade=expert` when selecting Expert. `AUTH_REQUIRED=0` restores the
+open guest demo. Plans and demo checkout remain defined by `backend/app/auth/plans.py` and the billing API;
+no payment provider is connected. Session cookies, account ownership, database persistence, and API access
+continue to follow main's backend implementation.
 
 ## Documentation maintenance
 

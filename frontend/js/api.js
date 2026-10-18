@@ -14,8 +14,8 @@ export async function postJSON(url, body) {
   return r.json();
 }
 
-export async function stream(url, body, onEvent) {
-  const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+export async function stream(url, body, onEvent, headers = {}) {
+  const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
   if (!r.ok || !r.body) throw new Error(`${r.status} ${await r.text()}`);
   const reader = r.body.getReader();
   const decoder = new TextDecoder();
@@ -35,6 +35,12 @@ export async function stream(url, body, onEvent) {
       }
     }
   }
+}
+
+export async function deleteJSON(url) {
+  const r = await fetch(url, { method: "DELETE" });
+  if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  return r.json();
 }
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

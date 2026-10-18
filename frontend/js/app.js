@@ -11,12 +11,13 @@ import { renderConfirm, focusReadingReview } from "./components/confirm.js";
 import { resetPrecheck } from "./components/precheck.js";
 import { activePathAnswers, loadPathQuestions, setDetected } from "./components/pathq.js";
 import { loadGlossary } from "./glossary.js";
-import { createLocalQueryRepository } from "./query-history.js";
+import { createLocalQueryRepository, createServerQueryRepository, importLocalDrafts } from "./query-history.js";
 import { renderQuerySidebar } from "./components/query-sidebar.js";
-import { mountAccountControls } from "./components/account-controls.js";
+import { isPro, mountAccountControls, openAccountMenu } from "./components/account-controls.js";
 
 const $ = (id) => document.getElementById(id);
-const queryRepository = createLocalQueryRepository();
+const localQueries = createLocalQueryRepository();
+let queryRepository = localQueries;   // swapped for the account store after login (boot)
 const compactSidebar = window.matchMedia("(max-width: 900px)");
 let readingRequest = 0;
 
@@ -38,6 +39,7 @@ function openReadingDraft(query = null) {
 const actions = {
   setMode(mode) { store.remember("mode", mode); store.set({ mode }); },
   setView(view) {
+    if (view === "expert" && !isPro(store.get().user)) { location.assign("/pricing?upgrade=expert"); return; } // Basic plan
     const s = store.get();
     const preferred = normalizeTab(s.tab, view);
     const tab = s.busy ? view === "expert" ? "process" : "reading" :
@@ -46,6 +48,7 @@ const actions = {
     store.remember("tab", tab);
     store.set({ view, tab, evidence: null });
   },
+  openAccountMenu(anchor) { openAccountMenu(anchor, store.get().user, { openRun: (id) => actions.openRun(id) }); },
   setConfirm(confirm) { store.remember("confirm", confirm ? "on" : "off"); store.set({ confirm }); },
   togglePath(path) {
     const s = store.get();
@@ -68,14 +71,14 @@ const actions = {
     const enquiry = s.draftEnquiry ?? s.run?.enquiry ?? "";
     if (!enquiry.trim() || s.savingQuery) return;
     const id = s.activeQueryId;
-    const draft = { id, enquiry, mode: s.mode, modelChoice: s.modelChoice, paths: [...s.paths] };
+    const draft = { id, enquiry, mode: s.mode, modelChoice: s.modelChoice, paths: [...s.paths], view: s.view };
     store.set({ savingQuery: true, queryNotice: "" });
     try {
       const saved = await queryRepository.save(draft);
       const savedQueries = await queryRepository.list();
       const current = store.get();
       const stillCurrent = current.activeQueryId === id && (current.draftEnquiry ?? current.run?.enquiry ?? "") === enquiry;
-      store.set({ savedQueries, queryPersistent: queryRepository.persistent, savingQuery: false,
+      store.set({ savedQueries, queryPersistent: queryRepository.persistent, queryStorageLabel: queryRepository.label, savingQuery: false,
         ...(stillCurrent ? { activeQueryId: saved.id, skipQueryAutosave: false } : {}),
         queryNotice: silent ? "" : queryRepository.persistent ? "Query saved." : "Saved for this session." });
     } catch (_) { store.set({ savingQuery: false, queryNotice: "Could not save this query." }); }
@@ -95,6 +98,23 @@ const actions = {
     await queryRepository.remove(id);
     store.set({ savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent,
       ...(store.get().activeQueryId === id ? { activeQueryId: null, skipQueryAutosave: true } : {}), queryNotice: "Query removed." });
+  },
+  async openRun(id) {
+    if (store.get().busy) return;
+    try {
+      const run = await getJSON(`/api/runs/${encodeURIComponent(id)}`);
+      setDetected(run.requirements?.preferred_paths || []);
+      const tab = run.error ? "reading" : "assessment";
+      store.remember("tab", tab);
+      store.set({ run, previous: null, liveRun: null, error: "", understand: null, evidence: null, tab,
+        draftEnquiry: null, activeQueryId: store.get().savedQueries.find((q) => q.lastRunId === id)?.id || null,
+        paths: run.preferred_paths || [], rejected: [],
+        answers: Object.fromEntries(Object.entries(run.answers || {}).filter(([key]) => /^Path [ABC] - /.test(key))) });
+      history.replaceState(null, "", `#run=${id}`);
+      window.scrollTo(0, 0);
+    } catch (err) {
+      store.set({ queryNotice: "Could not open that result.", error: `Could not open the saved result: ${err.message}` });
+    }
   },
   selectTab(id) {
     const tab = normalizeTab(id, store.get().view);
@@ -192,6 +212,8 @@ async function run(url, body) {
     tab: store.get().view === "expert" ? "process" : "reading" });
   window.scrollTo(0, 0);
   let receivedResult = false;
+  const s0 = store.get();
+  const headers = { "X-AFS-View": s0.view, ...(s0.activeQueryId ? { "X-AFS-Query-Id": s0.activeQueryId } : {}) };
   try {
     await stream(url, body, (e) => {
       const s = store.get();
@@ -215,7 +237,7 @@ async function run(url, body) {
           answers, paths: e.run.preferred_paths || [], rejected: [] });
         if (e.run.id) history.replaceState(null, "", `#run=${e.run.id}`);
       }
-    });
+    }, headers);
   } catch (err) {
     store.set({ error: `Could not reach the assistant: ${err.message}` });
   } finally {
@@ -231,6 +253,9 @@ async function run(url, body) {
     }
     if (store.get().run?.error) document.querySelector("#view .err")?.scrollIntoView({ block: "center" });
     else window.scrollTo(0, 0);
+  }
+  if (queryRepository.kind === "server") {          // the server linked the run: refresh "last result" links
+    try { store.set({ savedQueries: await queryRepository.list() }); } catch (_) { /* keep the old list */ }
   }
 }
 
@@ -304,15 +329,33 @@ document.addEventListener("keydown", (ev) => {
 });
 
 store.subscribe(render);
-mountAccountControls($("account-actions"), { previewExpert: () => actions.setView("expert") });
+const accountProps = { openRun: (id) => actions.openRun(id) };
 compactSidebar.addEventListener("change", (event) => store.set({ querySidebarOpen: !event.matches }));
 
+// Logged in: history lives in the account (Supabase, local SQLite as fallback). Guest (only with
+// AUTH_REQUIRED=0): in this browser. The plan decides the views: Basic = General, Pro = General + Expert.
+async function loadAccount() {
+  let user = null;
+  try { user = (await getJSON("/api/auth/me")).user; } catch (_) { /* server starting: stay guest */ }
+  store.set({ user });
+  mountAccountControls($("account-actions"), { ...accountProps, user });
+  if (!user) return;
+  const server = createServerQueryRepository();
+  try {
+    await importLocalDrafts(user.id, localQueries, server);
+    await server.list();
+    queryRepository = server;
+  } catch (_) { /* account store unreachable: keep browser drafts */ }
+}
+
 (async function boot() {
+  await loadAccount();
   const linkedRun = location.hash.match(/run=([\w-]+)/);
-  const view = store.recall("view", "general");
+  const view = isPro(store.get().user) ? store.recall("view", "general") : "general";
   const preferredTab = normalizeTab(store.recall("tab", linkedRun ? "assessment" : "reading"), view);
   store.set({ tab: canOpenStep(store.get(), preferredTab) ? preferredTab : "reading",
-    savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent, querySidebarOpen: !compactSidebar.matches,
+    savedQueries: await queryRepository.list(), queryPersistent: queryRepository.persistent,
+    queryStorageLabel: queryRepository.label, querySidebarOpen: !compactSidebar.matches,
     mode: store.recall("mode", "fast"), modelChoice: store.recall("modelChoice", "auto"),
     view, confirm: store.recall("confirm", "on") === "on" });
   try { store.set({ health: await getJSON("/api/health") }); } catch (_) { /* server starting */ }

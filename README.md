@@ -282,6 +282,10 @@ Open `http://localhost:8000`.
 - **Expert:** adds Process Information for live activity and the retained calculation record, including
   stage activity, model calls, timings, and council details, plus Coach for all missing facts and what-if re-runs.
 
+Signed-in Basic accounts have General; Pro accounts have both views. The Expert button directs Basic
+accounts to pricing. Guest mode (`AUTH_REQUIRED=0`) keeps both views available for an offline demo.
+This branch includes main's authentication, account storage, and Supabase integration alongside these frontend changes.
+
 Both views currently share the same 11-section Result Assessment skeleton. It does not display the old
 General summary or full report; the existing generated report remains available through Markdown download.
 The sections below describe where each current feature is available.
@@ -345,11 +349,13 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   Fast / Council mode includes an explanation of the selected mode. The LLM model choice is saved in the
   browser; backend routing still uses the server configuration.
 - **Saved queries:** a sidebar on Reading lists recent enquiry drafts. Save a query, start a new one, reopen
-  a saved query, or remove it. Text and Reading options are saved in this browser; checking or assessing an
-  enquiry also saves it. This UI has no user/chat database links. On small screens the list folds away.
-- **Account controls:** Log in and Subscribe to Expert are available throughout the app. Their dialogs are
-  placeholders; they collect no credentials or payments. Integration points for the separate account/chat
-  work are described in [frontend integration](docs/frontend-integration.md).
+  a saved query, or remove it. Signed-in users save to their account; guests save in this browser. Checking
+  or assessing an enquiry also saves it, and account queries link to their latest result. Local drafts are
+  imported once on sign-in. On small screens the list folds away.
+- **Account controls:** main's login, pricing, account menu, run history, and logout are integrated.
+  Basic users can upgrade to Pro for Expert; billing is still a demo without payments. The account chip
+  appears in both the app header and Queries sidebar. See [frontend integration](docs/frontend-integration.md)
+  and [Accounts, plans and pricing](#accounts-plans-and-pricing).
 - **General loading flow:** a simple list of steps with green completion dots and the current step.
   Model calls, council records, rule internals, and retrieval details are omitted.
 - **Process Information (Expert only):** current model activity, stage actors and timings, model calls,
@@ -433,10 +439,34 @@ Lists the models your key can use; the model names in `.env` must be among them.
 ```bash
 python -m uvicorn backend.app.main:app --port 8000
 ```
-Open http://localhost:8000. On first start with an empty index the server runs ingest itself.
+Open http://localhost:8000 (log in, then the assistant opens at `/app`). On first start with an empty index the server runs ingest itself.
 
 **No key, or Groq down?** Set `LLM_MOCK=1`. Every stage uses its rule-based fallback; reports are still
 complete, cited and verified, and say they are rule-based.
+
+### Accounts, plans and pricing
+
+Pages: `/` opens `/login`; the assistant is at `/app` and needs a login (it returns there after sign-in);
+`/login` forwards signed-in users to `/app`; `/pricing` is public. Sign-in by e-mail/password or, when
+`GOOGLE_CLIENT_ID` is set, "Continue with Google". Set `AUTH_REQUIRED=0` to get the open guest app back at `/`
+(fallback for an offline demo).
+
+- **Plans:** Basic $10/month (General view) and Pro $30/month (General + Expert view); new accounts start on
+  Basic. Plans, prices and features live in `backend/app/auth/plans.py`. Payments are not connected yet:
+  `BILLING_MODE=demo` makes the plan buttons switch the plan at once (no payment taken), `BILLING_MODE=off`
+  refuses. A payment provider plugs in at `POST /api/billing/checkout`.
+- **History:** every run (General or Expert view, fast or council, what-ifs) is linked to the user; saved
+  enquiries live in the account. The account chip at the bottom of the Queries box shows name and plan and
+  opens run history, plans and log out.
+- **Storage:** tables `users`, `user_sessions`, `projects`, `saved_queries`, `user_runs` in Supabase when
+  `SUPABASE_DB_URL` is set (created automatically, row-level security on), otherwise in the local SQLite file,
+  which is also the offline fallback. The full run result stays in `runs`; `user_runs` links it to the user.
+- **Security:** passwords are stored only as scrypt hashes; the session is an HttpOnly, SameSite=Lax cookie and
+  the database keeps only its SHA-256 hash; logout revokes it server-side; repeated failed logins are throttled.
+  The view limit is enforced in the UI and in the run history; the API itself stays open for the eval scripts.
+- **Google:** create an OAuth client of type *Web application* in Google Cloud, add `http://localhost` and
+  `http://localhost:8000` (and the hosted URL) under *Authorized JavaScript origins*, and put the client id in
+  `GOOGLE_CLIENT_ID`. The client secret is not used and must not be committed.
 
 ## 13. Evaluation and reproducing the outputs
 
@@ -478,6 +508,8 @@ All settings are read from `.env` (`backend/app/config.py`).
 | `EMBED_BACKEND` | empty | `hashing` = skip the model download, use the offline embedder |
 | `SHOW_DEV_CASES` | `0` | `1` = show our own adversarial cases A01–A07 in the UI scenario loader |
 | `DB_PATH`, `RAW_DIR`, `KB_DIR` | `data/cache/afs.db`, `data/raw`, `data/kb` | paths |
+| `SUPABASE_DB_URL` | empty | Supabase Postgres URI (Session pooler). Set = Supabase is the main database (see "Where the data lives") |
+| `DB_BACKEND` | `supabase` | `sqlite` = ignore Supabase and run on the local file only |
 
 ## 15. Groq free tier: what to expect
 
@@ -514,10 +546,18 @@ Spreading stages across models (only the report on `120b`) uses the separate per
 | `GET /api/source` | Source registry with pages loaded |
 | `GET /api/source/{doc}/{page}?q=` | Page text, metadata, whether `q` is on the page |
 | `GET /api/source/{doc}/{page}/image?q=` | PNG of the PDF page with `q` highlighted |
-| `GET /api/health` | Index size, embedding backend, mock flag, key present, models |
+| `GET /api/health` | Index size, embedding backend, mock flag, key present, models, database status (`db`) |
 | `GET /api/kb/summary` | Claim and rule counts, rule list with sources |
 | `GET /api/examples` | H, D and adversarial scenarios for the UI loader |
 | `POST /api/feedback` · `GET /api/feedback` | Expert feedback on a run (stored in SQLite) |
+| `GET /api/auth/config` | Whether Google sign-in is configured (public client id) |
+| `POST /api/auth/signup` · `POST /api/auth/login` · `POST /api/auth/google` | Create an account / log in with e-mail or username + password / log in with a Google ID token; sets the session cookie |
+| `POST /api/auth/logout[?everywhere=true]` | Revoke this session (or all of the user's sessions) |
+| `GET /api/auth/me` · `PATCH /api/auth/me` | Current user (`null` for guests) with counts; update name or username |
+| `GET/POST /api/me/queries` · `DELETE /api/me/queries/{id}` | The user's saved enquiries (sidebar) |
+| `GET /api/me/runs?view=general\|expert` | The user's run history; results via `/api/runs/{id}` |
+| `GET/POST /api/me/projects` | The user's projects (saved enquiries can belong to one) |
+| `GET /api/billing/plans` · `POST /api/billing/checkout` | Plans with prices and views, current plan; choose a plan (demo mode switches at once) |
 
 ## 17. Repository layout
 
@@ -567,6 +607,9 @@ afs-assistant/
 | `ImportError: DLL load failed while importing _extra` (PyMuPDF) | Python 3.14 and/or missing Visual C++ runtime. Use Python 3.12 (section 11) and install the VC++ Redistributable x64. Check `python -c "import sys; print(sys.version, sys.executable)"`. |
 | Traceback path shows `...\Python314\...` | The venv is not active, or was created with 3.14. Activate `.venv312` before running. |
 | `uvicorn` is not recognised | Use `python -m uvicorn backend.app.main:app --port 8000`. |
+| Header: *Supabase offline: saving locally*, log `could not translate host name` / `Network is unreachable` | The direct `db.<ref>.supabase.co` host is IPv6-only. Use the **Session pooler** URI (Supabase > Connect > Method: Session pooler) in `SUPABASE_DB_URL`; `push_to_supabase.py` finds it for you and prints the host. |
+| Header: *Supabase (KB local)* | Online knowledge base missing, from another ingest, or other embeddings. Run `python scripts/push_to_supabase.py`, then restart. |
+| `password authentication failed` | Wrong password, or `@` in it not written as `%40`. |
 | Server stops at startup | Startup runs ingest when the index is empty; fix the ingest error first. |
 | Ingest: "Claim quotes not found on their pages" | A source file is missing, renamed or a different version. Check the names in `data/raw/`. |
 | Embedding download fails | Set `EMBED_BACKEND=hashing` (offline embedder), re-run ingest. |
@@ -655,10 +698,34 @@ insufficient. "What would raise confidence" = the top three unknown, high-impact
 
 ### Where the data lives
 
-One SQLite file, `data/cache/afs.db` (path from `DB_PATH`), not committed to git:
-`chunks` + `chunks_fts` (275 searchable records, BM25), `vectors` (embeddings), `meta` (ingest stats),
-`runs` (every assessment as JSON), `llm_cache` (validated Groq replies by prompt hash), `feedback`.
-Re-running ingest rebuilds only the first three; deleting the file loses saved runs and the cache.
+**Supabase (hosted Postgres) is the main database when `SUPABASE_DB_URL` is set**; the local SQLite file
+`data/cache/afs.db` is the build target of the ingest, a local copy, and the offline fallback.
+
+| Data | Supabase (main) | Local SQLite |
+|---|---|---|
+| Knowledge base: `chunks` (+ generated `tsvector`, GIN index), `vectors` (pgvector), `meta` | **Retrieval runs here**: BM25 computed in SQL over Postgres full text (same formula and parameters as SQLite FTS5: k1 1.2, b 0.75), cosine search with pgvector | Built by `python -m backend.app.kb.ingest`; published with `python scripts/push_to_supabase.py`; used when Supabase is offline or not in step |
+| `runs` | written and read here | copy of every run |
+| `llm_cache` | shared cache (saves Groq quota across machines) | checked first (same key = same reply) |
+| `feedback` | written here first (ids from Supabase) | copy |
+
+Rules that keep it safe:
+- **Same index or none**: the online knowledge base is used only if it was pushed from the *same ingest*
+  (`ingested_at`) with the *same embedding backend*; otherwise retrieval uses the local index and the
+  header says why ("run scripts/push_to_supabase.py"). A query vector is always made locally.
+- **Offline**: if Supabase cannot be reached, the app keeps working on SQLite, shows *Supabase offline:
+  saving locally* (Expert header), and retries at most once a minute.
+- **Automatic sync** (`AUTO_SYNC=1`, default): after every run, anything that is still only local (runs and
+  cache by key, feedback by content) is uploaded in the background; at startup the knowledge base is published
+  when Supabase has none or one from another ingest. `push_to_supabase.py` does the same by hand.
+- **IPv6-only direct host**: if `db.<ref>.supabase.co` cannot be reached, the app tries Supabase's IPv4 session
+  pooler in every region, uses the one that answers, and remembers it in `data/cache/supabase_pooler.json`
+  (git-ignored), so the search runs once.
+- **Checked**: `python scripts/check_supabase.py` tests connection, row counts, knowledge-base match,
+  retrieval overlap with the local index, and a write/read/delete round-trip.
+- Measured on H01–H06 (our test Postgres 16 + pgvector 0.8): dense search identical, keyword top-8 mostly
+  7–8/8 identical, final evidence 12–14 of 14 passages identical, statuses and verification unchanged.
+- Row level security is on with no policies: the public API key sees nothing; only the connection string can.
+
 The embedding model is cached in `data/cache/models/`.
 
 ### How the knowledge base was built
