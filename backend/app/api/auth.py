@@ -173,8 +173,14 @@ def delete_my_query(query_id: str, request: Request):
 
 
 @router.get("/me/runs")
-def my_runs(request: Request, view: str | None = None, limit: int = 50):
-    return service.list_runs(require_user(request)["id"], view, min(max(limit, 1), 500))
+def my_runs(request: Request, view: str | None = None, limit: int = 50, query_id: str | None = None):
+    return service.list_runs(require_user(request)["id"], view, min(max(limit, 1), 500), query_id)
+
+
+@router.get("/me/queries/{query_id}/runs")
+def my_query_runs(query_id: str, request: Request, limit: int = 100):
+    """Every result generated for one saved query (first run, re-runs, what-ifs, council), newest first."""
+    return service.list_runs(require_user(request)["id"], None, min(max(limit, 1), 500), query_id)
 
 
 class ProjectBody(BaseModel):

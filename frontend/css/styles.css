@@ -715,3 +715,17 @@ a.btn { text-decoration: none; color: inherit; display: inline-flex; align-items
 .prototype-icon { flex: none; width: 1.15rem; height: 1.15rem; color: var(--core); }
 .setup-overview { margin-top: 1.5rem; }
 .compact-navigation .page-sidebar { grid-column: 1; position: static; }
+
+/* results saved under a query (sidebar) */
+.query-count { flex: none; margin-left: auto; min-width: 1.4rem; padding: 0 .35rem; border-radius: 999px; background: var(--line-soft);
+  color: var(--graphite); font-size: .7rem; line-height: 1.4rem; text-align: center; }
+.query-row.active .query-count { background: var(--surface); }
+.query-runs { list-style: none; margin: -.1rem 0 .4rem 1.6rem; padding: 0 0 0 .6rem; border-left: 1px solid var(--line); }
+.query-run { display: flex; align-items: flex-start; gap: .5rem; width: 100%; padding: .4rem .5rem; border: 0; background: none;
+  border-radius: var(--radius-s); cursor: pointer; text-align: left; color: inherit; font-size: .82rem; }
+.query-run:hover { background: var(--line-soft); }
+.query-run.current { background: var(--core-soft); color: var(--core); font-weight: 600; }
+.query-run-name { display: grid; min-width: 0; }
+.query-run-name small { color: var(--graphite); font-weight: 400; font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.query-run-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: .4rem; background: var(--faint); }
+.query-run-dot.core { background: var(--core); } .query-run-dot.warn { background: var(--warn); } .query-run-dot.block { background: var(--block); }
