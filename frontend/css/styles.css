@@ -137,14 +137,14 @@ p { margin: .3rem 0 .6rem; }
 
 /* ---------------------------------------------------------------- shell */
 .shell { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1rem 1.25rem 3rem; max-width: 1600px; margin: 0 auto; }
-.shell.with-drawer { grid-template-columns: minmax(0, 1fr) minmax(320px, 440px); }
+.shell.with-drawer { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: start; }
 .center { min-width: 0; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 1rem; box-shadow: var(--shadow); }
 .drawer { display: none; min-width: 0; }
-.with-drawer .drawer { display: block; }
-@media (max-width: 1100px) {
-  .shell, .shell.with-drawer { grid-template-columns: 1fr; }
-  .with-drawer .drawer { position: fixed; inset: auto 0 0 0; max-height: 70vh; overflow: auto; z-index: 10; padding: 0 .75rem .75rem; }
+.with-drawer .drawer:not([hidden]) { display: block; }
+@media (max-width: 760px) {
+  .shell, .shell.with-drawer { grid-template-columns: minmax(0, 1fr); }
+  .with-drawer .drawer-inner { position: static; max-height: 60dvh; }
 }
 
 /* ---------------------------------------------------------------- enquiry */

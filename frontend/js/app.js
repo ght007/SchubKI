@@ -46,7 +46,7 @@ const actions = {
       canOpenStep({ ...s, view }, preferred) ? preferred : "reading";
     store.remember("view", view);
     store.remember("tab", tab);
-    store.set({ view, tab, evidence: null });
+    store.set({ view, tab });
   },
   openAccountMenu(anchor) { openAccountMenu(anchor, store.get().user, { openRun: (id) => actions.openRun(id) }); },
   setConfirm(confirm) { store.remember("confirm", confirm ? "on" : "off"); store.set({ confirm }); },
@@ -311,7 +311,10 @@ function render(s) {
   $("view").setAttribute("aria-busy", String(s.busy || s.reading));
   $("view").setAttribute("aria-labelledby", transientLoading ? "page-title-loading" : `tab-${s.tab}`);
   renderView(s);
-  document.querySelector(".shell").classList.toggle("with-drawer", !!s.evidence);
+  // Keep the selected source and its scroll position when leaving the assessment.
+  const showEvidence = s.tab === "assessment" && !s.busy && !!s.evidence;
+  $("drawer").hidden = !showEvidence;
+  document.querySelector(".shell").classList.toggle("with-drawer", showEvidence);
   if (s.evidence !== lastEvidence) {
     lastEvidence = s.evidence;
     renderEvidence($("drawer"), s.evidence, () => store.set({ evidence: null }));
@@ -325,7 +328,7 @@ document.addEventListener("click", (ev) => {
   store.set({ evidence: { source: b.dataset.src, page: +b.dataset.page, quote: b.dataset.quote, status: b.dataset.status } });
 });
 document.addEventListener("keydown", (ev) => {
-  if (ev.key === "Escape" && store.get().evidence && !document.querySelector(".page-navigation:popover-open")) store.set({ evidence: null });
+  if (ev.key === "Escape" && !$("drawer").hidden && store.get().evidence && !document.querySelector(".page-navigation:popover-open")) store.set({ evidence: null });
 });
 
 store.subscribe(render);
