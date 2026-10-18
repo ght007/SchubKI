@@ -1,10 +1,7 @@
 // Resize the source/report split without re-rendering either pane or reloading the PDF page.
-import { recall, remember } from "../state.js";
-
 export function mountEvidenceSplit(shell, divider) {
   const compact = window.matchMedia("(max-width: 760px)");
-  const saved = Number(recall("evidenceSplit", "50"));
-  let preferred = Number.isFinite(saved) ? Math.max(25, Math.min(75, saved)) : 50;
+  let preferred = 50;
   let open = false;
   let pointer = null;
 
@@ -30,11 +27,10 @@ export function mountEvidenceSplit(shell, divider) {
     return value;
   }
 
-  function resize(value, persist = false) {
+  function resize(value) {
     const { minimum, maximum } = geometry();
     preferred = Math.max(minimum, Math.min(maximum, value));
     apply();
-    if (persist) remember("evidenceSplit", String(preferred));
   }
 
   function finish(event) {
@@ -43,7 +39,6 @@ export function mountEvidenceSplit(shell, divider) {
     pointer = null;
     shell.classList.remove("resizing-evidence");
     if (divider.hasPointerCapture(id)) divider.releasePointerCapture(id);
-    remember("evidenceSplit", String(preferred));
   }
 
   divider.addEventListener("pointerdown", (event) => {
@@ -62,7 +57,7 @@ export function mountEvidenceSplit(shell, divider) {
   divider.addEventListener("pointerup", finish);
   divider.addEventListener("pointercancel", finish);
   divider.addEventListener("lostpointercapture", finish);
-  divider.addEventListener("dblclick", () => resize(50, true));
+  divider.addEventListener("dblclick", () => resize(50));
   divider.addEventListener("keydown", (event) => {
     if (!open || compact.matches) return;
     const { minimum, maximum } = geometry();
@@ -70,10 +65,14 @@ export function mountEvidenceSplit(shell, divider) {
     const next = { ArrowLeft: value - 5, ArrowRight: value + 5, Home: minimum, End: maximum, Enter: 50 }[event.key];
     if (next === undefined) return;
     event.preventDefault();
-    resize(next, true);
+    resize(next);
   });
 
-  function update(visible = open) {
+  function update(visible = open, reset = false) {
+    if (visible && (!open || reset)) {
+      finish();
+      preferred = 50;
+    }
     open = visible;
     divider.hidden = !open || compact.matches;
     if (divider.hidden) finish();

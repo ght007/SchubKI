@@ -354,6 +354,7 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
 
 - **Pinned app header:** the AFS logo/title, account/login and plan controls, view toggle, status badges,
   and pipeline navigation stay visible together at the top while scrolling, before, during, and after a run.
+  The header is temporarily hidden while the evidence viewer is open; Close or Escape brings it back.
   Section jumps and the sidebars account for the header's actual height, including wrapped rows on small screens.
 - **Back navigation:** the left-arrow **Back** button beside the pipeline tabs returns to the previous
   available step in the current General or Expert view. Its tooltip names the destination. It is disabled
@@ -406,9 +407,9 @@ to re-assess. Answers for a removed path are excluded unless the customer asked 
   Completed runs can be reopened with `#run=<id>`.
 - **Source drawer:** click a citation in Result Assessment to open the cited PDF page with passage
   highlighting and page/line information. Text sources show the document with the cited passage marked.
-  On desktop, the source viewer and assessment initially share the available width equally. Drag the divider
+  On desktop, opening or reopening a citation resets the source viewer and assessment to equal widths. Drag the divider
   to resize them; arrow keys adjust it, Home/End select the limits, and Enter or a double-click restores 50/50.
-  The preferred split is saved in the browser. On narrow screens the source stacks above the report with
+  Resizing applies only to the current opening. On narrow screens the source stacks above the report with
   its own scroll area and comes into view when a citation is selected.
 
 **Data retention:** frontend visibility does not change the backend schema, pipeline outputs, saved runs,

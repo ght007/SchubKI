@@ -20,9 +20,9 @@ const $ = (id) => document.getElementById(id);
 const evidenceSplit = mountEvidenceSplit(document.querySelector(".shell"), $("evidence-divider"));
 // Reserve the pinned header's actual height, including wrapped account controls and pipeline tabs.
 const appHeader = document.querySelector(".app-header");
+const updateHeaderHeight = () => document.documentElement.style.setProperty(
+  "--app-header-height", `${appHeader?.offsetHeight || 0}px`);
 if (appHeader) {
-  const updateHeaderHeight = () => document.documentElement.style.setProperty(
-    "--app-header-height", `${appHeader.offsetHeight}px`);
   updateHeaderHeight();
   new ResizeObserver(updateHeaderHeight).observe(appHeader);
 }
@@ -340,6 +340,10 @@ function renderView(s) {
 
 let lastEvidence = null;
 function render(s) {
+  const showEvidence = s.tab === "assessment" && !s.busy && !!s.evidence;
+  // Temporarily give the PDF the full viewport height; Close/Escape restores navigation.
+  appHeader.hidden = showEvidence;
+  updateHeaderHeight();
   renderStatus($("status"), s, actions);
   renderBackNavigation($("nav-back"), s, actions.selectTab);
   renderFiber($("fiber"), s, actions.selectTab);
@@ -350,10 +354,9 @@ function render(s) {
   renderView(s);
   renderConfirm($("reading-review"), s, actions);
   // Keep the selected source and its scroll position when leaving the assessment.
-  const showEvidence = s.tab === "assessment" && !s.busy && !!s.evidence;
   $("drawer").hidden = !showEvidence;
   document.querySelector(".shell").classList.toggle("with-drawer", showEvidence);
-  evidenceSplit.update(showEvidence);
+  evidenceSplit.update(showEvidence, s.evidence !== lastEvidence);
   if (s.evidence !== lastEvidence) {
     lastEvidence = s.evidence;
     renderEvidence($("drawer"), s.evidence, () => store.set({ evidence: null }));

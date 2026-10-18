@@ -5,7 +5,9 @@
 `frontend/index.html` groups the app's top bar and spectrum pipeline navigation in `.app-header`.
 This wrapper stays sticky at the top in every run state, keeping the AFS logo/title, account controls,
 view toggle, and tabs visible together. The pipeline bar no longer sticks separately only while running.
-The page-navigation resize observer measures the whole wrapper and publishes `--app-header-height`.
+While evidence is open, the wrapper is temporarily hidden and restored when evidence closes or the user
+leaves Result Assessment. The app measures the wrapper and publishes `--app-header-height`, synchronously
+setting it to zero when the header hides so no empty header space is reserved.
 Section scroll offsets, the right-side panel, the Reading query sidebar, and the source drawer use this
 height so they remain below the pinned controls as account/status rows wrap or change. On narrow screens
 the source drawer is capped to the space below the header and scrolls as one panel.
@@ -32,7 +34,8 @@ tooltip and accessible name identify the destination; it is disabled on Customer
 source selection rather than navigating away from the application.
 
 `components/evidence-split.js` mounts once on `.shell` and `#evidence-divider`. When the source viewer
-is visible, CSS grid gives the source and assessment equal tracks by default with a divider between them.
+opens, CSS grid gives the source and assessment equal tracks with a divider between them. Each citation
+selection or reopening resets the ratio to 50/50, including returning to Result Assessment with a source selected.
 Pointer capture keeps dragging active outside the handle. ArrowLeft/ArrowRight adjust the split by five
 percentage points, Home/End select the current bounds, and Enter or a double-click restores 50/50.
 The focusable separator exposes its orientation, controlled pane, bounds and current percentage to
@@ -40,12 +43,13 @@ assistive technology. The split stays between 25% and 75%, with tighter bounds w
 panes at least about 280px wide on smaller desktops.
 
 Resizing changes only CSS tracks and separator metadata; it does not update application state, rebuild
-the report or reload the source page. `afs.evidenceSplit` stores the preferred ratio in localStorage.
-Viewport changes temporarily constrain the applied ratio without overwriting that preference. The source
+the report or reload the source page. The ratio is kept only for the current opening; previous saved
+`afs.evidenceSplit` values are ignored. Viewport changes temporarily constrain the applied ratio without
+overwriting the current drag preference. Unrelated state updates do not reset it. The source
 body scrolls independently under a fixed viewer heading. Leaving Result Assessment hides the source and
 divider while retaining the selected page and scroll position. At 760px and below, the divider is hidden
 and the source stacks above the report, taking up to half the viewport height. Selecting a citation on
-these screens scrolls the source viewer below the pinned app header.
+these screens scrolls the source viewer into view, with the app header hidden.
 
 ## Reading review dialog
 
