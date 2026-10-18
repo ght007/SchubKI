@@ -33,7 +33,10 @@ def startup() -> None:
     if store.local_kb_size() == 0:      # the local index is also the offline fallback, so it must exist
         log.info("Knowledge base empty: running ingest (first start only)")
         from .kb import ingest
-        log.info("Ingest: %s", ingest.run())
+        try:
+            log.info("Ingest: %s", ingest.run())
+        except (SystemExit, Exception) as exc:  # missing sources must not stop the server (hosted build)
+            log.error("Ingest failed, knowledge base stays empty: %s", exc)
     log.info("Database: %s", store.db_status().get("detail"))
     try:                                 # knowledge-base files edited on another machine (Knowledge base page)
         from .kb import files as kb_files
@@ -53,6 +56,12 @@ async def no_cache_frontend(request, call_next):
     if request.url.path in ("/", "/app", "/login", "/pricing", "/kb") or request.url.path.startswith("/static/"):
         response.headers["Cache-Control"] = "no-store, max-age=0"
     return response
+
+
+@app.get("/api/live", include_in_schema=False)
+def live() -> dict:
+    """Cheap liveness probe for the host (Render health check, wake-up ping): no database or LLM calls."""
+    return {"ok": True}
 
 
 app.mount("/static", StaticFiles(directory=settings.frontend_dir), name="static")
